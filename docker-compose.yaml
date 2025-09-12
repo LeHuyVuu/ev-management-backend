@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  apigateway:
+    build: ./ApiGateway
+    ports:
+      - "1111:8080"
+    container_name: apigateway
+    restart: always
+    environment:
+      - ReverseProxy__Clusters__coreCluster__Destinations__coreService__Address=http://coreservice:8080/
+      - ReverseProxy__Clusters__productCluster__Destinations__productService__Address=http://productservice:8080/
+
+  coreservice:
+    build: ./SWD392-backend
+    ports:
+      - "7259:8080"
+    container_name: coreservice
+    restart: always
+    env_file:
+      - ./SWD392-backend/.env
+
+  productservice:
+    build: ./ProductService
+    ports:
+      - "7195:8080"
+    container_name: productservice
+    restart: always
+    env_file:
+      - ./ProductService/.env

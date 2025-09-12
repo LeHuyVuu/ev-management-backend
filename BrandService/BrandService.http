@@ -1,0 +1,5 @@
+@BrandService_HostAddress = https://localhost:7259
+
+GET {{BrandService_HostAddress}}/api/User/GetAllUser
+Accept: application/json
+###

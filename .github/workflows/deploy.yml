@@ -1,0 +1,60 @@
+name: Deploy Microservices to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Build & Deploy to VPS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Clean old source code and ensure directory exists
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            mkdir -p /var/www/SWD392-microservices
+            rm -rf /var/www/SWD392-microservices/*
+            echo "Cleaned old source code on VPS."
+
+      - name: Copy source code to VPS via SCP
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          source: "."
+          target: "/var/www/SWD392-microservices"
+
+      - name: Write .env files on VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            ENV_DIR="/var/www/SWD392-microservices"
+            echo "${{ secrets.ENV }}" > "$ENV_DIR/SWD392-backend/.env"
+            echo "${{ secrets.ENV }}" > "$ENV_DIR/ProductService/.env"
+            echo "Wrote .env files on VPS."
+
+      - name: Deploy containers on VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /var/www/SWD392-microservices/
+            docker-compose down
+            docker-compose up -d --build
+            echo "Docker containers deployed and started."

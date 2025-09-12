@@ -1,0 +1,37 @@
+﻿# Ignore hệ thống và IDE
+**/.git
+**/.gitignore
+**/.vs
+**/.vscode
+**/.idea
+**/.settings
+**/.project
+**/.toolstarget
+
+# Ignore thư mục build
+**/bin
+**/obj
+
+# Ignore log và file môi trường
+**/*.dbmdl
+**/*.jfm
+**/azds.yaml
+**/npm-debug.log
+**/.env
+**/secrets.dev.yaml
+**/values.dev.yaml
+
+# Ignore package manager
+**/node_modules
+
+# Ignore CI/CD, chỉ khi không cần dùng Docker Compose
+# Nếu bạn cần giữ docker-compose.yml thì đừng ignore
+# **/docker-compose*
+
+# 🛑 KHÔNG ignore Dockerfile và *.csproj
+# **/Dockerfile* ❌
+# **/*.csproj ❌
+
+# Ignore tài liệu
+LICENSE
+README.md
