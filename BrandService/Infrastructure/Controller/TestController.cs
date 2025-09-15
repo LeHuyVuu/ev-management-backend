@@ -1,8 +1,7 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.Admin;
-using DealerService.Kafka;
 using Microsoft.AspNetCore.Mvc;
-using Shared.Kafka;
+
 
 namespace BrandService.Infrastructure.Controller;
 

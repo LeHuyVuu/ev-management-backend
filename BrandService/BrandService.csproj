@@ -40,6 +40,7 @@
       <Folder Include="Entities\" />
       <Folder Include="Infrastructure\Repositories\" />
       <Folder Include="Infrastructure\Services\" />
+      <Folder Include="Kafka\" />
     </ItemGroup>
 
 </Project>

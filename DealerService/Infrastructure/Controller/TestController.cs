@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Shared.Kafka;
 
 namespace ProductService.Infrastructure.Controller;
 

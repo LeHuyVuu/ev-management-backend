@@ -4,27 +4,28 @@ services:
   apigateway:
     build: ./ApiGateway
     ports:
-      - "1111:8080"
+      - "7076:8080"
     container_name: apigateway
     restart: always
     environment:
-      - ReverseProxy__Clusters__coreCluster__Destinations__coreService__Address=http://coreservice:8080/
-      - ReverseProxy__Clusters__productCluster__Destinations__productService__Address=http://productservice:8080/
+      - ReverseProxy__Clusters__brandCluster__Destinations__brandService__Address=https://brandservice:8080/
+      - ReverseProxy__Clusters__dealerCluster__Destinations__dealerService__Address=https://dealerservice:8080/
 
-  coreservice:
-    build: ./SWD392-backend
+  dealer-service:
+    build: ./DealerService
     ports:
       - "7259:8080"
-    container_name: coreservice
+    container_name: dealer-service
     restart: always
     env_file:
-      - ./SWD392-backend/.env
+      - ./DealerService/.env
+        
 
-  productservice:
-    build: ./ProductService
+  brand-service:
+    build: ./BrandService
     ports:
       - "7195:8080"
-    container_name: productservice
+    container_name: brand-service
     restart: always
     env_file:
-      - ./ProductService/.env
+      - ./BrandService/.env

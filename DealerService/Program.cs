@@ -1,14 +1,12 @@
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using DealerService.Kafka;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using Npgsql;
-using Shared.Kafka;
 
 var builder = WebApplication.CreateBuilder(args);
 
