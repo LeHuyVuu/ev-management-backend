@@ -93,7 +93,7 @@ var dataSource = dataSourceBuilder.Build();
 // DI các Repository và Service
 // Service
 
-builder.Services.AddSingleton<KafkaProducer>();
+builder.Services.AddSingleton<BrandProducer>();
 
 // Repository
 // Repositories

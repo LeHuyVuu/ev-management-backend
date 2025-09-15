@@ -4,12 +4,12 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ProductService.csproj .
+COPY DealerService.csproj .
 RUN dotnet restore
 COPY . .
-RUN dotnet publish ProductService.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish DealerService.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "ProductService.dll"]
+ENTRYPOINT ["dotnet", "DealerService.dll"]

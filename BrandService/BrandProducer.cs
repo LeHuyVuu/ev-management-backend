@@ -3,13 +3,15 @@ using Confluent.Kafka;
 
 namespace BrandService.Kafka
 {
-    public class KafkaProducer
+    public class BrandProducer
     {
         private readonly IProducer<Null, string> _producer;
         private readonly string _topic;
+        
+        
 
         // Constructor nhận cấu hình từ DI container
-        public KafkaProducer(IConfiguration configuration)
+        public BrandProducer(IConfiguration configuration)
         {
             var kafkaServer = configuration["KafkaSettings:BootstrapServers"]; // Đọc cấu hình Kafka
             _topic = configuration["KafkaSettings:Topic"]; // Đọc cấu hình topic
