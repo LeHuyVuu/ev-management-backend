@@ -54,5 +54,5 @@ services:
 
 networks:
   default:
-    external: true
-    name: bridge
+    driver: bridge
+
