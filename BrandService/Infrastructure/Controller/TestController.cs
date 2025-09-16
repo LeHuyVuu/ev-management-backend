@@ -5,9 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller;
 
-/// <summary>
-/// API chào hỏi.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class TestController : ControllerBase
