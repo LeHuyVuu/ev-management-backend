@@ -8,53 +8,57 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Build & Deploy to VPS
+    name: Build & Deploy to VPS (with password)
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Clean old source code and ensure directory exists
+      - name: Clean old code & ensure folder exists
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
           script: |
-            mkdir -p /var/www/SWD392-microservices
-            rm -rf /var/www/SWD392-microservices/*
-            echo "Cleaned old source code on VPS."
+            mkdir -p /var/www/microservices
+            rm -rf /var/www/microservices/*
+            echo "✅ Old source code cleaned on VPS."
 
-      - name: Copy source code to VPS via SCP
-        uses: appleboy/scp-action@v0.1.4
+      - name: Copy source code to VPS
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
           port: 22
           source: "."
-          target: "/var/www/SWD392-microservices"
+          target: "/var/www/microservices"
 
-      - name: Write .env files on VPS
+      - name: Write .env files for Brand & Dealer Services
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
           script: |
-            ENV_DIR="/var/www/SWD392-microservices"
-            echo "${{ secrets.ENV }}" > "$ENV_DIR/SWD392-backend/.env"
-            echo "${{ secrets.ENV }}" > "$ENV_DIR/ProductService/.env"
-            echo "Wrote .env files on VPS."
+            ENV_DIR="/var/www/microservices"
+            echo "${{ secrets.ENV_BRAND }}" > "$ENV_DIR/BrandService/.env"
+            echo "${{ secrets.ENV_DEALER }}" > "$ENV_DIR/DealerService/.env"
+            echo "✅ Wrote .env files for brand & dealer services."
 
-      - name: Deploy containers on VPS
+      - name: Build & deploy Docker containers
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
           script: |
-            cd /var/www/SWD392-microservices/
-            docker-compose down
-            docker-compose up -d --build
-            echo "Docker containers deployed and started."
+            cd /var/www/microservices
+            docker compose down
+            docker compose up -d --build
+            docker ps
+            echo "🚀 Deployed successfully!"
