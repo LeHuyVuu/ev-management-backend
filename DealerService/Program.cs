@@ -158,6 +158,11 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
     c.RoutePrefix = "swagger";
 });
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
+
 
 // ✅ Giữ nguyên toàn bộ logic cũ bên dưới
 app.UseHttpsRedirection();
