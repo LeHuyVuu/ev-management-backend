@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using System.Text.Json.Serialization;
 using BrandService.Kafka;
+using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -161,7 +162,7 @@ app.UseSwaggerUI(c =>
 
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
-    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
 });
 // ✅ GIỮ NGUYÊN: Middleware cũ
 app.UseHttpsRedirection();
