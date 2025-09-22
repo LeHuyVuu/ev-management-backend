@@ -28,7 +28,7 @@ builder.Configuration
 // Add controllers
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
@@ -89,10 +89,9 @@ var dataSource = dataSourceBuilder.Build();
 
 // DI các Repository và Service
 // Repositories
+// builder.Services.AddHostedService<ProductStockUpdateConsumer>();
 
-// builder.Services.AddHostedService<ProductStockUpdateConsumer>(); // Đăng ký hosted service
-
-// Authentication + xử lý lỗi không có token
+// Authentication
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
@@ -109,7 +108,6 @@ builder.Services.AddAuthentication("Bearer")
             ClockSkew = TimeSpan.Zero
         };
 
-        // ✅ Xử lý lỗi xác thực token (không có hoặc sai)
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -122,7 +120,7 @@ builder.Services.AddAuthentication("Bearer")
             },
             OnChallenge = context =>
             {
-                context.HandleResponse(); // Ngăn lỗi mặc định
+                context.HandleResponse();
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 return context.Response.WriteAsync(
@@ -134,19 +132,38 @@ builder.Services.AddAuthentication("Bearer")
 
 builder.Services.AddAuthorization();
 
-
-
-
 var app = builder.Build();
 
-// Middleware pipeline
-app.UseSwagger();
-app.UseSwaggerUI();
 
+// ✅ THÊM: nếu bạn reverse proxy dưới sub-path (ví dụ: /product-service)
+var pathBase = "/dealer-service"; // 🧠 sửa theo sub-path của service bạn
+app.UsePathBase(pathBase);
+
+
+// ✅ SỬA: Swagger với pathBase để hoạt động đúng khi reverse proxy
+app.UseSwagger(c =>
+{
+    c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+    {
+        var basePath = httpReq.PathBase.Value ?? string.Empty;
+        swaggerDoc.Servers = new List<OpenApiServer>
+        {
+            new OpenApiServer { Url = basePath }
+        };
+    });
+});
+
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
+    c.RoutePrefix = "swagger";
+});
+
+// ✅ Giữ nguyên toàn bộ logic cũ bên dưới
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 
-app.UseAuthentication(); // ✅ Trước Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
