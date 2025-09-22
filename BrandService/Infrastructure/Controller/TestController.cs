@@ -17,7 +17,7 @@ public class TestController : ControllerBase
         _bootstrapServers = config["Kafka:BootstrapServers"] ?? throw new Exception("Kafka config missing");
     }
  
-    [HttpGet("")]
+    [HttpGet("v1")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<string> Greet()
         => Ok($"Hello, BRAND SERVICE!");
