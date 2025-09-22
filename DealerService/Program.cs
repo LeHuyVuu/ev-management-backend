@@ -140,28 +140,27 @@ var pathBase = "/dealer-service"; // 🧠 sửa theo sub-path của service bạ
 app.UsePathBase(pathBase);
 
 
-// ✅ SỬA: Swagger với pathBase để hoạt động đúng khi reverse proxy
 app.UseSwagger(c =>
 {
     c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
     {
-        var basePath = httpReq.PathBase.Value ?? string.Empty;
         swaggerDoc.Servers = new List<OpenApiServer>
         {
-            new OpenApiServer { Url = $"{httpReq.Scheme}://{httpReq.Host.Value}{basePath}" }
+            new OpenApiServer
+            {
+                Url = "https://evm.webredirect.org/dealer-service"
+            }
         };
     });
 });
+
 
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
     c.RoutePrefix = "swagger";
 });
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
-});
+
 
 
 // ✅ Giữ nguyên toàn bộ logic cũ bên dưới

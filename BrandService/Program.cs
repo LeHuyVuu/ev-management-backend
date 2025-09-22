@@ -162,10 +162,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+
 // ✅ GIỮ NGUYÊN: Middleware cũ
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
