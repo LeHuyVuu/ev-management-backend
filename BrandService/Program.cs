@@ -141,18 +141,20 @@ var pathBase = "/brand-service"; // ⬅️ Sửa theo đúng sub-path bạn dùn
 app.UsePathBase(pathBase);
 
 
-// ✅ SỬA: Swagger dùng đúng base URL
 app.UseSwagger(c =>
 {
     c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
     {
-        var basePath = httpReq.PathBase.Value ?? string.Empty;
         swaggerDoc.Servers = new List<OpenApiServer>
         {
-            new OpenApiServer { Url = $"{httpReq.Scheme}://{httpReq.Host.Value}{basePath}" }
+            new OpenApiServer
+            {
+                Url = "https://evm.webredirect.org/brand-service"
+            }
         };
     });
 });
+
 
 app.UseSwaggerUI(c =>
 {
