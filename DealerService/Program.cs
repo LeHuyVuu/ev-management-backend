@@ -148,7 +148,7 @@ app.UseSwagger(c =>
         {
             new OpenApiServer
             {
-                Url = "https://evm.webredirect.org/dealer-service"
+                 Url = "https://evm.webredirect.org/dealer-service"
             }
         };
     });
