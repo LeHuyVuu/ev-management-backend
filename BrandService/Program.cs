@@ -7,6 +7,7 @@ using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using System.Text.Json.Serialization;
 using BrandService.Kafka;
+using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -32,8 +33,7 @@ builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
 // Add controllers
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
@@ -48,7 +48,7 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
     }
 
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Brand API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -88,23 +88,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-
 // DbContext
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 var dataSource = dataSourceBuilder.Build();
 
 // DI các Repository và Service
-// Service
-
 builder.Services.AddSingleton<BrandProducer>();
-
-// Repository
-// Repositories
-
-// UnitOfWork
-
-// Add mapper
-
 
 // Authentication + xử lý lỗi không có token
 builder.Services.AddAuthentication("Bearer")
@@ -123,7 +112,6 @@ builder.Services.AddAuthentication("Bearer")
             ClockSkew = TimeSpan.Zero
         };
 
-        // ✅ Xử lý lỗi xác thực token (không có hoặc sai)
         options.Events = new JwtBearerEvents
         {
             OnAuthenticationFailed = context =>
@@ -150,16 +138,39 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// Middleware pipeline
 
-app.UseSwagger();
-app.UseSwaggerUI();
+// ✅ THÊM: path base nếu chạy dưới sub-path (ví dụ: /brand-service)
+var pathBase = "/brand-service"; // ⬅️ Sửa theo đúng sub-path bạn dùng
+app.UsePathBase(pathBase);
 
 
+app.UseSwagger(c =>
+{
+    c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
+    {
+        swaggerDoc.Servers = new List<OpenApiServer>
+        {
+            new OpenApiServer
+            {
+                Url = "https://evm.webredirect.org/brand-service"
+            }
+        };
+    });
+});
+
+
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Brand API V1");
+    c.RoutePrefix = "swagger";
+});
+
+
+// ✅ GIỮ NGUYÊN: Middleware cũ
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 
-app.UseAuthentication(); // ✅ Trước Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

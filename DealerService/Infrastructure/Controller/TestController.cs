@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Shared.Kafka;
 
 namespace ProductService.Infrastructure.Controller;
 
@@ -8,7 +7,7 @@ namespace ProductService.Infrastructure.Controller;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class TestController : ControllerBase
+public class DealerController : ControllerBase
 {
     /// <summary>
     /// Test hello từ ProductService

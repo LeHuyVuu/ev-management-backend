@@ -1,15 +1,11 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.Admin;
-using DealerService.Kafka;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
-using Shared.Kafka;
+
 
 namespace BrandService.Infrastructure.Controller;
 
-/// <summary>
-/// API chào hỏi.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class TestController : ControllerBase
@@ -62,7 +58,7 @@ public class TestController : ControllerBase
         }
     }
  
-    [HttpGet("")]
+    [HttpGet("v1")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<string> Greet()
         => Ok($"Hello, BRAND SERVICE!");
