@@ -147,15 +147,14 @@ app.UseSwagger(c =>
 {
     c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
     {
+        var serverUrl = $"{httpReq.Scheme}://{httpReq.Host.Value}{httpReq.PathBase}";
         swaggerDoc.Servers = new List<OpenApiServer>
         {
-            new OpenApiServer
-            {
-                 Url = "https://evm.webredirect.org/dealer-service"
-            }
+            new OpenApiServer { Url = serverUrl }
         };
     });
 });
+
 
 
 app.UseSwaggerUI(c =>
