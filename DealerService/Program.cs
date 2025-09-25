@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 using ProductService.Infrastructure.Repositories;
 using ProductService.Infrastructure.Services;
+using ProductService.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,6 +96,9 @@ builder.Services.AddCors(options =>
 // DbContext
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
 builder.Services.AddScoped<CustomerRepository>();
