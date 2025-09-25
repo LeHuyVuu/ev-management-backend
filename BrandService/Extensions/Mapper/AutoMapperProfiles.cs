@@ -19,8 +19,6 @@ namespace BrandService.Extensions.Mapper
 
             CreateMap<User, UserResponse>()
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
-            CreateMap<User, UserLoginResponse>()
-                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));;
             CreateMap<UserLoginRequest, User>();
             CreateMap<UserRegisterRequest, User>();
             CreateMap<UserUpdateRequest, User>();  

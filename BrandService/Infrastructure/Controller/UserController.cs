@@ -37,23 +37,7 @@ public class UserController : ControllerBase
 
         return Ok(ApiResponse<UserResponse>.Success(user));
     }
-
-    /// <summary>
-    /// POST /api/users
-    /// Tạo user mới
-    /// </summary>
-    [HttpPost]
-    public async Task<ActionResult<ApiResponse<UserResponse>>> CreateUser([FromBody] UserRegisterRequest request)
-    {
-        // Hash password trước khi lưu
-    //    request.PasswordHash = PasswordHelper.HashPassword(request.Password);
-
-        var created = await _service.CreateUser(request);
-        if (created == null)
-            return BadRequest(ApiResponse<UserResponse>.Fail(400, "Không thể tạo user"));
-
-        return Ok(ApiResponse<UserResponse>.Success(created, "Tạo user thành công"));
-    }
+    
 
     /// <summary>
     /// PUT /api/users/{id}

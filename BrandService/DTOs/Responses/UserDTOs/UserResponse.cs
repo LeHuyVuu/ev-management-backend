@@ -11,8 +11,7 @@ public class UserResponse
     public string Email { get; set; } = null!;
 
     public string? Phone { get; set; }
-
-    public byte[] PasswordHash { get; set; } = null!;
+    public string PasswordHash { get; set; } = null!;
     public int RoleId { get; set; }
     public Guid? DealerId { get; set; }
 
