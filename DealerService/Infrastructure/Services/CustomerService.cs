@@ -34,4 +34,10 @@ public class CustomerService
         var customer = _mapper.Map<CustomerCreateModel>(request);
         return await _CustomerRepository.CreateCustomer(_mapper.Map<Customer>(customer));
     }
+
+    public async Task<bool> UpdateCustomer(CustomerUpdateRequest request)
+    {
+        var customer = _mapper.Map<CustomerUpdateModel>(request);
+        return await _CustomerRepository.UpdateCustomer(_mapper.Map<Customer>(customer));
+    }
 }
