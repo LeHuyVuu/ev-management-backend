@@ -1,3 +1,5 @@
+using Elastic.Clients.Elasticsearch.Security;
+
 namespace BrandService.DTOs.Responses.UserDTOs;
 
 public class UserResponse
@@ -11,9 +13,7 @@ public class UserResponse
     public string? Phone { get; set; }
 
     public byte[] PasswordHash { get; set; } = null!;
-
     public int RoleId { get; set; }
-
     public Guid? DealerId { get; set; }
 
     public string Status { get; set; } = null!;
@@ -23,4 +23,6 @@ public class UserResponse
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
+    public string RoleName  { get; set; } = null!;
+    
 }

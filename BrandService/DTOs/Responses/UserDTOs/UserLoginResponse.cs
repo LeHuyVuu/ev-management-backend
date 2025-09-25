@@ -5,4 +5,6 @@ public class UserLoginResponse
     public Guid UserId { get; set; }
     public int RoleId { get; set; }
     public Guid? DealerId { get; set; }
+    public string RoleName  { get; set; } = null!;
+    
 }
