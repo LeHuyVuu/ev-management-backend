@@ -1,6 +1,6 @@
 ﻿namespace ProductService.DTOs;
 
-public class CustomerOrderResponse
+public class OrderCustomerResponse
 {
     public Guid OrderId { get; set; }
 

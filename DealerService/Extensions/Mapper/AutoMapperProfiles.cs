@@ -35,7 +35,7 @@ namespace ProductService.Extensions.Mapper
                         => srcMember != null));
             
             // Order
-            CreateMap<Order, CustomerOrderResponse>()
+            CreateMap<Order, OrderCustomerResponse>()
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
