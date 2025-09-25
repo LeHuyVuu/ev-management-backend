@@ -39,6 +39,12 @@ namespace ProductService.Extensions.Mapper
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
+            
+            // Contract
+            CreateMap<Contract, ContractCustomerResponse>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
         }
     }
 }
