@@ -185,6 +185,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
+app.UseMiddleware<Application.ExceptionHandler.GlobalExceptionHandlerMiddleware>();
 
 // ✅ GIỮ NGUYÊN: Middleware cũ
 app.UseHttpsRedirection();

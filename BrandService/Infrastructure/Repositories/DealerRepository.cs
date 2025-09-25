@@ -22,7 +22,7 @@ namespace BrandService.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"{ex.Message}", ex);
+                throw new ($"{ex.Message}", ex);
             }
         }
 

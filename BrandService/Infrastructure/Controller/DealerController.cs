@@ -3,6 +3,7 @@ using BrandService.DTOs.Requests.DealerDTOs;
 using BrandService.DTOs.Responses.DealerDTOs;
 using BrandService.Infrastructure.Services;
 using BrandService.Models;
+using Application.ExceptionHandler;
 
 namespace BrandService.Infrastructure.Controller
 {
@@ -33,7 +34,7 @@ namespace BrandService.Infrastructure.Controller
             }
             catch (Exception ex)
             {
-                return BadRequest(ApiResponse<object>.Fail(500, "An error occurred while retrieving dealers", ex.Message));
+                throw new Exception("An error occurred while retrieving dealers");
             }
         }
 
@@ -52,12 +53,12 @@ namespace BrandService.Infrastructure.Controller
             {
                 var dealer = await _service.GetByIdAsync(id);
                 if (dealer == null)
-                    return NotFound(ApiResponse<object>.Fail(404, "Dealer not found"));
+                    throw new NotFoundException("Dealer not found");
                 return Ok(ApiResponse<DealerResponse>.Success(dealer));
             }
             catch (Exception ex)
             {
-                return BadRequest(ApiResponse<object>.Fail(500, "An error occurred while retrieving the dealer", ex.Message));
+                throw new Exception(ex.Message);
             }
         }
 
@@ -76,12 +77,13 @@ namespace BrandService.Infrastructure.Controller
             {
                 var created = await _service.CreateAsync(dealerRequest);
                 if (created == null)
-                    return BadRequest(ApiResponse<object>.Fail(400, "Failed to create dealer"));
+                    throw new BadRequestException("Failed to create dealer");
+
                 return Ok(ApiResponse<DealerResponse>.Success(created));
             }
             catch (Exception ex)
             {
-                return BadRequest(ApiResponse<object>.Fail(500, "An error occurred while adding the dealer", ex.Message));
+                throw new Exception("Failed to create dealer");
             }
         }
 
@@ -102,12 +104,12 @@ namespace BrandService.Infrastructure.Controller
             {
                 var updated = await _service.UpdateAsync(id, dealerRequest);
                 if (updated == null)
-                    return BadRequest(ApiResponse<object>.Fail(404, "Dealer not found"));
+                    throw new NotFoundException("Dealer not found");
                 return Ok(ApiResponse<DealerResponse>.Success(updated));
             }
             catch (Exception ex)
             {
-                return BadRequest(ApiResponse<object>.Fail(400, "Failed to update dealer", ex.Message));
+                throw new Exception("Failed to update dealer");
             }
         }
 
