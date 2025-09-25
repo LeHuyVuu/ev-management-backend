@@ -23,4 +23,11 @@ public class CustomerRepository
     {
         return await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId);
     }
+
+    public async Task<bool> CreateCustomer(Customer customer)
+    {
+        await _dbContext.Customers.AddAsync(customer);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
 }
