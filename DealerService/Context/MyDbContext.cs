@@ -70,8 +70,8 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("contract_id");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
@@ -87,8 +87,8 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(18, 2)
                 .HasColumnName("total_value");
             entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
 
             entity.HasOne(d => d.Customer).WithMany(p => p.Contracts)
@@ -121,8 +121,8 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(300)
                 .HasColumnName("address");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.Email)
@@ -139,8 +139,8 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(30)
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
 
             entity.HasOne(d => d.Dealer).WithMany(p => p.Customers)
@@ -162,8 +162,8 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(18, 2)
                 .HasColumnName("amount");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
@@ -205,7 +205,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("contact_phone");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DealerCode)
                 .HasMaxLength(50)
@@ -220,8 +219,8 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(30)
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
         });
 
@@ -236,7 +235,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("dealer_contract_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.EndDate).HasColumnName("end_date");
@@ -246,7 +244,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
 
             entity.HasOne(d => d.Dealer).WithMany(p => p.DealerContracts)
@@ -266,7 +263,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("dealer_discount_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.DiscountRate)
@@ -298,7 +294,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("achieved_amount");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.Period)
@@ -328,8 +323,8 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("inventory_id");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.LastUpdated)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("last_updated");
             entity.Property(e => e.StockQuantity)
                 .HasDefaultValue(0)
@@ -360,8 +355,8 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(18, 2)
                 .HasColumnName("amount");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DueDate).HasColumnName("due_date");
             entity.Property(e => e.ManufacturerName)
@@ -383,8 +378,8 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("order_id");
             entity.Property(e => e.ContractId).HasColumnName("contract_id");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
@@ -398,8 +393,8 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(30)
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
 
             entity.HasOne(d => d.Contract).WithMany(p => p.Orders)
@@ -445,8 +440,8 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("promotion_id");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.EndDate).HasColumnName("end_date");
@@ -474,8 +469,8 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("quote_id");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.CreatedByUser).HasColumnName("created_by_user");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
@@ -499,8 +494,8 @@ public partial class MyDbContext : DbContext
                 .HasPrecision(18, 2)
                 .HasColumnName("total_price");
             entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
             entity.Property(e => e.VehicleVersionId).HasColumnName("vehicle_version_id");
 
@@ -577,8 +572,8 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValue(false)
                 .HasColumnName("confirm_sms");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
@@ -627,15 +622,12 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("user_id");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.Email)
                 .HasMaxLength(200)
                 .HasColumnName("email");
-            entity.Property(e => e.LastActivityAt)
-                .HasColumnType("timestamp(0) without time zone")
-                .HasColumnName("last_activity_at");
+            entity.Property(e => e.LastActivityAt).HasColumnName("last_activity_at");
             entity.Property(e => e.Name)
                 .HasMaxLength(200)
                 .HasColumnName("name");
@@ -649,7 +641,6 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("status");
             entity.Property(e => e.UpdatedAt)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
 
             entity.HasOne(d => d.Dealer).WithMany(p => p.Users)
@@ -677,16 +668,16 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("brand");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.ModelName)
                 .HasMaxLength(150)
                 .HasColumnName("model_name");
             entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
         });
 
@@ -700,8 +691,8 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("allocation_id");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.ExpectedDelivery).HasColumnName("expected_delivery");
@@ -743,16 +734,16 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(100)
                 .HasColumnName("color");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.EvType)
                 .HasMaxLength(50)
                 .HasColumnName("ev_type");
             entity.Property(e => e.HorsePower).HasColumnName("horse_power");
             entity.Property(e => e.UpdatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("updated_at");
             entity.Property(e => e.VehicleId).HasColumnName("vehicle_id");
             entity.Property(e => e.VersionName)
@@ -775,8 +766,8 @@ public partial class MyDbContext : DbContext
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("wholesale_price_id");
             entity.Property(e => e.CreatedAt)
+                .HasPrecision(0)
                 .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
                 .HasColumnName("created_at");
             entity.Property(e => e.MinOrderQuantity)
                 .HasDefaultValue(1)
