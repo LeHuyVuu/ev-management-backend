@@ -15,7 +15,7 @@ public class CustomerController : ControllerBase
         _customerService = customerService;
     }
     
-    [Authorize(Roles = "dealer_staff")]
+    // [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers")]
     public async Task<IActionResult> GetAllCustomers()
@@ -24,6 +24,19 @@ public class CustomerController : ControllerBase
         if (customers != null)
         {
             return Ok(customers);
+        }
+        return NotFound();
+    }
+
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpGet]
+    [Route("api/customers/{customerId}")]
+    public async Task<IActionResult> GetCustomerDetail(Guid customerId)
+    {
+        var customer = await _customerService.GetCustomerDetail(customerId);
+        if (customer != null)
+        {
+            return Ok(customer);
         }
         return NotFound();
     }

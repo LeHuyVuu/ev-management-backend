@@ -13,6 +13,7 @@ public class CustomerRepository
     {
         _dbContext = dbContext;
     }
+    
     public async Task<IEnumerable<Customer>> GetAllCustomers()
     {
         return await _dbContext.Customers.ToListAsync();
