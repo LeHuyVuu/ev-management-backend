@@ -50,4 +50,9 @@ public class UserRepository
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> CheckUserExists(Guid id)
+    {
+        return await _context.Users.AnyAsync(u => u.UserId == id);
+    }
 }

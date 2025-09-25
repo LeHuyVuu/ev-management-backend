@@ -21,6 +21,7 @@ namespace BrandService.Extensions.Mapper
             CreateMap<User, UserLoginResponse>();
             CreateMap<UserLoginRequest, User>();
             CreateMap<UserRegisterRequest, User>();
+            CreateMap<UserUpdateRequest, User>();  
         }
     }
 }
