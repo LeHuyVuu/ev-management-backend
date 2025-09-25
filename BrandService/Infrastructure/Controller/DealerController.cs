@@ -15,12 +15,21 @@ namespace BrandService.Infrastructure.Controller
             _service = service;
         }
 
+        /// <summary>
+        /// Get all dealers.
+        /// </summary>
+        /// <returns>A list of dealers.</returns>
         [HttpGet]
         public async Task<ActionResult<List<DealerDto.DealerResponse>>> GetAll()
         {
             return Ok(await _service.GetAllAsync());
         }
 
+        /// <summary>
+        /// Get dealer details by Id.
+        /// </summary>
+        /// <param name="id">Dealer unique identifier (GUID).</param>
+        /// <returns>Dealer details if found, otherwise 404.</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<DealerDto.DealerResponse>> GetById(Guid id)
         {
@@ -29,6 +38,11 @@ namespace BrandService.Infrastructure.Controller
             return Ok(dealer);
         }
 
+        /// <summary>
+        /// Create a new dealer.
+        /// </summary>
+        /// <param name="request">Dealer information to be created.</param>
+        /// <returns>The created dealer.</returns>
         [HttpPost]
         public async Task<ActionResult<DealerDto.DealerResponse>> Create([FromBody] DealerDto.DealerRequest dealerRequest)
         {
@@ -36,6 +50,12 @@ namespace BrandService.Infrastructure.Controller
             return CreatedAtAction(nameof(GetById), new { id = created.DealerId }, created);
         }
 
+        /// <summary>
+        /// Update dealer information by Id.
+        /// </summary>
+        /// <param name="id">Dealer unique identifier (GUID).</param>
+        /// <param name="request">Dealer information to update.</param>
+        /// <returns>The updated dealer.</returns>
         [HttpPut("{id}")]
         public async Task<ActionResult<DealerDto.DealerResponse>> Update(Guid id, [FromBody] DealerDto.DealerRequest dealerRequest)
         {
@@ -43,6 +63,11 @@ namespace BrandService.Infrastructure.Controller
             return Ok(updated);
         }
 
+        /// <summary>
+        /// Get sales targets assigned to a dealer.
+        /// </summary>
+        /// <param name="id">Dealer unique identifier (GUID).</param>
+        /// <returns>A list of sales targets for the dealer.</returns>
         //[HttpGet("{id}/targets")]
         //public async Task<ActionResult<List<DealerTargetDto>>> GetTargets(Guid id)
         //{

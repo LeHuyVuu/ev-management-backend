@@ -11,6 +11,9 @@ namespace BrandService.Extensions.Mapper
             CreateMap<Dealer, DealerDto.DealerRequest>().ReverseMap();
             CreateMap<Dealer, DealerDto.DealerResponse>().ReverseMap();
             CreateMap<DealerTarget, DealerTargetDto>().ReverseMap();
+
+            CreateMap<Promotion, PromotionDto.PromotionRequest>().ReverseMap();
+            CreateMap<Promotion, PromotionDto.PromotionResponse>().ReverseMap();
         }
     }
 }
