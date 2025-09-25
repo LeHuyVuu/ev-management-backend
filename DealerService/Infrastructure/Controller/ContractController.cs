@@ -19,7 +19,7 @@ public class ContractController : ControllerBase
     /// <summary>
     /// Lấy danh sách hợp đồng theo CustomerId.
     /// </summary>
-    [Authorize(Roles = "dealer_staff")]
+    //[Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("/customers/{customerId}/contracts")]
     public async Task<IActionResult> GetAllContractsByCustomerId(Guid customerId)
