@@ -42,7 +42,6 @@
 
     <ItemGroup>
       <Folder Include="Entities\" />
-      <Folder Include="Infrastructure\Controller\" />
       <Folder Include="Kafka\" />
       <Folder Include="Models\" />
     </ItemGroup>

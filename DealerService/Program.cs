@@ -8,6 +8,8 @@ using ProductService.Extensions.Mapper;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using ProductService.Infrastructure.Repositories;
+using ProductService.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -95,6 +97,9 @@ var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 var dataSource = dataSourceBuilder.Build();
 
 // DI các Repository và Service
+builder.Services.AddScoped<CustomerRepository>();
+builder.Services.AddScoped<CustomerService>();
+
 // Repositories
 // builder.Services.AddHostedService<ProductStockUpdateConsumer>();
 
