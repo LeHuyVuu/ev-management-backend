@@ -30,4 +30,11 @@ public class CustomerRepository
         await _dbContext.SaveChangesAsync();
         return true;
     }
+    
+    public async Task<bool> UpdateCustomer(Customer customer)
+    {
+        _dbContext.Customers.Update(customer);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
 }
