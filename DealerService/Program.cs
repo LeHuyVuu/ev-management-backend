@@ -8,6 +8,7 @@ using ProductService.Extensions.Mapper;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using ProductService.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,6 +94,9 @@ builder.Services.AddCors(options =>
 // DbContext
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
 // Repositories
