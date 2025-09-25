@@ -54,4 +54,17 @@ public class CustomerController : ControllerBase
         }
         return BadRequest();
     }
+
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpPut]
+    [Route("api/customers")]
+    public async Task<IActionResult> UpdateCustomer(CustomerUpdateRequest request)
+    {
+        bool isSuccess = await _customerService.UpdateCustomer(request);
+        if (isSuccess)
+        {
+            return Ok();
+        }
+        return BadRequest();
+    }
 }

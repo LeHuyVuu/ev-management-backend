@@ -9,7 +9,7 @@ namespace ProductService.Extensions.Mapper
         public AutoMapperProfiles()
         {
             //Customer
-            CreateMap<Customer, CustomerResponse>()
+            CreateMap<Customer, CustomerBasicResponse>()
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));

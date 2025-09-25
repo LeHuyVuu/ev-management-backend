@@ -17,10 +17,10 @@ public class CustomerService
         _mapper =  mapper;
     }
 
-    public async Task<IEnumerable<CustomerResponse>> GetAllCustomers()
+    public async Task<IEnumerable<CustomerBasicResponse>> GetAllCustomers()
     {
         var customers = await _CustomerRepository.GetAllCustomers();
-        return _mapper.Map<IEnumerable<CustomerResponse>>(customers);
+        return _mapper.Map<IEnumerable<CustomerBasicResponse>>(customers);
     }
 
     public async Task<CustomerDetailResponse> GetCustomerDetail(Guid customerId)
