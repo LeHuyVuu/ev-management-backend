@@ -9,7 +9,6 @@ public class UserDTO
     }
     public class UserDTORegisterRequest
     {
-        public Guid UserId { get; set; }
 
         public string Name { get; set; } = null!;
 
@@ -24,10 +23,8 @@ public class UserDTO
         public Guid? DealerId { get; set; }
 
         public string Status { get; set; } = null!;
-
-        public DateTime? LastActivityAt { get; set; }
-
-        public DateTime CreatedAt { get; set; }
+        
+        
     }
 
     public class UserDTOLoginResponse
