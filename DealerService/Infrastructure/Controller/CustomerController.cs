@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using ProductService.Entities;
 using ProductService.Infrastructure.Services;
 
 namespace ProductService.Infrastructure.Controller;
@@ -12,7 +14,8 @@ public class CustomerController : ControllerBase
     {
         _customerService = customerService;
     }
-
+    
+    [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers")]
     public async Task<IActionResult> GetAllCustomers()
