@@ -1,16 +1,16 @@
 ﻿namespace BrandService.DTOs
 {
-    public class DealerDto
+    public class DealerDTO
     {
         public class DealerRequest
         {
-            public string DealerCode { get; set; } = null!;
+            public string? DealerCode { get; set; }
             public string Name { get; set; } = null!;
             public string? Region { get; set; }
             public string? Address { get; set; }
             public string? ContactEmail { get; set; }
             public string? ContactPhone { get; set; }
-            public string Status { get; set; } = "active"; // default
+            public string Status { get; set; } = null!;
         }
 
         public class DealerResponse

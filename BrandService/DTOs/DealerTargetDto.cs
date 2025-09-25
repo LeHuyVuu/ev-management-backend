@@ -1,6 +1,6 @@
 ﻿namespace BrandService.DTOs
 {
-    public class DealerTargetDto
+    public class DealerTargetDTO
     {
         public Guid DealerTargetId { get; set; }
         public Guid DealerId { get; set; }

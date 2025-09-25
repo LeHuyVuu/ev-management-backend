@@ -1,6 +1,6 @@
 ﻿namespace BrandService.DTOs
 {
-    public class PromotionDto
+    public class PromotionDTO
     {
         public class PromotionRequest
         {

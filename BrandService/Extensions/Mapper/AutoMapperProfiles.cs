@@ -8,12 +8,12 @@ namespace BrandService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
-            CreateMap<Dealer, DealerDto.DealerRequest>().ReverseMap();
-            CreateMap<Dealer, DealerDto.DealerResponse>().ReverseMap();
-            CreateMap<DealerTarget, DealerTargetDto>().ReverseMap();
+            CreateMap<Dealer, DealerDTO.DealerRequest>().ReverseMap();
+            CreateMap<Dealer, DealerDTO.DealerResponse>().ReverseMap();
+            CreateMap<DealerTarget, DealerTargetDTO>().ReverseMap();
 
-            CreateMap<Promotion, PromotionDto.PromotionRequest>().ReverseMap();
-            CreateMap<Promotion, PromotionDto.PromotionResponse>().ReverseMap();
+            CreateMap<Promotion, PromotionDTO.PromotionRequest>().ReverseMap();
+            CreateMap<Promotion, PromotionDTO.PromotionResponse>().ReverseMap();
         }
     }
 }
