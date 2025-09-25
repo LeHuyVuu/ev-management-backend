@@ -2,6 +2,8 @@
 
 public class CustomerUpdateRequest
 {
+    public Guid CustomerId { get; set; }
+    
     public Guid DealerId { get; set; }
 
     public string Name { get; set; } = null!;
