@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ProductService.Context;
+using ProductService.DTOs;
 using ProductService.Entities;
 
 namespace ProductService.Infrastructure.Repositories;
@@ -15,5 +16,10 @@ public class CustomerRepository
     public async Task<IEnumerable<Customer>> GetAllCustomers()
     {
         return await _dbContext.Customers.ToListAsync();
+    }
+
+    public async Task<Customer> GetCustomerDetail(Guid customerId)
+    {
+        return await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId);
     }
 }
