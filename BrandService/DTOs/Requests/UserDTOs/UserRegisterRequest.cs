@@ -8,7 +8,7 @@ public class UserRegisterRequest
 
     public string? Phone { get; set; }
 
-    public byte[] PasswordHash { get; set; } = null!;
+    public string Password { get; set; } = null!;
 
     public int RoleId { get; set; }
 
