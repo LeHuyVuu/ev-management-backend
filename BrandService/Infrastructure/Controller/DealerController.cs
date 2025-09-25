@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Application.ExceptionHandler;
 using BrandService.DTOs.Requests.DealerDTOs;
 using BrandService.DTOs.Responses.DealerDTOs;
 using BrandService.Infrastructure.Services;
+using BrandService.Model;
 using BrandService.Models;
-using Application.ExceptionHandler;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller
 {
@@ -19,23 +20,18 @@ namespace BrandService.Infrastructure.Controller
         }
 
         /// <summary>
-        /// Get all dealers.
+        /// Get all dealers with pagination.
         /// </summary>
-        /// <returns>A list of dealers.</returns>
+        /// <param name="pageNumber">The page number (default = 1).</param>
+        /// <param name="pageSize">The number of records per page (default = 10).</param>
+        /// <returns>Paged list of dealers.</returns>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<List<DealerResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetAll()
+        public async Task<ActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            try
-            {
-                var dealers = await _service.GetAllAsync();
-                return Ok(ApiResponse<List<DealerResponse>>.Success(dealers));
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("An error occurred while retrieving dealers");
-            }
+            var dealers = await _service.GetPagedAsync(pageNumber, pageSize);
+            return Ok(ApiResponse<PagedResult<DealerResponse>>.Success(dealers));
         }
 
         /// <summary>
@@ -49,17 +45,8 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetById(Guid id)
         {
-            try
-            {
-                var dealer = await _service.GetByIdAsync(id);
-                if (dealer == null)
-                    throw new NotFoundException("Dealer not found");
-                return Ok(ApiResponse<DealerResponse>.Success(dealer));
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            var dealer = await _service.GetByIdAsync(id);
+            return Ok(ApiResponse<DealerResponse>.Success(dealer));
         }
 
         /// <summary>
@@ -73,18 +60,8 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Create([FromBody] DealerRequest dealerRequest)
         {
-            try
-            {
-                var created = await _service.CreateAsync(dealerRequest);
-                if (created == null)
-                    throw new BadRequestException("Failed to create dealer");
-
-                return Ok(ApiResponse<DealerResponse>.Success(created));
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to create dealer");
-            }
+            var created = await _service.CreateAsync(dealerRequest);
+            return Ok(ApiResponse<DealerResponse>.Success(created));
         }
 
         /// <summary>
@@ -100,17 +77,8 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Update(Guid id, [FromBody] DealerRequest dealerRequest)
         {
-            try
-            {
-                var updated = await _service.UpdateAsync(id, dealerRequest);
-                if (updated == null)
-                    throw new NotFoundException("Dealer not found");
-                return Ok(ApiResponse<DealerResponse>.Success(updated));
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to update dealer");
-            }
+            var updated = await _service.UpdateAsync(id, dealerRequest);
+            return Ok(ApiResponse<DealerResponse>.Success(updated));
         }
 
         /// <summary>

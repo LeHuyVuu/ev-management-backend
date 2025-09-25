@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+﻿using Application.ExceptionHandler;
+using AutoMapper;
 using BrandService.DTOs.Requests.DealerDTOs;
 using BrandService.DTOs.Responses.DealerDTOs;
 using BrandService.Entities;
 using BrandService.Infrastructure.Repositories;
+using BrandService.Model;
 
 namespace BrandService.Infrastructure.Services
 {
@@ -19,59 +21,43 @@ namespace BrandService.Infrastructure.Services
 
         public async Task<List<DealerResponse>> GetAllAsync()
         {
-            try
+            var dealers = await _repo.GetAllAsync();
+            return _mapper.Map<List<DealerResponse>>(dealers);
+        }
+
+        public async Task<PagedResult<DealerResponse>> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            var paged = await _repo.GetPagedAsync(pageNumber, pageSize);
+
+            return new PagedResult<DealerResponse>
             {
-                var dealers = await _repo.GetAllAsync();
-                return _mapper.Map<List<DealerResponse>>(dealers);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to get all dealers: {ex.Message}", ex);
-            }
+                Items = _mapper.Map<List<DealerResponse>>(paged.Items),
+                TotalItems = paged.TotalItems,
+                PageNumber = paged.PageNumber,
+                PageSize = paged.PageSize
+            };
         }
 
         public async Task<DealerResponse?> GetByIdAsync(Guid id)
         {
-            try
-            {
-                var dealer = await _repo.GetByIdAsync(id);
-                return dealer == null ? null : _mapper.Map<DealerResponse>(dealer);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to get dealer by Id: {ex.Message}", ex);
-            }
+            var dealer = await _repo.GetByIdAsync(id);
+            return _mapper.Map<DealerResponse>(dealer);
         }
 
         public async Task<DealerResponse> CreateAsync(DealerRequest dealerRequest)
         {
             var dealer = _mapper.Map<Dealer>(dealerRequest);
             dealer.DealerId = Guid.NewGuid();
-            try
-            {
-                var created = await _repo.AddAsync(dealer);
-                return _mapper.Map<DealerResponse>(created);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to create dealer: {ex.Message}", ex);
-            }
+            var created = await _repo.AddAsync(dealer);
+            return _mapper.Map<DealerResponse>(created);
         }
 
         public async Task<DealerResponse?> UpdateAsync(Guid id, DealerRequest dealerRequest)
         {
-            try
-            {
-                var dealer = await _repo.GetByIdAsync(id);
-                if (dealer == null) return null;
-                dealer = _mapper.Map(dealerRequest, dealer);
-                var updated = await _repo.UpdateAsync(dealer);
-                return _mapper.Map<DealerResponse>(updated);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to update dealer: {ex.Message}", ex);
-            }
+            var dealer = await _repo.GetByIdAsync(id);
+            dealer = _mapper.Map(dealerRequest, dealer);
+            var updated = await _repo.UpdateAsync(dealer);
+            return _mapper.Map<DealerResponse>(updated);
         }
 
         //public async Task<List<DealerTargetDto>> GetTargetsAsync(Guid dealerId)
