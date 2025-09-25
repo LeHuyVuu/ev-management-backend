@@ -11,6 +11,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.1" />
+        <PackageReference Include="AWSSDK.S3" Version="4.0.7.4" />
         <PackageReference Include="Confluent.Kafka" Version="2.9.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
         <PackageReference Include="Npgsql" Version="8.0.7" />
@@ -44,7 +46,6 @@
       <Folder Include="DTOs\" />
       <Folder Include="Entities\" />
       <Folder Include="Infrastructure\Repositories\" />
-      <Folder Include="Infrastructure\Services\" />
       <Folder Include="Kafka\" />
       <Folder Include="Models\" />
     </ItemGroup>

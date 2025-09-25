@@ -12,6 +12,8 @@ using ProductService.Extensions.Mapper;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using Amazon.S3;
+using ProductService.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +106,12 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 // DI các Repository và Service
 // Repositories
+
+// Đăng ký Amazon S3 client
+builder.Services.AddAWSService<IAmazonS3>();
+
+// Đăng ký custom service
+builder.Services.AddScoped<S3StorageService>();
 // builder.Services.AddHostedService<ProductStockUpdateConsumer>();
 
 // Authentication
