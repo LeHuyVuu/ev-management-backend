@@ -8,8 +8,7 @@ public record ApiResponse<T>(
     DateTimeOffset Timestamp
 )
 {
-    // Success
-    public static ApiResponse<T> Success(T data, string message = "Success") =>
+    public static ApiResponse<T> Success(T? data, string message = "Success") =>
         new(200, message, data, null, DateTimeOffset.UtcNow);
 
     // All Fail
