@@ -43,7 +43,6 @@
     <ItemGroup>
       <Folder Include="Entities\" />
       <Folder Include="Infrastructure\Controller\" />
-      <Folder Include="Infrastructure\Services\" />
       <Folder Include="Kafka\" />
       <Folder Include="Models\" />
     </ItemGroup>
