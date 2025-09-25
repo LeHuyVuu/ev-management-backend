@@ -25,6 +25,14 @@ namespace ProductService.Extensions.Mapper
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
+            CreateMap<CustomerUpdateRequest, CustomerUpdateModel>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            CreateMap<CustomerUpdateModel, Customer>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
         }
     }
 }
