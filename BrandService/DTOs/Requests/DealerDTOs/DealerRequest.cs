@@ -9,5 +9,6 @@
         public string? ContactEmail { get; set; }
         public string? ContactPhone { get; set; }
         public string Status { get; set; } = null!;
+
     }
 }
