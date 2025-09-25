@@ -1,14 +1,18 @@
-using System.Reflection;
-using System.Text;
+using BrandService.Context;
+using BrandService.Extensions.Mapper;
+using BrandService.Infrastructure.Repositories;
+using BrandService.Infrastructure.Services;
+using BrandService.Kafka;
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DotNetEnv;
-using System.Text.Json.Serialization;
-using BrandService.Kafka;
-using Microsoft.AspNetCore.HttpOverrides;
 using Npgsql;
+using System.Reflection;
+using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,9 +95,16 @@ builder.Services.AddCors(options =>
 // DbContext
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 var dataSource = dataSourceBuilder.Build();
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
 builder.Services.AddSingleton<BrandProducer>();
+builder.Services.AddScoped<DealerRepository>();
+builder.Services.AddScoped<DealerService>();
+
+// AutoMapper
+builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
 
 // Authentication + xử lý lỗi không có token
 builder.Services.AddAuthentication("Bearer")
@@ -152,7 +163,7 @@ app.UseSwagger(c =>
         {
             new OpenApiServer
             {
-                Url = "https://evm.webredirect.org/brand-service"
+                Url = "https://localhost:7012/brand-service"
             }
         };
     });

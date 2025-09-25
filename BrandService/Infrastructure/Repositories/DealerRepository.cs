@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.Context;
-using ProductService.Entities;
+using BrandService.Context;
+using BrandService.Entities;
 using System;
 
-namespace ProductService.Repositories
+namespace BrandService.Infrastructure.Repositories
 {
     public class DealerRepository
     {

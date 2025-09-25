@@ -1,4 +1,4 @@
-﻿namespace ProductService.DTOs
+﻿namespace BrandService.DTOs
 {
     public class DealerTargetDto
     {

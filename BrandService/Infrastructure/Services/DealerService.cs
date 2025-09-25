@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using ProductService.DTOs;
-using ProductService.Entities;
-using ProductService.Repositories;
+using BrandService.DTOs;
+using BrandService.Entities;
+using BrandService.Infrastructure.Repositories;
 
-namespace ProductService.Services
+namespace BrandService.Infrastructure.Services
 {
     public class DealerService
     {

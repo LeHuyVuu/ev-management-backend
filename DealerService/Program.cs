@@ -6,8 +6,6 @@ using Microsoft.OpenApi.Models;
 using Npgsql;
 using ProductService.Context;
 using ProductService.Extensions.Mapper;
-using ProductService.Repositories;
-using ProductService.Services;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -42,9 +40,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
 
-// DI Repositories and Services
-builder.Services.AddScoped<DealerRepository>();
-builder.Services.AddScoped<DealerService>();
 
 // Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();

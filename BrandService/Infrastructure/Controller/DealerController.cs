@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using ProductService.DTOs;
-using ProductService.Services;
+using BrandService.DTOs;
+using BrandService.Infrastructure.Services;
 
-namespace ProductService.Infrastructure.Controller
+namespace BrandService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -16,13 +16,13 @@ namespace ProductService.Infrastructure.Controller
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<DealerDto>>> GetAll()
+        public async Task<ActionResult<List<DealerDto.DealerResponse>>> GetAll()
         {
             return Ok(await _service.GetAllAsync());
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<DealerDto>> GetById(Guid id)
+        public async Task<ActionResult<DealerDto.DealerResponse>> GetById(Guid id)
         {
             var dealer = await _service.GetByIdAsync(id);
             if (dealer == null) return NotFound();
@@ -43,11 +43,11 @@ namespace ProductService.Infrastructure.Controller
             return Ok(updated);
         }
 
-        [HttpGet("{id}/targets")]
-        public async Task<ActionResult<List<DealerTargetDto>>> GetTargets(Guid id)
-        {
-            return Ok(await _service.GetTargetsAsync(id));
-        }
+        //[HttpGet("{id}/targets")]
+        //public async Task<ActionResult<List<DealerTargetDto>>> GetTargets(Guid id)
+        //{
+        //    return Ok(await _service.GetTargetsAsync(id));
+        //}
     }
 
 }
