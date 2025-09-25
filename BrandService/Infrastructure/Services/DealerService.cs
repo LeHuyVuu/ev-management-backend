@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using BrandService.DTOs;
+using BrandService.DTOs.Requests.DealerDTOs;
+using BrandService.DTOs.Responses.DealerDTOs;
 using BrandService.Entities;
 using BrandService.Infrastructure.Repositories;
 
@@ -16,12 +17,12 @@ namespace BrandService.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<List<DealerDTO.DealerResponse>> GetAllAsync()
+        public async Task<List<DealerResponse>> GetAllAsync()
         {
             try
             {
                 var dealers = await _repo.GetAllAsync();
-                return _mapper.Map<List<DealerDTO.DealerResponse>>(dealers);
+                return _mapper.Map<List<DealerResponse>>(dealers);
             }
             catch (Exception ex)
             {
@@ -29,12 +30,12 @@ namespace BrandService.Infrastructure.Services
             }
         }
 
-        public async Task<DealerDTO.DealerResponse?> GetByIdAsync(Guid id)
+        public async Task<DealerResponse?> GetByIdAsync(Guid id)
         {
             try
             {
                 var dealer = await _repo.GetByIdAsync(id);
-                return dealer == null ? null : _mapper.Map<DealerDTO.DealerResponse>(dealer);
+                return dealer == null ? null : _mapper.Map<DealerResponse>(dealer);
             }
             catch (Exception ex)
             {
@@ -42,14 +43,14 @@ namespace BrandService.Infrastructure.Services
             }
         }
 
-        public async Task<DealerDTO.DealerResponse> CreateAsync(DealerDTO.DealerRequest dealerRequest)
+        public async Task<DealerResponse> CreateAsync(DealerRequest dealerRequest)
         {
             var dealer = _mapper.Map<Dealer>(dealerRequest);
             dealer.DealerId = Guid.NewGuid();
             try
             {
                 var created = await _repo.AddAsync(dealer);
-                return _mapper.Map<DealerDTO.DealerResponse>(created);
+                return _mapper.Map<DealerResponse>(created);
             }
             catch (Exception ex)
             {
@@ -57,7 +58,7 @@ namespace BrandService.Infrastructure.Services
             }
         }
 
-        public async Task<DealerDTO.DealerResponse?> UpdateAsync(Guid id, DealerDTO.DealerRequest dealerRequest)
+        public async Task<DealerResponse?> UpdateAsync(Guid id, DealerRequest dealerRequest)
         {
             try
             {
@@ -65,7 +66,7 @@ namespace BrandService.Infrastructure.Services
                 if (dealer == null) return null;
                 dealer = _mapper.Map(dealerRequest, dealer);
                 var updated = await _repo.UpdateAsync(dealer);
-                return _mapper.Map<DealerDTO.DealerResponse>(updated);
+                return _mapper.Map<DealerResponse>(updated);
             }
             catch (Exception ex)
             {

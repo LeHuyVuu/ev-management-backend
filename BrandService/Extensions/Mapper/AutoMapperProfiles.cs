@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
-using BrandService.DTOs;
+using BrandService.DTOs.Requests.DealerDTOs;
+using BrandService.DTOs.Responses.DealerDTOs;
 using BrandService.Entities;
 
 namespace BrandService.Extensions.Mapper
@@ -8,12 +9,9 @@ namespace BrandService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
-            CreateMap<Dealer, DealerDTO.DealerRequest>().ReverseMap();
-            CreateMap<Dealer, DealerDTO.DealerResponse>().ReverseMap();
-            CreateMap<DealerTarget, DealerTargetDTO>().ReverseMap();
+            CreateMap<Dealer, DealerRequest>().ReverseMap();
+            CreateMap<Dealer, DealerResponse>().ReverseMap();
 
-            CreateMap<Promotion, PromotionDTO.PromotionRequest>().ReverseMap();
-            CreateMap<Promotion, PromotionDTO.PromotionResponse>().ReverseMap();
         }
     }
 }
