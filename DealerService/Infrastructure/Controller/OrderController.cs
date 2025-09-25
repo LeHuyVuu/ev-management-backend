@@ -16,7 +16,7 @@ public class OrderController : ControllerBase
     
     // [Authorize(Roles = "dealer_staff")]
     [HttpGet]
-    [Route("customers/{id}/orders")]
+    [Route("customers/{customerId}/orders")]
     public async Task<IEnumerable<OrderCustomerResponse>> GetAllOrdersByCustomerId(Guid customerId)
     {
         return await _orderService.GetAllOrdersByCustomerId(customerId);

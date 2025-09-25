@@ -106,6 +106,8 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 // DI các Repository và Service
 builder.Services.AddScoped<CustomerRepository>();
 builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<OrderRepository>();
+builder.Services.AddScoped<OrderService>();
 
 // Repositories
 // builder.Services.AddHostedService<ProductStockUpdateConsumer>();
