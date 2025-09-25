@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BrandService.DTOs;
 using BrandService.Infrastructure.Services;
+using BrandService.Models;
 
 namespace BrandService.Infrastructure.Controller
 {
@@ -20,9 +21,9 @@ namespace BrandService.Infrastructure.Controller
         /// </summary>
         /// <returns>A list of dealers.</returns>
         [HttpGet]
-        public async Task<ActionResult<List<DealerDto.DealerResponse>>> GetAll()
+        public async Task<ActionResult> GetAll()
         {
-            return Ok(await _service.GetAllAsync());
+            return Ok(ApiResponse<List<DealerDto.DealerResponse>>.Success(await _service.GetAllAsync()));
         }
 
         /// <summary>
@@ -31,11 +32,11 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="id">Dealer unique identifier (GUID).</param>
         /// <returns>Dealer details if found, otherwise 404.</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<DealerDto.DealerResponse>> GetById(Guid id)
+        public async Task<ActionResult> GetById(Guid id)
         {
             var dealer = await _service.GetByIdAsync(id);
             if (dealer == null) return NotFound();
-            return Ok(dealer);
+            return Ok(ApiResponse<DealerDto.DealerResponse>.Success(dealer));
         }
 
         /// <summary>
@@ -44,10 +45,10 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="request">Dealer information to be created.</param>
         /// <returns>The created dealer.</returns>
         [HttpPost]
-        public async Task<ActionResult<DealerDto.DealerResponse>> Create([FromBody] DealerDto.DealerRequest dealerRequest)
+        public async Task<ActionResult> Create([FromBody] DealerDto.DealerRequest dealerRequest)
         {
             var created = await _service.CreateAsync(dealerRequest);
-            return CreatedAtAction(nameof(GetById), new { id = created.DealerId }, created);
+            return Ok(ApiResponse<DealerDto.DealerResponse>.Success(created));
         }
 
         /// <summary>
@@ -57,10 +58,10 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="request">Dealer information to update.</param>
         /// <returns>The updated dealer.</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<DealerDto.DealerResponse>> Update(Guid id, [FromBody] DealerDto.DealerRequest dealerRequest)
+        public async Task<ActionResult> Update(Guid id, [FromBody] DealerDto.DealerRequest dealerRequest)
         {
             var updated = await _service.UpdateAsync(id, dealerRequest);
-            return Ok(updated);
+            return Ok(ApiResponse<DealerDto.DealerResponse>.Success(updated));
         }
 
         /// <summary>
