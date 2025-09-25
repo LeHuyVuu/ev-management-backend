@@ -12,6 +12,10 @@ using ProductService.Extensions.Mapper;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using ProductService.Infrastructure.Repositories;
+using ProductService.Infrastructure.Services;
+using ProductService.Context;
+using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,7 +107,20 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
+builder.Services.AddScoped<CustomerRepository>();
+builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<OrderRepository>();
+builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<ContractRepository>();
+builder.Services.AddScoped<ContractService>();
+
 // Repositories
+
+// Đăng ký Amazon S3 client
+builder.Services.AddAWSService<IAmazonS3>();
+
+// Đăng ký custom service
+builder.Services.AddScoped<S3StorageService>();
 // builder.Services.AddHostedService<ProductStockUpdateConsumer>();
 
 // Authentication

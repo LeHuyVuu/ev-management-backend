@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using BrandService.DTOs;
+using BrandService.DTOs.Requests.DealerDTOs;
+using BrandService.DTOs.Responses.DealerDTOs;
 using BrandService.Infrastructure.Services;
 using BrandService.Models;
+using Application.ExceptionHandler;
 
 namespace BrandService.Infrastructure.Controller
 {
@@ -21,9 +23,19 @@ namespace BrandService.Infrastructure.Controller
         /// </summary>
         /// <returns>A list of dealers.</returns>
         [HttpGet]
+        [ProducesResponseType(typeof(ApiResponse<List<DealerResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetAll()
         {
-            return Ok(ApiResponse<List<DealerDto.DealerResponse>>.Success(await _service.GetAllAsync()));
+            try
+            {
+                var dealers = await _service.GetAllAsync();
+                return Ok(ApiResponse<List<DealerResponse>>.Success(dealers));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("An error occurred while retrieving dealers");
+            }
         }
 
         /// <summary>
@@ -32,11 +44,22 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="id">Dealer unique identifier (GUID).</param>
         /// <returns>Dealer details if found, otherwise 404.</returns>
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<DealerResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetById(Guid id)
         {
-            var dealer = await _service.GetByIdAsync(id);
-            if (dealer == null) return NotFound();
-            return Ok(ApiResponse<DealerDto.DealerResponse>.Success(dealer));
+            try
+            {
+                var dealer = await _service.GetByIdAsync(id);
+                if (dealer == null)
+                    throw new NotFoundException("Dealer not found");
+                return Ok(ApiResponse<DealerResponse>.Success(dealer));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
         /// <summary>
@@ -45,10 +68,23 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="request">Dealer information to be created.</param>
         /// <returns>The created dealer.</returns>
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] DealerDto.DealerRequest dealerRequest)
+        [ProducesResponseType(typeof(ApiResponse<DealerResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> Create([FromBody] DealerRequest dealerRequest)
         {
-            var created = await _service.CreateAsync(dealerRequest);
-            return Ok(ApiResponse<DealerDto.DealerResponse>.Success(created));
+            try
+            {
+                var created = await _service.CreateAsync(dealerRequest);
+                if (created == null)
+                    throw new BadRequestException("Failed to create dealer");
+
+                return Ok(ApiResponse<DealerResponse>.Success(created));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to create dealer");
+            }
         }
 
         /// <summary>
@@ -58,10 +94,23 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="request">Dealer information to update.</param>
         /// <returns>The updated dealer.</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult> Update(Guid id, [FromBody] DealerDto.DealerRequest dealerRequest)
+        [ProducesResponseType(typeof(ApiResponse<DealerResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> Update(Guid id, [FromBody] DealerRequest dealerRequest)
         {
-            var updated = await _service.UpdateAsync(id, dealerRequest);
-            return Ok(ApiResponse<DealerDto.DealerResponse>.Success(updated));
+            try
+            {
+                var updated = await _service.UpdateAsync(id, dealerRequest);
+                if (updated == null)
+                    throw new NotFoundException("Dealer not found");
+                return Ok(ApiResponse<DealerResponse>.Success(updated));
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to update dealer");
+            }
         }
 
         /// <summary>
