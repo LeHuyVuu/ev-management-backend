@@ -31,6 +31,10 @@ public record ApiResponse<T>(
     // 404 - Not Found
     public static ApiResponse<T> NotFound(string message = "Not Found") =>
         new(404, message, default, null, DateTimeOffset.UtcNow);
+    
+    // 409 - Duplicate Name
+    public static ApiResponse<T> Duplicate(string message = "Duplicate") =>
+        new(409, message, default, null, DateTimeOffset.UtcNow);
 
     // 500 - Internal Server Error
     public static ApiResponse<T> InternalError(string message = "Internal Server Error", object? errors = null) =>

@@ -47,4 +47,9 @@ public class CustomerRepository
     {
         return await _dbContext.Customers.AnyAsync(c => c.CustomerId == customerId);
     }
+
+    public async Task<Customer> GetActiveCustomerById(Guid customerId)
+    {
+        return await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId);
+    }
 }

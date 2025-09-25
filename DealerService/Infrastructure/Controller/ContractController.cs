@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DealerService.Models;
+using Microsoft.AspNetCore.Mvc;
 using ProductService.DTOs;
 using ProductService.Infrastructure.Services;
 
@@ -16,8 +17,16 @@ public class ContractController : ControllerBase
 
     [HttpGet]
     [Route("/customers/{customerId}/contracts")]
-    public async Task<IEnumerable<ContractCustomerResponse>> GetAllContractsByCustomerId(Guid customerId)
+    public async Task<IActionResult> GetAllContractsByCustomerId(Guid customerId)
     {
-        return await _contractService.GetAllContractsByCustomerId(customerId);
+        try
+        {
+            var contracts = await _contractService.GetAllContractsByCustomerId(customerId);
+            return Ok(ApiResponse<IEnumerable<ContractCustomerResponse>>.Success(contracts));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
     }
 }

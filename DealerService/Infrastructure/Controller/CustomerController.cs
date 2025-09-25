@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Data;
+using DealerService.Models;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.DTOs;
-using ProductService.Entities;
 using ProductService.Infrastructure.Services;
 
 namespace ProductService.Infrastructure.Controller;
@@ -21,12 +21,15 @@ public class CustomerController : ControllerBase
     [Route("api/customers")]
     public async Task<IActionResult> GetAllCustomers()
     {
-        var customers = await _customerService.GetAllCustomers();
-        if (customers != null)
+        try
         {
-            return Ok(customers);
+            var customers = await _customerService.GetAllCustomers();
+            return Ok(ApiResponse<IEnumerable<CustomerBasicResponse>>.Success(customers));
         }
-        return NotFound();
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
     }
 
     // [Authorize(Roles = "dealer_staff")]
@@ -34,12 +37,15 @@ public class CustomerController : ControllerBase
     [Route("api/customers/{customerId}")]
     public async Task<IActionResult> GetCustomerDetail(Guid customerId)
     {
-        var customer = await _customerService.GetCustomerDetail(customerId);
-        if (customer != null)
+        try
         {
-            return Ok(customer);
+            var customer = await _customerService.GetCustomerDetail(customerId);
+            return Ok(ApiResponse<CustomerDetailResponse>.Success(customer));
         }
-        return NotFound();
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
     }
 
     // [Authorize(Roles = "dealer_staff")]
@@ -47,12 +53,15 @@ public class CustomerController : ControllerBase
     [Route("api/customers")]
     public async Task<IActionResult> CreateCustomer(CustomerCreateRequest request)
     {
-        bool isSuccess = await _customerService.CreateCustomer(request);
-        if (isSuccess)
+        try
         {
-            return Ok();
+            bool isSuccess = await _customerService.CreateCustomer(request);
+            return Ok(ApiResponse<bool>.Success(isSuccess, "Customer was created successfully"));
         }
-        return BadRequest();
+        catch (DuplicateNameException ex)
+        {
+            return BadRequest(ApiResponse<string>.Duplicate(ex.Message));
+        }
     }
 
     // [Authorize(Roles = "dealer_staff")]
@@ -60,11 +69,14 @@ public class CustomerController : ControllerBase
     [Route("api/customers")]
     public async Task<IActionResult> UpdateCustomer(CustomerUpdateRequest request)
     {
-        bool isSuccess = await _customerService.UpdateCustomer(request);
-        if (isSuccess)
+        try
         {
-            return Ok();
+            bool isSuccess = await _customerService.UpdateCustomer(request);;
+            return Ok(ApiResponse<bool>.Success(isSuccess, "Customer was created successfully"));
         }
-        return BadRequest();
+        catch (KeyNotFoundException ex)
+        {
+            return BadRequest(ApiResponse<string>.Duplicate(ex.Message));
+        }
     }
 }

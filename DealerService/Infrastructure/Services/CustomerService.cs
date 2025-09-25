@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Data;
+using AutoMapper;
 using ProductService.DTOs;
 using ProductService.Entities;
 using ProductService.Extensions.Mapper;
@@ -26,17 +27,25 @@ public class CustomerService
     public async Task<CustomerDetailResponse> GetCustomerDetail(Guid customerId)
     {
         var customer = await _customerRepository.GetCustomerDetail(customerId);
+        if(customer is null)
+            throw new KeyNotFoundException("Customer not found");
         return _mapper.Map<CustomerDetailResponse>(customer);
     }
 
     public async Task<bool> CreateCustomer(CustomerCreateRequest request)
     {
+        bool isExist = await _customerRepository.EmailExists(request.Email);
+        if (isExist)
+            throw new DuplicateNameException("Email already exists");
         var customer = _mapper.Map<CustomerCreateModel>(request);
         return await _customerRepository.CreateCustomer(_mapper.Map<Customer>(customer));
     }
 
     public async Task<bool> UpdateCustomer(CustomerUpdateRequest request)
     {
+        bool isExist = await _customerRepository.EmailExists(request.Email);
+        if (!isExist)
+            throw new KeyNotFoundException("Customer not found");
         var customer = _mapper.Map<CustomerUpdateModel>(request);
         return await _customerRepository.UpdateCustomer(_mapper.Map<Customer>(customer));
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DealerService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.DTOs;
 using ProductService.Infrastructure.Services;
@@ -17,8 +18,16 @@ public class OrderController : ControllerBase
     // [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("customers/{customerId}/orders")]
-    public async Task<IEnumerable<OrderCustomerResponse>> GetAllOrdersByCustomerId(Guid customerId)
+    public async Task<IActionResult> GetAllOrdersByCustomerId(Guid customerId)
     {
-        return await _orderService.GetAllOrdersByCustomerId(customerId);
+        try
+        {
+            var orders = await _orderService.GetAllOrdersByCustomerId(customerId);
+            return Ok(ApiResponse<IEnumerable<OrderCustomerResponse>>.Success(orders));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
     }
 }
