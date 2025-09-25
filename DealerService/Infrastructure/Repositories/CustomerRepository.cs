@@ -50,6 +50,6 @@ public class CustomerRepository
 
     public async Task<Customer> GetActiveCustomerById(Guid customerId)
     {
-        return await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId);
+        return await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId && c.Status == "active");
     }
 }

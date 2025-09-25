@@ -11,9 +11,10 @@ public class OrderService
     private readonly CustomerRepository _customerRepository;
     private readonly IMapper _mapper;
 
-    public OrderService(OrderRepository orderRepository, IMapper mapper)
+    public OrderService(OrderRepository orderRepository, CustomerRepository customerRepository, IMapper mapper)
     {
         _orderRepository = orderRepository;
+        _customerRepository = customerRepository;
         _mapper = mapper;
     }
 

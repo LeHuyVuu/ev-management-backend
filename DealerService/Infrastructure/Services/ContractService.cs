@@ -10,9 +10,10 @@ public class ContractService
     private readonly CustomerRepository _customerRepository;
     private readonly IMapper _mapper;
 
-    public ContractService(ContractRepository contractRepository,  IMapper mapper)
+    public ContractService(ContractRepository contractRepository, CustomerRepository customerRepository, IMapper mapper)
     {
         _contractRepository = contractRepository;
+        _customerRepository = customerRepository;
         _mapper = mapper;
     }
 
