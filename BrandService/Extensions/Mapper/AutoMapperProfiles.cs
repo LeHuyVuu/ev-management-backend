@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using BrandService.DTOs;
+using BrandService.DTOs.Requests.UserDTOs;
+using BrandService.DTOs.Responses.UserDTOs;
 using BrandService.Entities;
 
 namespace BrandService.Extensions.Mapper
@@ -14,6 +16,11 @@ namespace BrandService.Extensions.Mapper
 
             CreateMap<Promotion, PromotionDto.PromotionRequest>().ReverseMap();
             CreateMap<Promotion, PromotionDto.PromotionResponse>().ReverseMap();
+
+            CreateMap<User, UserResponse>();
+            CreateMap<User, UserLoginResponse>();
+            CreateMap<UserLoginRequest, User>();
+            CreateMap<UserRegisterRequest, User>();
         }
     }
 }

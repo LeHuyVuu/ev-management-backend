@@ -37,6 +37,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="DTOs\Requests\DealerDTOs\" />
       <Folder Include="Entities\" />
       <Folder Include="Kafka\" />
     </ItemGroup>
