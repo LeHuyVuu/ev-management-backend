@@ -14,9 +14,7 @@ namespace BrandService.Extensions.Mapper
         {
             CreateMap<Dealer, DealerRequest>().ReverseMap();
             CreateMap<Dealer, DealerResponse>().ReverseMap();
-
-            CreateMap<Promotion, PromotionDto.PromotionRequest>().ReverseMap();
-            CreateMap<Promotion, PromotionDto.PromotionResponse>().ReverseMap();
+            
 
             CreateMap<User, UserResponse>()
                 .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
