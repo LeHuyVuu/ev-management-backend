@@ -15,6 +15,9 @@ public class OrderController : ControllerBase
         _orderService = orderService;
     }
     
+    /// <summary>
+    /// Lấy danh sách Order theo CustomerId
+    /// </summary>
     // [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("customers/{customerId}/orders")]

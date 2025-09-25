@@ -16,6 +16,9 @@ public class CustomerController : ControllerBase
         _customerService = customerService;
     }
     
+    /// <summary>
+    /// Lấy danh sách khách hàng.
+    /// </summary>
     // [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers")]
@@ -32,6 +35,9 @@ public class CustomerController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lấy chi tiết khách hàng (profile) theo CustomerId.
+    /// </summary>
     // [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers/{customerId}")]
@@ -48,6 +54,9 @@ public class CustomerController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Tạo mới khách hàng.
+    /// </summary>
     // [Authorize(Roles = "dealer_staff")]
     [HttpPost]
     [Route("api/customers")]
@@ -64,6 +73,9 @@ public class CustomerController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Cập nhật profile của khách hàng.
+    /// </summary>
     // [Authorize(Roles = "dealer_staff")]
     [HttpPut]
     [Route("api/customers")]

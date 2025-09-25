@@ -15,6 +15,9 @@ public class ContractController : ControllerBase
         _contractService = contractService;
     }
 
+    /// <summary>
+    /// Lấy danh sách hợp đồng theo CustomerId.
+    /// </summary>
     [HttpGet]
     [Route("/customers/{customerId}/contracts")]
     public async Task<IActionResult> GetAllContractsByCustomerId(Guid customerId)
