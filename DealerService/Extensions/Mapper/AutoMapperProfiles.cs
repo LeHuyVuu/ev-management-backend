@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using ProductService.DTOs;
+using ProductService.Entities;
 
 namespace ProductService.Extensions.Mapper
 {
@@ -6,7 +8,9 @@ namespace ProductService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
-            // CreateMap<Source, Destination>();
+            CreateMap<Dealer, DealerDto.DealerRequest>().ReverseMap();
+            CreateMap<Dealer, DealerDto.DealerResponse>().ReverseMap();
+            CreateMap<DealerTarget, DealerTargetDto>().ReverseMap();
         }
     }
 }
