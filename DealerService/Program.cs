@@ -158,15 +158,31 @@ app.UseSwagger(c =>
 {
     c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
     {
-        swaggerDoc.Servers = new List<OpenApiServer>
+        // Nếu là production thì luôn luôn https://evm.webredirect.org/dealer-service
+        if (builder.Environment.IsProduction())
         {
-            new OpenApiServer
+            swaggerDoc.Servers = new List<OpenApiServer>
             {
-                 Url = "https://evm.webredirect.org/dealer-service"
-            }
-        };
+                new OpenApiServer { Url = $"https://evm.webredirect.org{pathBase}" }
+            };
+        }
+        else
+        {
+            // Local thì tự lấy scheme + host (http://localhost:5000/dealer-service)
+            swaggerDoc.Servers = new List<OpenApiServer>
+            {
+                new OpenApiServer { Url = $"{httpReq.Scheme}://{httpReq.Host.Value}{pathBase}" }
+            };
+        }
     });
 });
+
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
+    c.RoutePrefix = "swagger";
+});
+
 
 
 app.UseSwaggerUI(c =>
