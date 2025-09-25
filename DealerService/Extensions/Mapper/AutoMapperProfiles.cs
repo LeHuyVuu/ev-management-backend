@@ -8,11 +8,20 @@ namespace ProductService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
+            //Customer
             CreateMap<Customer, CustomerResponse>()
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
             CreateMap<Customer, CustomerDetailResponse>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            CreateMap<CustomerCreateRequest, CustomerCreateModel>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            CreateMap<CustomerCreateModel, Customer>()
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
