@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using DealerService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.DTOs;
 using ProductService.Infrastructure.Services;
@@ -19,7 +20,7 @@ public class CustomerController : ControllerBase
     /// <summary>
     /// Lấy danh sách khách hàng.
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers")]
     public async Task<IActionResult> GetAllCustomers()
@@ -38,7 +39,7 @@ public class CustomerController : ControllerBase
     /// <summary>
     /// Lấy chi tiết khách hàng (profile) theo CustomerId.
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers/{customerId}")]
     public async Task<IActionResult> GetCustomerDetail(Guid customerId)
@@ -57,7 +58,7 @@ public class CustomerController : ControllerBase
     /// <summary>
     /// Tạo mới khách hàng.
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize(Roles = "dealer_staff")]
     [HttpPost]
     [Route("api/customers")]
     public async Task<IActionResult> CreateCustomer(CustomerCreateRequest request)
@@ -76,7 +77,7 @@ public class CustomerController : ControllerBase
     /// <summary>
     /// Cập nhật profile của khách hàng.
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize(Roles = "dealer_staff")]
     [HttpPut]
     [Route("api/customers")]
     public async Task<IActionResult> UpdateCustomer(CustomerUpdateRequest request)

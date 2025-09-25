@@ -18,7 +18,7 @@ public class OrderController : ControllerBase
     /// <summary>
     /// Lấy danh sách Order theo CustomerId
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("customers/{customerId}/orders")]
     public async Task<IActionResult> GetAllOrdersByCustomerId(Guid customerId)

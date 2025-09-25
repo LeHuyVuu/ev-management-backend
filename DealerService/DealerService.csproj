@@ -44,7 +44,6 @@
 
     <ItemGroup>
       <Folder Include="Entities\" />
-      <Folder Include="Infrastructure\Repositories\" />
       <Folder Include="Kafka\" />
     </ItemGroup>
 
