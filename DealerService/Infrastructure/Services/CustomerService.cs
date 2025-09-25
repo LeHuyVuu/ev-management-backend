@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ProductService.DTOs;
+using ProductService.Entities;
 using ProductService.Extensions.Mapper;
 using ProductService.Infrastructure.Repositories;
 
@@ -26,5 +27,11 @@ public class CustomerService
     {
         var customer = await _CustomerRepository.GetCustomerDetail(customerId);
         return _mapper.Map<CustomerDetailResponse>(customer);
+    }
+
+    public async Task<bool> CreateCustomer(CustomerCreateRequest request)
+    {
+        var customer = _mapper.Map<CustomerCreateModel>(request);
+        return await _CustomerRepository.CreateCustomer(_mapper.Map<Customer>(customer));
     }
 }

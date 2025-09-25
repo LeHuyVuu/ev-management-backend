@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProductService.DTOs;
 using ProductService.Entities;
 using ProductService.Infrastructure.Services;
 
@@ -39,5 +40,18 @@ public class CustomerController : ControllerBase
             return Ok(customer);
         }
         return NotFound();
+    }
+
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpPost]
+    [Route("api/customers")]
+    public async Task<IActionResult> CreateCustomer(CustomerCreateRequest request)
+    {
+        bool isSuccess = await _customerService.CreateCustomer(request);
+        if (isSuccess)
+        {
+            return Ok();
+        }
+        return BadRequest();
     }
 }

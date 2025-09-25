@@ -12,7 +12,7 @@ public class CustomerCreateModel
 
     public string Address { get; set; } = null!;
 
-    public string Status { get; set; } = "Active";
+    public string Status { get; set; } = "active";
 
     public DateOnly LastInteractionDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
