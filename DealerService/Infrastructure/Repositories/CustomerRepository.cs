@@ -37,4 +37,14 @@ public class CustomerRepository
         await _dbContext.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> EmailExists(string email)
+    {
+        return await _dbContext.Customers.AnyAsync(c => c.Email == email);
+    }
+
+    public async Task<bool> CustomerExists(Guid customerId)
+    {
+        return await _dbContext.Customers.AnyAsync(c => c.CustomerId == customerId);
+    }
 }
