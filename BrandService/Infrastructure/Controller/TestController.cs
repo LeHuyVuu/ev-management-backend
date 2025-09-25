@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Microsoft.AspNetCore.Mvc;
+using Npgsql;
 
 
 namespace BrandService.Infrastructure.Controller;
@@ -9,14 +10,128 @@ namespace BrandService.Infrastructure.Controller;
 [Route("api/[controller]")]
 public class TestController : ControllerBase
 {
-    
+    private readonly string _dbConnectionString;
     private readonly string _bootstrapServers;
 
     public TestController(IConfiguration config)
     {
         _bootstrapServers = config["Kafka:BootstrapServers"] ?? throw new Exception("Kafka config missing");
+        _dbConnectionString = config.GetConnectionString("DefaultConnection")
+                              ?? throw new Exception("Database connection string missing");
+    }
+    
+    
+    [HttpGet("test-db-connection")]
+    public IActionResult TestDbConnection()
+    {
+        try
+        {
+            using var connection = new NpgsqlConnection(_dbConnectionString);
+            connection.Open();
+
+            // Thử query nhỏ để confirm DB hoạt động
+            using var cmd = new NpgsqlCommand("SELECT NOW()", connection);
+            var serverTime = cmd.ExecuteScalar();
+
+            return Ok(new
+            {
+                Status = "Connected",
+                ServerTime = serverTime
+            });
+        }
+        catch (NpgsqlException ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = "NpgsqlException",
+                Error = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = "Connection Failed",
+                Error = ex.Message,
+                InnerException = ex.InnerException?.Message
+            });
+        }
+    }
+    
+    
+    [HttpGet("test-db-connection2")]
+    public IActionResult TestDbConnection2()
+    {
+        try
+        {
+            using var connection = new NpgsqlConnection(_dbConnectionString);
+            connection.Open();
+
+            // Thử query nhỏ để confirm DB hoạt động
+            using var cmd = new NpgsqlCommand("SELECT NOW()", connection);
+            var serverTime = cmd.ExecuteScalar();
+
+            return Ok(new
+            {
+                Status = "Connected",
+                ServerTime = serverTime
+            });
+        }
+        catch (NpgsqlException ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = "NpgsqlException",
+                Error = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = "Connection Failed",
+                Error = ex.Message,
+                InnerException = ex.InnerException?.Message
+            });
+        }
     }
  
+    [HttpGet("test-db-connection3")]
+    public IActionResult TestDbConnection3()
+    {
+        try
+        {
+            using var connection = new NpgsqlConnection(_dbConnectionString);
+            connection.Open();
+
+            // Thử query nhỏ để confirm DB hoạt động
+            using var cmd = new NpgsqlCommand("SELECT NOW()", connection);
+            var serverTime = cmd.ExecuteScalar();
+
+            return Ok(new
+            {
+                Status = "Connected",
+                ServerTime = serverTime
+            });
+        }
+        catch (NpgsqlException ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = "NpgsqlException",
+                Error = ex.Message
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = "Connection Failed",
+                Error = ex.Message,
+                InnerException = ex.InnerException?.Message
+            });
+        }
+    }
     [HttpGet("v1")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<string> Greet()

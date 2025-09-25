@@ -27,6 +27,9 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
 
+// Trung thu gan lai connected string
+builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+
 // Add controllers
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

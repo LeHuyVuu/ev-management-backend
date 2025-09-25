@@ -7,6 +7,11 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using Npgsql;
+using ProductService.Extensions.Mapper;
+using System.Reflection;
+using System.Text;
+using System.Text.Json.Serialization;
+using ProductService.Context;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,12 +30,18 @@ builder.Configuration
     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
     .AddEnvironmentVariables();
 
+// Trung thu gan lai connected string
+builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
+
 // Add controllers
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
+
+// AutoMapper
+builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
 
 // Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
@@ -86,6 +97,9 @@ builder.Services.AddCors(options =>
 // DbContext
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
 // Repositories
@@ -148,7 +162,7 @@ app.UseSwagger(c =>
         {
             new OpenApiServer
             {
-                Url = "https://evm.webredirect.org/dealer-service"
+                 Url = "https://evm.webredirect.org/dealer-service"
             }
         };
     });
