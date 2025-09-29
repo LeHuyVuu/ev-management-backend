@@ -6,22 +6,25 @@ public class QuoteDetailResponse
     
     public string CustomerName {get; set;}
     
-    public string CustomerPhone {get; set;}
+    public string CustomerPhone {get; set;} 
     
-    public string VehicleBrand {get; set;}
-    
-    public string VehicleModelName {get; set;}
-    
-    public string VehicleVersionName {get; set;}
-    
-    public string VersionColor {get; set;}
-    
-    public string PromotionName {get; set;}
-    
-    public decimal WholesalePrice1 { get; set; }
-    
-    public decimal DiscountRate { get; set; }
+    public string Brand { get; set; } = null!;
 
-    public decimal FinalPrice => WholesalePrice1 - (WholesalePrice1 * DiscountRate);
+    public string ModelName { get; set; } = null!;
+    
+    public string VersionName { get; set; } = null!;
+    
+    public string? Color { get; set; }
+    
+    public string? OptionsJson { get; set; }
 
+    public string? DiscountCode { get; set; }
+
+    public decimal Subtotal { get; set; }
+
+    public decimal DiscountAmt { get; set; }
+
+    public decimal TotalPrice { get; set; }
+
+    public string Status { get; set; } = null!;
 }

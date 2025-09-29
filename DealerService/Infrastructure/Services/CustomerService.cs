@@ -32,26 +32,31 @@ public class CustomerService
         return _mapper.Map<CustomerDetailResponse>(customer);
     }
 
-    public async Task<bool> CreateCustomer(CustomerCreateRequest request)
+    public async Task<bool> CreateCustomer(Guid dealerId, CustomerCreateRequest request)
     {
         bool isExist = await _customerRepository.EmailExists(request.Email);
         if (isExist)
             throw new DuplicateNameException("Email already exists");
         var customer = _mapper.Map<CustomerCreateModel>(request);
+        customer.DealerId = dealerId;
         return await _customerRepository.CreateCustomer(_mapper.Map<Customer>(customer));
     }
 
     public async Task<bool> UpdateCustomer(CustomerUpdateRequest request)
     {
         var customer = await _customerRepository.GetCustomerById(request.CustomerId) ;
+        
         if (customer == null)
             throw new KeyNotFoundException("Customer not found");
+
+        if (request.DealerId == null || request.DealerId == Guid.Empty)
+        {
+            request.DealerId = customer.DealerId;
+        }
+        
         var customerModel = _mapper.Map<CustomerUpdateModel>(request);
         _mapper.Map(customerModel, customer);
-        if (request.DealerId.HasValue && request.DealerId.Value != Guid.Empty)
-        {
-            customer.DealerId = request.DealerId.Value;
-        }
+        
         return await _customerRepository.UpdateCustomer(customer);
     }
 }

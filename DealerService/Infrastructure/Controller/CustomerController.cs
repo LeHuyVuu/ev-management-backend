@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Security.Claims;
 using DealerService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -65,7 +66,8 @@ public class CustomerController : ControllerBase
     {
         try
         {
-            bool isSuccess = await _customerService.CreateCustomer(request);
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            bool isSuccess = await _customerService.CreateCustomer(dealerId, request);
             return Ok(ApiResponse<bool>.Success(isSuccess, "Customer was created successfully"));
         }
         catch (DuplicateNameException ex)
