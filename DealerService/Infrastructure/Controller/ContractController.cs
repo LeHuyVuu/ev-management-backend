@@ -1,4 +1,5 @@
 ﻿using DealerService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProductService.DTOs;
 using ProductService.Infrastructure.Services;
@@ -15,6 +16,10 @@ public class ContractController : ControllerBase
         _contractService = contractService;
     }
 
+    /// <summary>
+    /// Lấy danh sách hợp đồng theo CustomerId.
+    /// </summary>
+    //[Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("/customers/{customerId}/contracts")]
     public async Task<IActionResult> GetAllContractsByCustomerId(Guid customerId)
