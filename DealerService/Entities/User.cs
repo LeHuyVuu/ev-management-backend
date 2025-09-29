@@ -21,11 +21,7 @@ public partial class User
 
     public string Status { get; set; } = null!;
 
-    public DateTime? LastActivityAt { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
+    public DateOnly? LastActivityAt { get; set; }
 
     public virtual Dealer? Dealer { get; set; }
 
