@@ -18,6 +18,4 @@ public partial class Promotion
     public string Status { get; set; } = null!;
 
     public string? Description { get; set; }
-
-    public DateTime CreatedAt { get; set; }
 }

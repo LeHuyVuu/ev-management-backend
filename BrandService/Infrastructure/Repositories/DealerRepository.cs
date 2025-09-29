@@ -83,10 +83,11 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
+
                 if (DoesDealerExist(dealer.DealerCode))
                     throw new Exception("Dealer code has already existed.");
-                dealer.CreatedAt = DateTime.Now;
-                dealer.UpdatedAt = DateTime.Now;
+
+
                 _context.Dealers.Add(dealer);
                 await _context.SaveChangesAsync();
                 return dealer;
@@ -105,9 +106,10 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
+
                 if (DoesDealerExist(dealer.DealerCode, dealer.DealerId))
                     throw new Exception("Dealer has already exist");
-                dealer.UpdatedAt = DateTime.Now;
+
                 _context.Dealers.Update(dealer);
                 await _context.SaveChangesAsync();
                 return dealer;

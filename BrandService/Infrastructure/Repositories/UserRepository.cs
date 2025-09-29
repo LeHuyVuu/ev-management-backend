@@ -30,8 +30,6 @@ public class UserRepository
 
     public async Task<User?> CreateUser(User user)
     {
-        user.CreatedAt = DateTime.UtcNow;
-        user.UpdatedAt = DateTime.UtcNow;
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
         return user;
@@ -39,7 +37,6 @@ public class UserRepository
 
     public async Task<User?> UpdateUser(User user)
     {
-        user.UpdatedAt = DateTime.UtcNow;
 
         _context.Users.Update(user);   
         await _context.SaveChangesAsync();
