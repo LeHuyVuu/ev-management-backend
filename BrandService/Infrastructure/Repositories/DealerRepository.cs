@@ -35,7 +35,6 @@ namespace BrandService.Infrastructure.Repositories
             {
                 return await _context.Dealers
                 .AsNoTracking()
-                .OrderByDescending(d => d.CreatedAt)
                 .ToPagedResultAsync(pageNumber, pageSize);
             }
             catch (Exception ex)
