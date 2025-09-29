@@ -10,4 +10,6 @@ public class QuoteRepository
     {
         _dbContext = dbContext;
     }
+    
+    
 }
