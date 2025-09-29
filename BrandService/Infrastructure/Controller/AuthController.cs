@@ -60,7 +60,7 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponse<UserResponse>>> Register([FromBody] UserRegisterRequest request)
     {
         // Hash password trước khi lưu
-        request.Password = PasswordHelper.HashPassword(request.Password);
+        request.PasswordHash = PasswordHelper.HashPassword(request.PasswordHash);
 
         var created = await _userService.CreateUser(request);
         if (created == null)
