@@ -28,4 +28,19 @@ public class QuoteRepository
             .Select(q => q.VehicleVersion.Vehicle)
             .FirstOrDefaultAsync();
     }
+
+    public async Task<VehicleVersion?> GetVehicleVersionByQuoteId(Guid quoteId)
+    {
+        return await _dbContext.Quotes
+            .Where(q => q.QuoteId == quoteId)
+            .Select(q => q.VehicleVersion)
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<Quote?> GetQuoteByQuoteId(Guid quoteId)
+    {
+        return await _dbContext.Quotes
+            .Where(q => q.QuoteId == quoteId)
+            .FirstOrDefaultAsync();
+    }
 }
