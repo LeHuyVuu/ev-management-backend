@@ -43,10 +43,15 @@ public class CustomerService
 
     public async Task<bool> UpdateCustomer(CustomerUpdateRequest request)
     {
-        bool isExist = await _customerRepository.EmailExists(request.Email);
-        if (!isExist)
+        var customer = await _customerRepository.GetCustomerById(request.CustomerId) ;
+        if (customer == null)
             throw new KeyNotFoundException("Customer not found");
-        var customer = _mapper.Map<CustomerUpdateModel>(request);
-        return await _customerRepository.UpdateCustomer(_mapper.Map<Customer>(customer));
+        var customerModel = _mapper.Map<CustomerUpdateModel>(request);
+        _mapper.Map(customerModel, customer);
+        if (request.DealerId.HasValue && request.DealerId.Value != Guid.Empty)
+        {
+            customer.DealerId = request.DealerId.Value;
+        }
+        return await _customerRepository.UpdateCustomer(customer);
     }
 }
