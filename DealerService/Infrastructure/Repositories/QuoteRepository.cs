@@ -13,33 +13,33 @@ public class QuoteRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Customer?> GetCustomerByQuoteId(Guid quoteId)
+    public Task<Customer?> GetCustomerByQuoteId(Guid quoteId)
     {
-        return await _dbContext.Quotes
+        return _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .Select(q => q.Customer)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Vehicle?> GetVehicleByQuoteId(Guid quoteId)
+    public Task<Vehicle?> GetVehicleByQuoteId(Guid quoteId)
     {
-        return await _dbContext.Quotes
+        return _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .Select(q => q.VehicleVersion.Vehicle)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<VehicleVersion?> GetVehicleVersionByQuoteId(Guid quoteId)
+    public Task<VehicleVersion?> GetVehicleVersionByQuoteId(Guid quoteId)
     {
-        return await _dbContext.Quotes
+        return _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .Select(q => q.VehicleVersion)
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Quote?> GetQuoteByQuoteId(Guid quoteId)
+    public Task<Quote?> GetQuoteByQuoteId(Guid quoteId)
     {
-        return await _dbContext.Quotes
+        return _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .FirstOrDefaultAsync();
     }
