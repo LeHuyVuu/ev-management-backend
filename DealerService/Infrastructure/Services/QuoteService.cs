@@ -15,22 +15,21 @@ public class QuoteService
 
     public async Task<QuoteDetailResponse> GetQuoteDetailByQuoteId(Guid quoteId)
     {
-        var customerTask  = _quoteRepository.GetCustomerByQuoteId(quoteId);
-        var vehicleTask  = _quoteRepository.GetVehicleByQuoteId(quoteId);
-        var versionTask  = _quoteRepository.GetVehicleVersionByQuoteId(quoteId);
-        var quoteTask  = _quoteRepository.GetQuoteByQuoteId(quoteId);
+        var quote = await _quoteRepository.GetQuoteByQuoteId(quoteId);
+        if (quote == null)
+            throw new NotFoundException($"Quote not found");
 
-        await Task.WhenAll(customerTask, vehicleTask, versionTask, quoteTask);
-        
-        var customer = customerTask.Result;
-        var vehicle = vehicleTask.Result;
-        var version = versionTask.Result;
-        var quote = quoteTask.Result;
+        var customer = await _quoteRepository.GetCustomerByQuoteId(quoteId);
+        if (customer == null)
+            throw new NotFoundException($"Customer not found");
 
-        if (quote != null && (customer == null || vehicle == null || version == null))
-        {
-            throw new NotFoundException("Đã có 1 trong 3 object (customer, vehicle, version không tồn tại");
-        }
+        var vehicle = await _quoteRepository.GetVehicleByQuoteId(quoteId);
+        if (vehicle == null)
+            throw new NotFoundException($"Vehicle not found");
+
+        var vehicleVersion = await _quoteRepository.GetVehicleVersionByQuoteId(quoteId);
+        if (vehicleVersion == null)
+            throw new NotFoundException($"Vehicle not found");
         
         return new QuoteDetailResponse()
         {
@@ -39,10 +38,9 @@ public class QuoteService
             CustomerPhone = customer.Phone,
             Brand = vehicle.Brand,
             ModelName = vehicle.ModelName,
-            VersionName = version.VersionName,
-            Color = version.Color,
+            VersionName = vehicleVersion.VersionName,
+            Color = vehicleVersion.Color,
             OptionsJson = quote.OptionsJson,
-            DiscountCode = quote.DiscountCode,
             Subtotal = quote.Subtotal,
             DiscountAmt = quote.DiscountAmt,
             TotalPrice = quote.TotalPrice,
