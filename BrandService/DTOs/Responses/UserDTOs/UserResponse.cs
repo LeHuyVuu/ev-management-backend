@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+using Elastic.Clients.Elasticsearch.Security;
 
-namespace BrandService.Entities;
+namespace BrandService.DTOs.Responses.UserDTOs;
 
-public partial class User
+public class UserResponse
 {
     public Guid UserId { get; set; }
 
@@ -12,11 +11,8 @@ public partial class User
     public string Email { get; set; } = null!;
 
     public string? Phone { get; set; }
-
     public string PasswordHash { get; set; } = null!;
-
     public int RoleId { get; set; }
-
     public Guid? DealerId { get; set; }
 
     public string Status { get; set; } = null!;
@@ -26,12 +22,6 @@ public partial class User
     public DateTime CreatedAt { get; set; }
 
     public DateTime UpdatedAt { get; set; }
-
-    public virtual Dealer? Dealer { get; set; }
-
-    public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
-
-    public virtual Role Role { get; set; } = null!;
-
-    public virtual ICollection<TestDrife> TestDrives { get; set; } = new List<TestDrife>();
+    public string RoleName  { get; set; } = null!;
+    
 }
