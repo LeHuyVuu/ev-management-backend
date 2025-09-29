@@ -18,8 +18,6 @@ public class QuoteDetailResponse
     
     public string? OptionsJson { get; set; }
 
-    public string? DiscountCode { get; set; }
-
     public decimal Subtotal { get; set; }
 
     public decimal DiscountAmt { get; set; }
