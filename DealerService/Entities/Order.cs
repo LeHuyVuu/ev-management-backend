@@ -15,13 +15,9 @@ public partial class Order
 
     public string? DeliveryAddress { get; set; }
 
-    public DateTime? DeliveryDate { get; set; }
+    public DateOnly? DeliveryDate { get; set; }
 
     public string Status { get; set; } = null!;
-
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
 
     public virtual Contract Contract { get; set; } = null!;
 

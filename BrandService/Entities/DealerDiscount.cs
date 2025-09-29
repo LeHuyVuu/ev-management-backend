@@ -17,7 +17,5 @@ public partial class DealerDiscount
 
     public string Status { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
-
     public virtual Dealer Dealer { get; set; } = null!;
 }

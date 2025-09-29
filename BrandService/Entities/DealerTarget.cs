@@ -17,7 +17,5 @@ public partial class DealerTarget
 
     public DateOnly StartDate { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
     public virtual Dealer Dealer { get; set; } = null!;
 }

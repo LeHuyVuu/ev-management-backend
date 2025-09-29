@@ -21,10 +21,6 @@ public partial class Customer
 
     public DateOnly? LastInteractionDate { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
 
     public virtual ICollection<CustomerDebt> CustomerDebts { get; set; } = new List<CustomerDebt>();
