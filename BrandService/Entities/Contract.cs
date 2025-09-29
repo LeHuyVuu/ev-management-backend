@@ -21,10 +21,6 @@ public partial class Contract
 
     public DateOnly? SignedDate { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
     public virtual Customer Customer { get; set; } = null!;
 
     public virtual Dealer Dealer { get; set; } = null!;

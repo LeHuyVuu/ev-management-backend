@@ -27,10 +27,6 @@ public partial class Quote
 
     public Guid CreatedByUser { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
 
     public virtual User CreatedByUserNavigation { get; set; } = null!;

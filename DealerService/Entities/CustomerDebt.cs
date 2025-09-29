@@ -17,8 +17,6 @@ public partial class CustomerDebt
 
     public string Status { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
-
     public virtual Customer Customer { get; set; } = null!;
 
     public virtual Dealer Dealer { get; set; } = null!;

@@ -42,8 +42,6 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
-                dealer.CreatedAt = DateTime.Now;
-                dealer.UpdatedAt = DateTime.Now;
                 _context.Dealers.Add(dealer);
                 await _context.SaveChangesAsync();
                 return dealer;
@@ -58,7 +56,6 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
-                dealer.UpdatedAt = DateTime.Now;
                 _context.Dealers.Update(dealer);
                 await _context.SaveChangesAsync();
                 return dealer;

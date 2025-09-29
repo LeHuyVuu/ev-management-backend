@@ -13,9 +13,5 @@ public partial class Vehicle
 
     public string? Description { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
     public virtual ICollection<VehicleVersion> VehicleVersions { get; set; } = new List<VehicleVersion>();
 }
