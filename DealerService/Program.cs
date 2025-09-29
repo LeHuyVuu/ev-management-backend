@@ -113,6 +113,8 @@ builder.Services.AddScoped<OrderRepository>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<ContractRepository>();
 builder.Services.AddScoped<ContractService>();
+builder.Services.AddScoped<QuoteRepository>();
+builder.Services.AddScoped<QuoteService>();
 
 // Repositories
 
