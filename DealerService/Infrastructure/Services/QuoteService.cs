@@ -1,4 +1,5 @@
-﻿using ProductService.DTOs.Responses.QuoteDTOs;
+﻿using Application.ExceptionHandler;
+using ProductService.DTOs.Responses.QuoteDTOs;
 using ProductService.Infrastructure.Repositories;
 
 namespace ProductService.Infrastructure.Services;
@@ -25,6 +26,11 @@ public class QuoteService
         var vehicle = vehicleTask.Result;
         var version = versionTask.Result;
         var quote = quoteTask.Result;
+
+        if (quote != null && (customer == null || vehicle == null || version == null))
+        {
+            throw new NotFoundException("Đã có 1 trong 3 object (customer, vehicle, version không tồn tại");
+        }
         
         return new QuoteDetailResponse()
         {
