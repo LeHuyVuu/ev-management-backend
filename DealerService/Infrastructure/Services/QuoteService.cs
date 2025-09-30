@@ -47,4 +47,20 @@ public class QuoteService
             Status = quote.Status,
         };
     }
+
+    public async Task<IEnumerable<QuoteBasicResponse>> GetQuotesByDealerId(Guid dealerId)
+    {
+        var quotes = await _quoteRepository.GetQuotesByDealerId(dealerId);
+
+        var quoteResponses = quotes.Select(quote => new QuoteBasicResponse
+        {
+            QuoteId = quote.QuoteId,
+            CustomerName = quote.Customer.Name,
+            Brand = quote.VehicleVersion.Vehicle.Brand,
+            VehicleName = quote.VehicleVersion.Vehicle.ModelName,
+            VersionName = quote.VehicleVersion.VersionName,
+            TotalPrice = quote.TotalPrice,
+        });
+        return quoteResponses;
+    }
 }

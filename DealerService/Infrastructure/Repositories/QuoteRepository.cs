@@ -13,34 +13,43 @@ public class QuoteRepository
         _dbContext = dbContext;
     }
 
-    public Task<Customer?> GetCustomerByQuoteId(Guid quoteId)
+    public async Task<Customer?> GetCustomerByQuoteId(Guid quoteId)
     {
-        return _dbContext.Quotes
+        return await _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .Select(q => q.Customer)
             .FirstOrDefaultAsync();
     }
 
-    public Task<Vehicle?> GetVehicleByQuoteId(Guid quoteId)
+    public async Task<Vehicle?> GetVehicleByQuoteId(Guid quoteId)
     {
-        return _dbContext.Quotes
+        return await _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .Select(q => q.VehicleVersion.Vehicle)
             .FirstOrDefaultAsync();
     }
 
-    public Task<VehicleVersion?> GetVehicleVersionByQuoteId(Guid quoteId)
+    public async Task<VehicleVersion?> GetVehicleVersionByQuoteId(Guid quoteId)
     {
-        return _dbContext.Quotes
+        return await _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .Select(q => q.VehicleVersion)
             .FirstOrDefaultAsync();
     }
 
-    public Task<Quote?> GetQuoteByQuoteId(Guid quoteId)
+    public async Task<Quote?> GetQuoteByQuoteId(Guid quoteId)
     {
-        return _dbContext.Quotes
+        return await _dbContext.Quotes
             .Where(q => q.QuoteId == quoteId)
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<IEnumerable<Quote>> GetQuotesByDealerId(Guid dealerId)
+    {
+        return await _dbContext.Quotes
+            .Where(q => q.DealerId == dealerId)
+            .Include(q => q.Customer)
+            .Include(q => q.VehicleVersion.Vehicle)
+            .ToListAsync();
     }
 }

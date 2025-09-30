@@ -67,6 +67,9 @@ public class CustomerController : ControllerBase
         try
         {
             Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            if(dealerId == null || dealerId == Guid.Empty)
+                return NotFound(ApiResponse<string>.NotFound("Bạn không có dealerId để thực hiện chức năng này"));
+            
             bool isSuccess = await _customerService.CreateCustomer(dealerId, request);
             return Ok(ApiResponse<bool>.Success(isSuccess, "Customer was created successfully"));
         }

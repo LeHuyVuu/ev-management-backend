@@ -34,4 +34,20 @@ public class QuoteController : ControllerBase
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
         }
     }
+
+    /// <summary>
+    /// Lấy ra các Quotes mà Dealer đảm nhận, theo dealerId
+    /// </summary>
+    // [Authorize(Roles = "evm_staff")]
+    [HttpGet]
+    [Route("api/quotes/dealers/{dealerId}")]
+    public async Task<IActionResult> GetQuotesByDealerId(Guid dealerId)
+    {
+        var quotes = await _quoteService.GetQuotesByDealerId(dealerId);
+        
+        if (!quotes.Any())
+            return NotFound(ApiResponse<IEnumerable<QuoteBasicResponse>>.NotFound("No quotes found"));
+        
+        return Ok(ApiResponse<IEnumerable<QuoteBasicResponse>>.Success(quotes));
+    }
 }
