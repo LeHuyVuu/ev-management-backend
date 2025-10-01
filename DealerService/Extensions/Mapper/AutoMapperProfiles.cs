@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 using ProductService.DTOs;
+using ProductService.DTOs.Requests.QuoteDTOs;
+using ProductService.DTOs.Responses.QuoteDTOs;
 using ProductService.Entities;
 
 namespace ProductService.Extensions.Mapper
@@ -46,6 +48,13 @@ namespace ProductService.Extensions.Mapper
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
 
+            // Quote
+            CreateMap<QuoteUpdateRequest, Quote>()
+                .ForMember(dest => dest.Subtotal, opt => opt.Ignore())
+                .ForMember(dest => dest.TotalPrice, opt => opt.Ignore())
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
         }
     }
 }

@@ -5,9 +5,6 @@ namespace ProductService.DTOs;
 public class CustomerCreateRequest
 {
     [Required]
-    public Guid DealerId { get; set; }
-
-    [Required]
     public string Name { get; set; } = null!;
 
     [Required,  EmailAddress]

@@ -4,7 +4,7 @@ public class CustomerUpdateModel
 {
     public Guid CustomerId { get; set; }
 
-    public Guid DealerId { get; set; }
+    public Guid? DealerId { get; set; }
 
     public string Name { get; set; } = null!;
 
@@ -17,6 +17,4 @@ public class CustomerUpdateModel
     public string Status { get; set; } = null!;
 
     public DateOnly LastInteractionDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 }
