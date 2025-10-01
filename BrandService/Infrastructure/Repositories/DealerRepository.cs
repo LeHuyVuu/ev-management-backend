@@ -84,7 +84,7 @@ namespace BrandService.Infrastructure.Repositories
             {
 
                 if (DoesDealerExist(dealer.DealerCode))
-                    throw new Exception("Dealer code has already existed.");
+                    throw new BadRequestException("Dealer code has already existed.");
 
 
                 _context.Dealers.Add(dealer);
