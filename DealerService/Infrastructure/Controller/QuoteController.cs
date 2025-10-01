@@ -3,6 +3,7 @@ using DealerService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using ProductService.DTOs.Requests.QuoteDTOs;
 using ProductService.DTOs.Responses.QuoteDTOs;
 using ProductService.Infrastructure.Services;
 
@@ -49,5 +50,21 @@ public class QuoteController : ControllerBase
             return NotFound(ApiResponse<IEnumerable<QuoteBasicResponse>>.NotFound("No quotes found"));
         
         return Ok(ApiResponse<IEnumerable<QuoteBasicResponse>>.Success(quotes));
+    }
+
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpPut]
+    [Route("api/quotes/{quoteId}")]
+    public async Task<IActionResult> UpdateQuoteByQuoteId(Guid quoteId, [FromBody]QuoteUpdateRequest request)
+    {
+        try
+        {
+            bool isSuccess = await _quoteService.UpdateQuoteByQuoteId(quoteId, request);
+            return Ok(ApiResponse<bool>.Success(isSuccess));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<bool>.NotFound(ex.Message));
+        }
     }
 }

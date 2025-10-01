@@ -52,4 +52,10 @@ public class QuoteRepository
             .Include(q => q.VehicleVersion.Vehicle)
             .ToListAsync();
     }
+
+    public async Task<bool> UpdateQuote(Quote quote)
+    {
+        _dbContext.Quotes.Update(quote);
+        return await _dbContext.SaveChangesAsync() > 0;
+    }
 }

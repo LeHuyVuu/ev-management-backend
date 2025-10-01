@@ -6,6 +6,8 @@ public class QuoteBasicResponse
     
     public string CustomerName {get; set;}
     
+    public string Phone { get; set; }
+    
     public string Brand {get; set;}
     
     public string VehicleName {get; set;}

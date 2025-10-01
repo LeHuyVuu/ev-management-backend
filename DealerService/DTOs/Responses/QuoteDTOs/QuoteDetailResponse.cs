@@ -4,6 +4,12 @@ public class QuoteDetailResponse
 {
     public Guid QuoteId {get; set;}
     
+    public Guid DealerId { get; set; }
+    
+    public Guid CustomerId { get; set; }
+    
+    public Guid VehicleVersionId { get; set; }
+    
     public string CustomerName {get; set;}
     
     public string CustomerPhone {get; set;} 
