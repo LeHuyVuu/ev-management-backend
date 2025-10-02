@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ProductService.Entities;
+namespace DealerService.Entities;
 
-public partial class TestDrife
+public partial class TestDrive
 {
     public Guid TestDriveId { get; set; }
 

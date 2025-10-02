@@ -43,7 +43,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Entities\" />
       <Folder Include="Kafka\" />
     </ItemGroup>
 

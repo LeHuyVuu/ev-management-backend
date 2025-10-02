@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ProductService.Entities;
+namespace DealerService.Entities;
 
 public partial class Inventory
 {

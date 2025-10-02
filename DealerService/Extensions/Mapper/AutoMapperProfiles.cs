@@ -1,60 +1,29 @@
 ﻿using AutoMapper;
-using ProductService.DTOs;
-using ProductService.DTOs.Requests.QuoteDTOs;
-using ProductService.DTOs.Responses.QuoteDTOs;
-using ProductService.Entities;
+using DealerService.DTOs.Requests.DealerDTOs;
+using DealerService.DTOs.Requests.DealerTargetDTOs;
+using DealerService.DTOs.Responses.DealerDTOs;
+using DealerService.DTOs.Responses.DealerTargetDTOs;
+using DealerService.Entities;
 
-namespace ProductService.Extensions.Mapper
+namespace DealerService.Extensions.Mapper
 {
     public class AutoMapperProfiles : Profile
     {
         public AutoMapperProfiles()
         {
-            //Customer
-            CreateMap<Customer, CustomerBasicResponse>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
-            CreateMap<Customer, CustomerDetailResponse>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
-            CreateMap<CustomerCreateRequest, CustomerCreateModel>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
-            CreateMap<CustomerCreateModel, Customer>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
-            CreateMap<CustomerUpdateRequest, CustomerUpdateModel>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
-            CreateMap<CustomerUpdateModel, Customer>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
-            
-            // Order
-            CreateMap<Order, OrderCustomerResponse>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
-            
-            // Contract
-            CreateMap<Contract, ContractCustomerResponse>()
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
+            // Dealer
+            CreateMap<DealerRequest, Dealer>();
+            CreateMap<Dealer, DealerResponse>();
 
-            // Quote
-            CreateMap<QuoteUpdateRequest, Quote>()
-                .ForMember(dest => dest.Subtotal, opt => opt.Ignore())
-                .ForMember(dest => dest.TotalPrice, opt => opt.Ignore())
-                .ForAllMembers(opt 
-                    => opt.Condition((src, dest, srcMember) 
-                        => srcMember != null));
+            // Dealer Target
+            CreateMap<DealerTargetRequest, DealerTarget>()
+                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => src.Period.ToLower()))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.StartDate)));
+            CreateMap<DealerTarget, DealerTargetResponse>()
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
+                .ForMember(dest => dest.Period,
+                    opt => opt.MapFrom(src => char.ToUpper(src.Period[0]) + src.Period.Substring(1).ToLower()
+        ));
         }
     }
 }
