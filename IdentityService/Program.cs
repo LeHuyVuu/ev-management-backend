@@ -129,7 +129,7 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // ✅ Path base (nếu chạy dưới sub-path)
-var pathBase = "/brand-service";
+var pathBase = "/identity-service";
 app.UsePathBase(pathBase);
 
 // ✅ Swagger
@@ -142,7 +142,7 @@ app.UseSwagger(c =>
             new OpenApiServer
             {
                 Url = app.Environment.IsProduction()
-                    ? $"https://evm.webredirect.org{pathBase}"
+                    ? $"https://prn232.freeddns.org{pathBase}"
                     : $"{httpReq.Scheme}://{httpReq.Host.Value}{pathBase}"
             }
         };
