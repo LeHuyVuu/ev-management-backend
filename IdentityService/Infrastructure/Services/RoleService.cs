@@ -1,6 +1,5 @@
 using AutoMapper;
 using IdentityService.DTOs.Responses.RoleDTOs;
-using IdentityService.Entities;
 using IdentityService.Infrastructure.Repositories;
 
 namespace IdentityService.Infrastructure.Services;
@@ -8,8 +7,8 @@ namespace IdentityService.Infrastructure.Services;
 public class RoleService
 {
     private readonly RoleRepository _repository;
-    private readonly Mapper _mapper;
-    public RoleService(RoleRepository repository,Mapper mapper)
+    private readonly IMapper _mapper;
+    public RoleService(RoleRepository repository,IMapper mapper)
     {
         _repository = repository;
         _mapper = mapper;
