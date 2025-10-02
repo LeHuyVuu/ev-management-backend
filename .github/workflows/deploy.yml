@@ -11,10 +11,12 @@ jobs:
     name: Build & Deploy to VPS (with SSH key)
 
     steps:
+      # 1. Lấy code từ repo
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Clean old code & ensure folder exists
+      # 2. Dọn folder cũ trên VPS (nếu có) & tạo lại thư mục
+      - name: Prepare folder on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -22,10 +24,12 @@ jobs:
           key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
-            mkdir -p /var/www/microservices
+            sudo mkdir -p /var/www/microservices
+            sudo chown -R $USER:$USER /var/www/microservices
             rm -rf /var/www/microservices/*
-            echo "✅ Old source code cleaned on VPS."
+            echo "✅ Cleaned old code and ensured /var/www/microservices is ready."
 
+      # 3. Copy code từ GitHub Action runner lên VPS
       - name: Copy source code to VPS
         uses: appleboy/scp-action@master
         with:
@@ -36,6 +40,7 @@ jobs:
           source: "."
           target: "/var/www/microservices"
 
+      # 4. Viết .env cho từng service (lấy từ GitHub Secrets)
       - name: Write .env files for Services
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -52,6 +57,7 @@ jobs:
             echo "${{ secrets.ENV_UTILITY }}" > "$ENV_DIR/UtilityService/.env"
             echo "✅ Wrote .env files for all services."
 
+      # 5. Build & run Docker containers trên VPS
       - name: Build & deploy Docker containers
         uses: appleboy/ssh-action@v1.0.0
         with:
