@@ -9,6 +9,10 @@ using Npgsql;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using ProductService.Context;
+using ProductService.Extensions.Mapper;
+using ProductService.Infrastructure.Repositories;
+using ProductService.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -89,18 +93,26 @@ builder.Services.AddCors(options =>
 });
 
 // DbContext
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+var dataSource = dataSourceBuilder.Build();
 
-// var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
-// var dataSource = dataSourceBuilder.Build();
-// builder.Services.AddDbContext<MyDbContext>(options =>
-//     options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
-
-
+builder.Services.AddScoped<CustomerRepository>();
+builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<OrderRepository>();
+builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<ContractRepository>();
+builder.Services.AddScoped<ContractService>();
+builder.Services.AddScoped<QuoteRepository>();
+builder.Services.AddScoped<QuoteService>();
+builder.Services.AddScoped<VehicleVersionRepository>();
+builder.Services.AddScoped<DealerRepository>();
 
 // AutoMapper
-// builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
+builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
 
 // Authentication + xử lý lỗi không có token
 builder.Services.AddAuthentication("Bearer")

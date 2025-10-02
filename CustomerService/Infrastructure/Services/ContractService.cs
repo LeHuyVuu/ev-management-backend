@@ -25,6 +25,7 @@ public class ContractService
         _contractRepository = contractRepository;
         _customerRepository = customerRepository;
         _quoteRepository = quoteRepository;
+        _dealerRepository = dealerRepository;
         _mapper = mapper;
     }
 
@@ -33,8 +34,25 @@ public class ContractService
         bool isExist = await _customerRepository.CustomerExists(customerId);
         if (!isExist)
             throw new KeyNotFoundException("Customer does not exist!");
+        
         var contracts = await _contractRepository.GetAllContractsByCustomerId(customerId);
-        return _mapper.Map<IEnumerable<ContractCustomerResponse>>(contracts);
+        var contractResponses = _mapper.Map<IEnumerable<ContractCustomerResponse>>(contracts);
+
+        foreach (var contract in contractResponses)
+        {
+            var quote = await _quoteRepository.GetQuoteByContractId(contract.ContractId);
+            if (quote != null)
+            {
+                var vehicle = await _quoteRepository.GetVehicleByQuoteId(quote.QuoteId);
+                var vehicleVersion = await _quoteRepository.GetVehicleVersionByQuoteId(quote.QuoteId);
+                
+                contract.Brand = vehicle.Brand;
+                contract.VehicleName = vehicle.ModelName;
+                contract.VersionName = vehicleVersion.VersionName;
+            }
+        }
+        
+        return contractResponses;
     }
 
     public async Task<bool> CreateContract(ContractCreateRequest request)
@@ -72,7 +90,7 @@ public class ContractService
         if (vehicleVersion == null)
             throw new NotFoundException($"Vehicle not found");
         
-        var dealer = await _dealerRepository.GetDealerByDealerId(contractId);
+        var dealer = await _dealerRepository.GetDealerByDealerId(quote.DealerId);
         if (dealer == null)
             throw new NotFoundException($"Dealer not found");
 

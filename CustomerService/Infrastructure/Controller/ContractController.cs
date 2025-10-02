@@ -37,6 +37,7 @@ public class ContractController : ControllerBase
         }
     }
 
+    //[Authorize(Roles = "dealer_staff")]
     [HttpPost]
     [Route("api/contracts")]
     public async Task<IActionResult> CreateContract(ContractCreateRequest request)
@@ -52,6 +53,7 @@ public class ContractController : ControllerBase
         }
     }
 
+    //[Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("/contracts/{contractId}")]
     public async Task<IActionResult> GetContractByContractId(Guid contractId)
