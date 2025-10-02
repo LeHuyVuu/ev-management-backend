@@ -81,8 +81,6 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 // ✅ DI Repositories & Services
 builder.Services.AddSingleton<BrandProducer>();
-builder.Services.AddScoped<DealerRepository>();
-builder.Services.AddScoped<DealerService>();
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserRepository>();
