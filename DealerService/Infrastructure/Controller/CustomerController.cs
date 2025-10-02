@@ -16,14 +16,18 @@ public class CustomerController : ControllerBase
         _customerService = customerService;
     }
     
-    // [Authorize(Roles = "dealer_staff")]
+    /// <summary>
+    /// Lấy danh sách khách hàng dựa theo dealer đang đăng nhập
+    /// </summary>
+    //[Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers")]
-    public async Task<IActionResult> GetAllCustomers()
+    public async Task<IActionResult> GetCustomersByDealerId()
     {
         try
         {
-            var customers = await _customerService.GetAllCustomers();
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            var customers = await _customerService.GetCustomersByDealerId(dealerId);
             return Ok(ApiResponse<IEnumerable<CustomerBasicResponse>>.Success(customers));
         }
         catch (KeyNotFoundException ex)

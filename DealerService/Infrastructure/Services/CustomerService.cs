@@ -10,18 +10,32 @@ namespace ProductService.Infrastructure.Services;
 public class CustomerService
 {
     private readonly CustomerRepository _customerRepository;
+    private readonly DealerRepository _dealerRepository;
+    private readonly UserRepository _userRepository;
     private readonly IMapper _mapper;
 
-    public CustomerService(CustomerRepository customerRepository,  IMapper mapper)
+    public CustomerService(
+        CustomerRepository customerRepository,  
+        DealerRepository dealerRepository,
+        UserRepository userRepository,
+        IMapper mapper)
     {
         _customerRepository = customerRepository;
+        _dealerRepository = dealerRepository;
+        _customerRepository =  customerRepository;
         _mapper =  mapper;
     }
 
-    public async Task<IEnumerable<CustomerBasicResponse>> GetAllCustomers()
+    public async Task<IEnumerable<CustomerBasicResponse>> GetCustomersByDealerId(Guid dealerId)
     {
-        var customers = await _customerRepository.GetAllCustomers();
-        return _mapper.Map<IEnumerable<CustomerBasicResponse>>(customers);
+        var customers = await _customerRepository.GetCustomersByDealerId(dealerId);
+        var customerResponses = _mapper.Map<IEnumerable<CustomerBasicResponse>>(customers);
+        foreach (var customer in customerResponses)
+        {
+            var user = await _userRepository.GetUserStaffByDealerId(dealerId);
+            customer.StaffContact = user.Name;
+        }
+        return customerResponses;
     }
 
     public async Task<CustomerDetailResponse> GetCustomerDetail(Guid customerId)
@@ -46,7 +60,11 @@ public class CustomerService
         bool isExist = await _customerRepository.EmailExists(request.Email);
         if (!isExist)
             throw new KeyNotFoundException("Customer not found");
-        var customer = _mapper.Map<CustomerUpdateModel>(request);
-        return await _customerRepository.UpdateCustomer(_mapper.Map<Customer>(customer));
+        
+        var customerModel = _mapper.Map<CustomerUpdateModel>(request);
+        customerModel.DealerId = customer.DealerId;
+        _mapper.Map(customerModel, customer);
+        
+        return await _customerRepository.UpdateCustomer(customer);
     }
 }
