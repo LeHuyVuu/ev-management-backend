@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Unicode;
 using DealerService.Models; // nơi chứa ApiResponse<T>
 
-namespace Application.ExceptionHandler
+namespace DealerService.ExceptionHandler
 {
     public class GlobalExceptionHandlerMiddleware
     {

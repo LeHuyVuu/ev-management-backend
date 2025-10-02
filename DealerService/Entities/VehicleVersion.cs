@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ProductService.Entities;
+namespace DealerService.Entities;
 
 public partial class VehicleVersion
 {
@@ -23,7 +23,7 @@ public partial class VehicleVersion
 
     public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
 
-    public virtual ICollection<TestDrife> TestDrives { get; set; } = new List<TestDrife>();
+    public virtual ICollection<TestDrive> TestDrives { get; set; } = new List<TestDrive>();
 
     public virtual Vehicle Vehicle { get; set; } = null!;
 

@@ -8,53 +8,63 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Build & Deploy to VPS (with password)
+    name: Build & Deploy to VPS (with SSH key)
 
     steps:
+      # 1. Lấy code từ repo
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Clean old code & ensure folder exists
+      # 2. Dọn folder cũ trên VPS (nếu có) & tạo lại thư mục
+      - name: Prepare folder on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
-            mkdir -p /var/www/microservices
+            sudo mkdir -p /var/www/microservices
+            sudo chown -R $USER:$USER /var/www/microservices
             rm -rf /var/www/microservices/*
-            echo "✅ Old source code cleaned on VPS."
+            echo "✅ Cleaned old code and ensured /var/www/microservices is ready."
 
+      # 3. Copy code từ GitHub Action runner lên VPS
       - name: Copy source code to VPS
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           source: "."
           target: "/var/www/microservices"
 
-      - name: Write .env files for Brand & Dealer Services
+      # 4. Viết .env cho từng service (lấy từ GitHub Secrets)
+      - name: Write .env files for Services
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
             ENV_DIR="/var/www/microservices"
             echo "${{ secrets.ENV_BRAND }}" > "$ENV_DIR/BrandService/.env"
             echo "${{ secrets.ENV_DEALER }}" > "$ENV_DIR/DealerService/.env"
-            echo "✅ Wrote .env files for brand & dealer services."
+            echo "${{ secrets.ENV_FINANCIAL }}" > "$ENV_DIR/FinancialService/.env"
+            echo "${{ secrets.ENV_IDENTITY }}" > "$ENV_DIR/IdentityService/.env"
+            echo "${{ secrets.ENV_UTILITY }}" > "$ENV_DIR/UtilityService/.env"
+            echo "${{ secrets.ENV_CUSTOMER }}" > "$ENV_DIR/CustomerService/.env"
+            echo "✅ Wrote .env files for all services."
 
+      # 5. Build & run Docker containers trên VPS
       - name: Build & deploy Docker containers
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
             cd /var/www/microservices

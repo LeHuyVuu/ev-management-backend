@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using ProductService.Entities;
+using DealerService.Entities;
 
-namespace ProductService.Context;
+namespace DealerService.Context;
 
 public partial class MyDbContext : DbContext
 {
@@ -44,7 +44,7 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<TestDrife> TestDrives { get; set; }
+    public virtual DbSet<TestDrive> TestDrives { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -490,7 +490,7 @@ public partial class MyDbContext : DbContext
                     });
         });
 
-        modelBuilder.Entity<TestDrife>(entity =>
+        modelBuilder.Entity<TestDrive>(entity =>
         {
             entity.HasKey(e => e.TestDriveId).HasName("test_drives_pkey");
 

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 
-namespace Application.ExceptionHandler
+namespace DealerService.ExceptionHandler
 {
     public static class MiddlewareExtensions
     {

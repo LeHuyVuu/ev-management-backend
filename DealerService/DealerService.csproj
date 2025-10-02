@@ -7,7 +7,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>ProductService</RootNamespace>
+        <RootNamespace>DealerService</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -40,11 +40,6 @@
       <Content Include="..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Entities\" />
-      <Folder Include="Kafka\" />
     </ItemGroup>
 
 </Project>
