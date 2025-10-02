@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ProductService.Entities;
+namespace DealerService.Entities;
 
 public partial class User
 {
@@ -29,5 +29,5 @@ public partial class User
 
     public virtual Role Role { get; set; } = null!;
 
-    public virtual ICollection<TestDrife> TestDrives { get; set; } = new List<TestDrife>();
+    public virtual ICollection<TestDrive> TestDrives { get; set; } = new List<TestDrive>();
 }

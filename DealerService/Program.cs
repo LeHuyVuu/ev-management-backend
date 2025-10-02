@@ -7,15 +7,10 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using Npgsql;
-using ProductService.Context;
-using ProductService.Extensions.Mapper;
-using System.Reflection;
-using System.Text;
-using System.Text.Json.Serialization;
-using ProductService.Infrastructure.Repositories;
-using ProductService.Infrastructure.Services;
-using ProductService.Context;
-using Amazon.S3;
+using DealerService.Context;
+using DealerService.Extensions.Mapper;
+using DealerService.Infrastructure.Repositories;
+using DealerService.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -59,7 +54,7 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
     }
 
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Dealer API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -107,24 +102,10 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
-builder.Services.AddScoped<CustomerRepository>();
-builder.Services.AddScoped<CustomerService>();
-builder.Services.AddScoped<OrderRepository>();
-builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<ContractRepository>();
-builder.Services.AddScoped<ContractService>();
-builder.Services.AddScoped<QuoteRepository>();
-builder.Services.AddScoped<QuoteService>();
-builder.Services.AddScoped<VehicleVersionRepository>();
-
-// Repositories
-
-// Đăng ký Amazon S3 client
-builder.Services.AddAWSService<IAmazonS3>();
-
-// Đăng ký custom service
-builder.Services.AddScoped<S3StorageService>();
-// builder.Services.AddHostedService<ProductStockUpdateConsumer>();
+builder.Services.AddScoped<DealerRepository>();
+builder.Services.AddScoped<DealerTargetRepository>();
+builder.Services.AddScoped<DealerAppService>();
+builder.Services.AddScoped<DealerTargetService>();
 
 // Authentication
 builder.Services.AddAuthentication("Bearer")
@@ -200,7 +181,7 @@ app.UseSwagger(c =>
 
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Dealer API V1");
     c.RoutePrefix = "swagger";
 });
 
@@ -208,7 +189,7 @@ app.UseSwaggerUI(c =>
 
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Dealer API V1");
     c.RoutePrefix = "swagger";
 });
 

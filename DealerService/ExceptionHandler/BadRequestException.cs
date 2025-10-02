@@ -1,4 +1,4 @@
-﻿namespace Application.ExceptionHandler
+﻿namespace DealerService.ExceptionHandler
 {
     public class BadRequestException : BaseException
     {
