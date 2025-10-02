@@ -19,12 +19,6 @@ namespace BrandService.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<List<DealerResponse>> GetAllAsync()
-        {
-            var dealers = await _repo.GetAllAsync();
-            return _mapper.Map<List<DealerResponse>>(dealers);
-        }
-
         public async Task<PagedResult<DealerResponse>> GetPagedAsync(int pageNumber, int pageSize)
         {
             var paged = await _repo.GetPagedAsync(pageNumber, pageSize);

@@ -17,25 +17,13 @@ namespace BrandService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Dealer>> GetAllAsync()
-        {
-            try
-            {
-                return await _context.Dealers.ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"{ex.Message}");
-            }
-        }
-
         public async Task<PagedResult<Dealer>> GetPagedAsync(int pageNumber, int pageSize)
         {
             try
             {
                 return await _context.Dealers
                 .AsNoTracking()
-                .OrderByDescending(d => d.CreatedAt)
+                .OrderByDescending(d => d.DealerCode)
                 .ToPagedResultAsync(pageNumber, pageSize);
             }
             catch (Exception ex)
