@@ -36,8 +36,9 @@ public class ContractController : ControllerBase
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
         }
     }
-
-    //[Authorize(Roles = "dealer_staff")]
+    /// <summary>
+    /// Tạo một contract mới
+    /// </summary>
     [HttpPost]
     [Route("api/contracts")]
     public async Task<IActionResult> CreateContract(ContractCreateRequest request)
@@ -53,7 +54,9 @@ public class ContractController : ControllerBase
         }
     }
 
-    //[Authorize(Roles = "dealer_staff")]
+    /// <summary>
+    /// Lấy ra chi tiết của 1 contract
+    /// </summary>
     [HttpGet]
     [Route("/contracts/{contractId}")]
     public async Task<IActionResult> GetContractByContractId(Guid contractId)
@@ -62,6 +65,25 @@ public class ContractController : ControllerBase
         {
             var contract = await _contractService.GetContractByContractId(contractId);
             return Ok(ApiResponse<ContractDetailResponse>.Success(contract)); 
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ApiResponse<bool>.NotFound(ex.Message));
+        }
+    }
+    
+    /// <summary>
+    /// Lấy ra các contract của dealer
+    /// </summary>
+    //[Authorize(Roles = "dealer_staff")]
+    [HttpGet]
+    [Route("/contracts/dealers/{dealerId}")]
+    public async Task<IActionResult> GetContractByDealerId(Guid dealerId)
+    {
+        try
+        {
+            var contract = await _contractService.GetAllContractsByDealerId(dealerId);
+            return Ok(ApiResponse<IEnumerable<ContractDealerResponse>>.Success(contract)); 
         }
         catch (NotFoundException ex)
         {

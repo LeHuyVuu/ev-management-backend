@@ -113,4 +113,33 @@ public class ContractService
         };
         return contractResponse;
     }
+    
+    public async Task<IEnumerable<ContractDealerResponse>> GetAllContractsByDealerId(Guid dealerId)
+    {
+        var dealer = await _dealerRepository.GetDealerByDealerId(dealerId);
+        if (dealer == null)
+            throw new KeyNotFoundException("Customer does not exist!");
+        
+        var contracts = await _contractRepository.GetAllContractsByDealerId(dealerId);
+        var contractResponses = _mapper.Map<IEnumerable<ContractDealerResponse>>(contracts);
+
+        foreach (var contract in contractResponses)
+        {
+            var quote = await _quoteRepository.GetQuoteByContractId(contract.ContractId);
+            if (quote != null)
+            {
+                var customer = await _quoteRepository.GetCustomerByQuoteId(quote.QuoteId);
+                var vehicle = await _quoteRepository.GetVehicleByQuoteId(quote.QuoteId);
+                var vehicleVersion = await _quoteRepository.GetVehicleVersionByQuoteId(quote.QuoteId);
+                
+                contract.CustomerName = customer.Name;
+                contract.CustomerPhone = customer.Phone;
+                contract.Brand = vehicle.Brand;
+                contract.VehicleName = vehicle.ModelName;
+                contract.VersionName = vehicleVersion.VersionName;
+            }
+        }
+        
+        return contractResponses;
+    }
 }

@@ -52,6 +52,9 @@ public class QuoteController : ControllerBase
         return Ok(ApiResponse<IEnumerable<QuoteBasicResponse>>.Success(quotes));
     }
 
+    /// <summary>
+    /// Cập nhật lại thông tin của 1 quote thông qua quoteId
+    /// </summary>
     // [Authorize(Roles = "dealer_staff")]
     [HttpPut]
     [Route("api/quotes/{quoteId}")]
