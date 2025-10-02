@@ -1,5 +1,8 @@
 using IdentityService.Context;
 using IdentityService.Entities;
+using IdentityService.Extensions.Query;
+using IdentityService.Model;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 
 namespace IdentityService.Infrastructure.Repositories;
@@ -13,6 +16,21 @@ public class UserRepository
         _context = context;
     }
 
+    public async Task<PagedResult<User>> GetPagedAsync(int pageNumber, int pageSize)
+    {
+        try
+        {
+            return await _context.Users
+                .AsNoTracking()
+                .OrderByDescending(d => d.UserId)
+                .ToPagedResultAsync(pageNumber, pageSize);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"{ex.Message}");
+        }
+    }
+    
     public async Task<User?> GetUserById(Guid id)
     {
         return await _context.Users
@@ -54,5 +72,13 @@ public class UserRepository
     public async Task<bool> CheckUserExists(Guid id)
     {
         return await _context.Users.AnyAsync(u => u.UserId == id);
+    }
+
+    public async Task<bool> UpdateRole(Guid id, int role)
+    {
+        var user = await GetUserById(id);
+        user.RoleId = role;
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
