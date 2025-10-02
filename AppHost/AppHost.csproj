@@ -19,6 +19,9 @@
       <ProjectReference Include="..\ApiGateway\ApiGateway.csproj" />
       <ProjectReference Include="..\DealerService\DealerService.csproj" />
       <ProjectReference Include="..\BrandService\BrandService.csproj" />
+      <ProjectReference Include="..\FinancialService\FinancialService.csproj" />
+      <ProjectReference Include="..\IdentityService\IdentityService.csproj" />
+      <ProjectReference Include="..\UtilityService\UtilityService.csproj" />
     </ItemGroup>
 
     <ItemGroup>

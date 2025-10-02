@@ -7,14 +7,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using DotNetEnv;
 using Npgsql;
-using ProductService.Context;
-using ProductService.Extensions.Mapper;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using ProductService.Infrastructure.Repositories;
-using ProductService.Infrastructure.Services;
-using ProductService.Context;
 using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -45,7 +40,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 // AutoMapper
-builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
 
 
 // Swagger + JWT
@@ -103,16 +97,7 @@ builder.Services.AddCors(options =>
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 var dataSource = dataSourceBuilder.Build();
 
-builder.Services.AddDbContext<MyDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
 // DI các Repository và Service
-builder.Services.AddScoped<CustomerRepository>();
-builder.Services.AddScoped<CustomerService>();
-builder.Services.AddScoped<OrderRepository>();
-builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<ContractRepository>();
-builder.Services.AddScoped<ContractService>();
 
 // Repositories
 
@@ -120,7 +105,6 @@ builder.Services.AddScoped<ContractService>();
 builder.Services.AddAWSService<IAmazonS3>();
 
 // Đăng ký custom service
-builder.Services.AddScoped<S3StorageService>();
 // builder.Services.AddHostedService<ProductStockUpdateConsumer>();
 
 // Authentication
