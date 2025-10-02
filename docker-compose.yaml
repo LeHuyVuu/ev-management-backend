@@ -10,6 +10,9 @@ services:
     environment:
       - ReverseProxy__Clusters__brandCluster__Destinations__brandService__Address=http://brand-service:8080/
       - ReverseProxy__Clusters__dealerCluster__Destinations__dealerService__Address=http://dealer-service:8080/
+      - ReverseProxy__Clusters__financialCluster__Destinations__financialService__Address=http://financial-service:8080/
+      - ReverseProxy__Clusters__identityCluster__Destinations__identityService__Address=http://identity-service:8080/
+      - ReverseProxy__Clusters__utilityCluster__Destinations__utilityService__Address=http://utility-service:8080/
 
   dealer-service:
     build: ./DealerService
@@ -29,30 +32,33 @@ services:
     env_file:
       - ./BrandService/.env
 
-  nginx:
-    image: nginx:stable
-    container_name: nginx
-    restart: always
+  financial-service:
+    build: ./FinancialService
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/certbot/www:/var/www/certbot
-      - ./nginx/certbot/conf:/etc/letsencrypt
-    depends_on:
-      - apigateway
+      - "7090:8080"
+    container_name: financial-service
+    restart: always
+    env_file:
+      - ./FinancialService/.env
 
-  certbot:
-    image: certbot/certbot
-    container_name: certbot
-    volumes:
-      - ./nginx/certbot/www:/var/www/certbot
-      - ./nginx/certbot/conf:/etc/letsencrypt
-    entrypoint: >
-      sh -c "sleep 5 && certbot certonly --webroot --webroot-path=/var/www/certbot --email lehuyvuok@gmail.com --agree-tos --no-eff-email -d evm.webredirect.org"
+  identity-service:
+    build: ./IdentityService
+    ports:
+      - "7070:8080"
+    container_name: identity-service
+    restart: always
+    env_file:
+      - ./IdentityService/.env
+
+  utility-service:
+    build: ./UtilityService
+    ports:
+      - "7050:8080"
+    container_name: utility-service
+    restart: always
+    env_file:
+      - ./UtilityService/.env
 
 networks:
   default:
     driver: bridge
-

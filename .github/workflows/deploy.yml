@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Build & Deploy to VPS (with password)
+    name: Build & Deploy to VPS (with SSH key)
 
     steps:
       - name: Checkout code
@@ -19,7 +19,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
             mkdir -p /var/www/microservices
@@ -31,30 +31,33 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           source: "."
           target: "/var/www/microservices"
 
-      - name: Write .env files for Brand & Dealer Services
+      - name: Write .env files for Services
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
             ENV_DIR="/var/www/microservices"
             echo "${{ secrets.ENV_BRAND }}" > "$ENV_DIR/BrandService/.env"
             echo "${{ secrets.ENV_DEALER }}" > "$ENV_DIR/DealerService/.env"
-            echo "✅ Wrote .env files for brand & dealer services."
+            echo "${{ secrets.ENV_FINANCIAL }}" > "$ENV_DIR/FinancialService/.env"
+            echo "${{ secrets.ENV_IDENTITY }}" > "$ENV_DIR/IdentityService/.env"
+            echo "${{ secrets.ENV_UTILITY }}" > "$ENV_DIR/UtilityService/.env"
+            echo "✅ Wrote .env files for all services."
 
       - name: Build & deploy Docker containers
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
             cd /var/www/microservices
