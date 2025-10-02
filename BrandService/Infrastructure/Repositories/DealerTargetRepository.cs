@@ -71,6 +71,11 @@ namespace BrandService.Infrastructure.Repositories
                 var dealer = await _dealerRepository.GetByIdAsync(target.DealerId);
                 if (dealer == null)
                     throw new NotFoundException("Dealer not found");
+
+                var overlap = await ExistsOverlapAsync(target.DealerId, null, target.StartDate, target.Period);
+                if (overlap)
+                    throw new BadRequestException("Target period overlaps an existing target for this dealer.");
+
                 target.DealerTargetId = Guid.NewGuid();
                 _context.DealerTargets.Add(target);
                 await _context.SaveChangesAsync();
@@ -79,6 +84,10 @@ namespace BrandService.Infrastructure.Repositories
             catch (NotFoundException ex)
             {
                 throw new NotFoundException(ex.Message);
+            }
+            catch (BadRequestException ex)
+            {
+                throw new BadRequestException(ex.Message);
             }
             catch (Exception ex)
             {
@@ -93,6 +102,11 @@ namespace BrandService.Infrastructure.Repositories
                 var dealer = await _dealerRepository.GetByIdAsync(target.DealerId);
                 if (dealer == null)
                     throw new NotFoundException("Dealer not found");
+
+                var overlap = await ExistsOverlapAsync(target.DealerId, target.DealerTargetId, target.StartDate, target.Period);
+                if (overlap)
+                    throw new BadRequestException("Target period overlaps an existing target for this dealer.");
+
                 var existingTarget = await _context.DealerTargets
                     .FirstOrDefaultAsync(t => t.DealerTargetId == target.DealerTargetId && t.DealerId == target.DealerId);
                 if (existingTarget == null)
@@ -134,6 +148,36 @@ namespace BrandService.Infrastructure.Repositories
                 throw new Exception($"{ex.Message}");
             }
         }
+
+        private async Task<bool> ExistsOverlapAsync(Guid dealerId, Guid? excludeTargetId, DateOnly newStartDate, string newPeriod)
+        {
+            var targets = await _context.DealerTargets
+                .AsNoTracking()
+                .Where(t => t.DealerId == dealerId && (excludeTargetId == null || t.DealerTargetId != excludeTargetId))
+                .ToListAsync();
+
+            var newEndDate = newPeriod.ToLower() switch
+            {
+                "monthly" => newStartDate.AddMonths(1),
+                "quarterly" => newStartDate.AddMonths(3),
+                "yearly" => newStartDate.AddYears(1),
+                _ => newStartDate
+            };
+
+            return targets.Any(t =>
+            {
+                var existingEndDate = t.Period.ToLower() switch
+                {
+                    "monthly" => t.StartDate.AddMonths(1),
+                    "quarterly" => t.StartDate.AddMonths(3),
+                    "yearly" => t.StartDate.AddYears(1),
+                    _ => t.StartDate
+                };
+
+                return t.StartDate < newEndDate && newStartDate < existingEndDate;
+            });
+        }
+
 
         /// <summary>
         /// Tính tổng doanh số (total_value) từ bảng contracts cho 1 dealer trong kỳ target.
