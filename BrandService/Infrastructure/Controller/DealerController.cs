@@ -1,6 +1,7 @@
-﻿using Application.ExceptionHandler;
-using BrandService.DTOs.Requests.DealerDTOs;
+﻿using BrandService.DTOs.Requests.DealerDTOs;
 using BrandService.DTOs.Responses.DealerDTOs;
+using BrandService.DTOs.Requests.DealerTargetDTOs;
+using BrandService.DTOs.Responses.DealerTargetDTOs;
 using BrandService.Infrastructure.Services;
 using BrandService.Model;
 using BrandService.Models;
@@ -12,64 +13,58 @@ namespace BrandService.Infrastructure.Controller
     [Route("api/[controller]")]
     public class DealersController : ControllerBase
     {
-        private readonly DealerService _service;
+        private readonly DealerService _dealerService;
+        private readonly DealerTargetService _dealerTargetService;
 
-        public DealersController(DealerService service)
+        public DealersController(DealerService dealerService, DealerTargetService dealerTargetService)
         {
-            _service = service;
+            _dealerService = dealerService;
+            _dealerTargetService = dealerTargetService;
         }
+
+        // ---------------- DEALERS ----------------
 
         /// <summary>
         /// Get all dealers with pagination.
         /// </summary>
-        /// <param name="pageNumber">The page number (default = 1).</param>
-        /// <param name="pageSize">The number of records per page (default = 10).</param>
-        /// <returns>Paged list of dealers.</returns>
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponse<List<DealerResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var dealers = await _service.GetPagedAsync(pageNumber, pageSize);
+            var dealers = await _dealerService.GetPagedAsync(pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<DealerResponse>>.Success(dealers));
         }
 
         /// <summary>
         /// Get dealer details by Id.
         /// </summary>
-        /// <param name="id">Dealer unique identifier (GUID).</param>
-        /// <returns>Dealer details if found, otherwise 404.</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(ApiResponse<DealerResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetById(Guid id)
         {
-            var dealer = await _service.GetByIdAsync(id);
+            var dealer = await _dealerService.GetByIdAsync(id);
             return Ok(ApiResponse<DealerResponse>.Success(dealer));
         }
 
         /// <summary>
         /// Create a new dealer.
         /// </summary>
-        /// <param name="request">Dealer information to be created.</param>
-        /// <returns>The created dealer.</returns>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<DealerResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Create([FromBody] DealerRequest dealerRequest)
         {
-            var created = await _service.CreateAsync(dealerRequest);
+            var created = await _dealerService.CreateAsync(dealerRequest);
             return Ok(ApiResponse<DealerResponse>.Success(created));
         }
 
         /// <summary>
         /// Update dealer information by Id.
         /// </summary>
-        /// <param name="id">Dealer unique identifier (GUID).</param>
-        /// <param name="request">Dealer information to update.</param>
-        /// <returns>The updated dealer.</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse<DealerResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
@@ -77,20 +72,93 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Update(Guid id, [FromBody] DealerRequest dealerRequest)
         {
-            var updated = await _service.UpdateAsync(id, dealerRequest);
+            var updated = await _dealerService.UpdateAsync(id, dealerRequest);
             return Ok(ApiResponse<DealerResponse>.Success(updated));
         }
 
         /// <summary>
-        /// Get sales targets assigned to a dealer.
+        /// Get all sales targets of a dealer (with pagination).
         /// </summary>
-        /// <param name="id">Dealer unique identifier (GUID).</param>
-        /// <returns>A list of sales targets for the dealer.</returns>
-        //[HttpGet("{id}/targets")]
-        //public async Task<ActionResult<List<DealerTargetDto>>> GetTargets(Guid id)
-        //{
-        //    return Ok(await _service.GetTargetsAsync(id));
-        //}
-    }
+        /// <param name="dealerId">Dealer unique identifier</param>
+        /// <param name="pageNumber">Page number (default = 1)</param>
+        /// <param name="pageSize">Page size (default = 10)</param>
+        /// <returns>Paged list of dealer targets</returns>
+        [HttpGet("{dealerId}/targets")]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerTargetResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetTargets(Guid dealerId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            var targets = await _dealerTargetService.GetTargetsByDealerAsync(dealerId, pageNumber, pageSize);
+            return Ok(ApiResponse<PagedResult<DealerTargetResponse>>.Success(targets));
+        }
 
+        // ---------------- DEALER TARGETS ----------------
+
+        /// <summary>
+        /// Get a specific target by dealer and target Id.
+        /// </summary>
+        [HttpGet("{dealerId}/targets/{targetId}")]
+        [ProducesResponseType(typeof(ApiResponse<DealerTargetResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetTargetById(Guid dealerId, Guid targetId)
+        {
+            var target = await _dealerTargetService.GetByIdAsync(dealerId, targetId);
+            return Ok(ApiResponse<DealerTargetResponse>.Success(target));
+        }
+
+        /// <summary>
+        /// Create a new sales target for a dealer.
+        /// </summary>
+        [HttpPost("{dealerId}/targets")]
+        [ProducesResponseType(typeof(ApiResponse<DealerTargetResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> CreateTarget(Guid dealerId, [FromBody] DealerTargetRequest request)
+        {
+            var created = await _dealerTargetService.CreateAsync(dealerId, request);
+            return Ok(ApiResponse<DealerTargetResponse>.Success(created));
+        }
+
+        /// <summary>
+        /// Update a dealer's sales target.
+        /// </summary>
+        [HttpPut("{dealerId}/targets/{targetId}")]
+        [ProducesResponseType(typeof(ApiResponse<DealerTargetResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> UpdateTarget(Guid dealerId, Guid targetId, [FromBody] DealerTargetRequest request)
+        {
+            var updated = await _dealerTargetService.UpdateAsync(dealerId, targetId, request);
+            return Ok(ApiResponse<DealerTargetResponse>.Success(updated));
+        }
+
+        /// <summary>
+        /// Delete a dealer's sales target.
+        /// </summary>
+        [HttpDelete("{dealerId}/targets/{targetId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> DeleteTarget(Guid dealerId, Guid targetId)
+        {
+            await _dealerTargetService.DeleteAsync(dealerId, targetId);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Update the achieved amount for a dealer's sales target.
+        /// </summary>
+        [HttpPut("{dealerId}/targets/{targetId}/achieved")]
+        [ProducesResponseType(typeof(ApiResponse<DealerTargetResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> UpdateTargetAchieved(Guid dealerId, Guid targetId)
+        {
+            var updated = await _dealerTargetService.UpdateAchievedAmountAsync(dealerId, targetId);
+            return Ok(ApiResponse<DealerTargetResponse>.Success(updated));
+        }
+    }
 }
