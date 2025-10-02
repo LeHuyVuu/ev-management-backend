@@ -14,8 +14,14 @@ namespace BrandService.Extensions.Mapper
             CreateMap<Dealer, DealerRequest>().ReverseMap();
             CreateMap<Dealer, DealerResponse>().ReverseMap();
 
-            CreateMap<DealerTargetRequest, DealerTarget>();
-            CreateMap<DealerTarget, DealerTargetResponse>();
+            CreateMap<DealerTargetRequest, DealerTarget>()
+                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => src.Period.ToLower()))
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => DateOnly.FromDateTime(src.StartDate)));
+            CreateMap<DealerTarget, DealerTargetResponse>()
+                .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
+                .ForMember(dest => dest.Period, 
+                    opt => opt.MapFrom(src => char.ToUpper(src.Period[0]) + src.Period.Substring(1).ToLower()
+        ));
         }
     }
 }

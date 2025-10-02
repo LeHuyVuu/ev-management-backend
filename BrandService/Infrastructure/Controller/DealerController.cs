@@ -76,6 +76,8 @@ namespace BrandService.Infrastructure.Controller
             return Ok(ApiResponse<DealerResponse>.Success(updated));
         }
 
+        // ---------------- DEALER TARGETS ----------------
+
         /// <summary>
         /// Get all sales targets of a dealer (with pagination).
         /// </summary>
@@ -92,8 +94,6 @@ namespace BrandService.Infrastructure.Controller
             var targets = await _dealerTargetService.GetTargetsByDealerAsync(dealerId, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<DealerTargetResponse>>.Success(targets));
         }
-
-        // ---------------- DEALER TARGETS ----------------
 
         /// <summary>
         /// Get a specific target by dealer and target Id.
@@ -139,26 +139,26 @@ namespace BrandService.Infrastructure.Controller
         /// Delete a dealer's sales target.
         /// </summary>
         [HttpDelete("{dealerId}/targets/{targetId}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> DeleteTarget(Guid dealerId, Guid targetId)
         {
             await _dealerTargetService.DeleteAsync(dealerId, targetId);
-            return NoContent();
+            return Ok(ApiResponse<object>.Success(null, "Delete successfully."));
         }
 
-        /// <summary>
-        /// Update the achieved amount for a dealer's sales target.
-        /// </summary>
-        [HttpPut("{dealerId}/targets/{targetId}/achieved")]
-        [ProducesResponseType(typeof(ApiResponse<DealerTargetResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> UpdateTargetAchieved(Guid dealerId, Guid targetId)
-        {
-            var updated = await _dealerTargetService.UpdateAchievedAmountAsync(dealerId, targetId);
-            return Ok(ApiResponse<DealerTargetResponse>.Success(updated));
-        }
+        ///// <summary>
+        ///// Update the achieved amount for a dealer's sales target.
+        ///// </summary>
+        //[HttpPut("{dealerId}/targets/{targetId}/achieved")]
+        //[ProducesResponseType(typeof(ApiResponse<DealerTargetResponse>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        //public async Task<ActionResult> UpdateTargetAchieved(Guid dealerId, Guid targetId)
+        //{
+        //    var updated = await _dealerTargetService.UpdateAchievedAmountAsync(dealerId, targetId);
+        //    return Ok(ApiResponse<DealerTargetResponse>.Success(updated));
+        //}
     }
 }

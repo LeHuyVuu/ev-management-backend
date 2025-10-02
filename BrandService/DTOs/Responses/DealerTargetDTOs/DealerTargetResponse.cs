@@ -7,7 +7,7 @@
         public string Period { get; set; } = null!;
         public decimal TargetAmount { get; set; }
         public decimal AchievedAmount { get; set; }
-        public DateOnly StartDate { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime StartDate { get; set; }
+        //public DateTime CreatedAt { get; set; }
     }
 }

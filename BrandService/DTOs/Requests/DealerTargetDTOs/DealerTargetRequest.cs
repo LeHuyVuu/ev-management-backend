@@ -6,7 +6,7 @@ namespace BrandService.DTOs.Requests.DealerTargetDTOs
     {
         [Required(ErrorMessage = "Period is required.")]
         [RegularExpression("^(Monthly|Quarterly|Yearly)$",
-            ErrorMessage = "Period must be Monthly, Quarterly, or Yearly.")]
+            ErrorMessage = "Period must be \"Monthly\", \"Quarterly\", or \"Yearly\".")]
         public string Period { get; set; } = null!;
 
         [Required(ErrorMessage = "TargetAmount is required.")]
@@ -14,6 +14,6 @@ namespace BrandService.DTOs.Requests.DealerTargetDTOs
         public decimal TargetAmount { get; set; }
 
         [Required(ErrorMessage = "StartDate is required.")]
-        public DateOnly StartDate { get; set; }
+        public DateTime StartDate { get; set; }
     }
 }

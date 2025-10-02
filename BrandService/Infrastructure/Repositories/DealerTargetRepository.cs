@@ -22,10 +22,18 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
+                var dealer = await _dealerRepository.GetByIdAsync(dealerId);
+                if (dealer == null)
+                    throw new NotFoundException("Dealer not found");
                 return await _context.DealerTargets
-                .Where(t => t.DealerId == dealerId)
-                .OrderByDescending(t => t.StartDate)
-                .ToPagedResultAsync(pageNumber, pageSize);
+                    .Where(t => t.DealerId == dealerId)
+                    .AsNoTracking()
+                    .OrderByDescending(t => t.StartDate)
+                    .ToPagedResultAsync(pageNumber, pageSize);
+            }
+            catch (NotFoundException ex)
+            {
+                throw new NotFoundException(ex.Message);
             }
             catch (Exception ex)
             {

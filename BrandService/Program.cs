@@ -102,6 +102,8 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 builder.Services.AddSingleton<BrandProducer>();
 builder.Services.AddScoped<DealerRepository>();
 builder.Services.AddScoped<DealerService>();
+builder.Services.AddScoped<DealerTargetRepository>();
+builder.Services.AddScoped<DealerTargetService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);

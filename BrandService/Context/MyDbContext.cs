@@ -203,10 +203,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.ContactPhone)
                 .HasMaxLength(50)
                 .HasColumnName("contact_phone");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
-                .HasColumnName("created_at");
+            //entity.Property(e => e.CreatedAt)
+            //    .HasDefaultValueSql("now()")
+            //    .HasColumnType("timestamp(0) without time zone")
+            //    .HasColumnName("created_at");
             entity.Property(e => e.DealerCode)
                 .HasMaxLength(50)
                 .HasColumnName("dealer_code");
@@ -219,10 +219,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(30)
                 .HasColumnName("status");
-            entity.Property(e => e.UpdatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
-                .HasColumnName("updated_at");
+            //entity.Property(e => e.UpdatedAt)
+            //    .HasDefaultValueSql("now()")
+            //    .HasColumnType("timestamp(0) without time zone")
+            //    .HasColumnName("updated_at");
         });
 
         modelBuilder.Entity<DealerContract>(entity =>
@@ -296,10 +296,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.AchievedAmount)
                 .HasPrecision(18, 2)
                 .HasColumnName("achieved_amount");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("now()")
-                .HasColumnType("timestamp(0) without time zone")
-                .HasColumnName("created_at");
+            //entity.Property(e => e.CreatedAt)
+            //    .HasDefaultValueSql("now()")
+            //    .HasColumnType("timestamp(0) without time zone")
+            //    .HasColumnName("created_at");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.Period)
                 .HasMaxLength(30)
