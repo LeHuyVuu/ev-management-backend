@@ -42,9 +42,17 @@ namespace Application.ExceptionHandler
                 await HandleExceptionAsync(context, ex);
             }
         }
-
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
+            if (context.Response.HasStarted)
+            {
+                _logger.LogError(exception, 
+                    "Response already started, cannot write error response for {Path}", 
+                    context.Request.Path);
+                return;
+            }
+
+            context.Response.Clear();
             context.Response.ContentType = "application/json; charset=utf-8";
 
             var (statusCode, response) = exception switch
@@ -53,27 +61,18 @@ namespace Application.ExceptionHandler
                     StatusCodes.Status400BadRequest,
                     ApiResponse<object>.Fail(StatusCodes.Status400BadRequest, ex.Message, "VALIDATION_ERROR")
                 ),
-
                 NotFoundException ex => (
                     StatusCodes.Status404NotFound,
                     ApiResponse<object>.Fail(StatusCodes.Status404NotFound, ex.Message, "NOT_FOUND")
                 ),
-
-                ArgumentNullException ex => (
-                    StatusCodes.Status400BadRequest,
-                    ApiResponse<object>.Fail(StatusCodes.Status400BadRequest, ex.Message, "ARGUMENT_NULL")
-                ),
-
                 InvalidOperationException ex => (
                     StatusCodes.Status400BadRequest,
                     ApiResponse<object>.Fail(StatusCodes.Status400BadRequest, ex.Message, "INVALID_OPERATION")
                 ),
-
                 BadRequestException ex => (
                     StatusCodes.Status400BadRequest,
                     ApiResponse<object>.Fail(StatusCodes.Status400BadRequest, ex.Message, "BAD_REQUEST")
                 ),
-
                 _ => (
                     StatusCodes.Status500InternalServerError,
                     CreateInternalServerError(exception)
@@ -88,9 +87,10 @@ namespace Application.ExceptionHandler
                 WriteIndented = true
             };
 
-            string json = JsonSerializer.Serialize(response, options);
-            await context.Response.WriteAsync(json);
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response, options));
         }
+
+
 
         private ApiResponse<object> CreateInternalServerError(Exception ex)
         {

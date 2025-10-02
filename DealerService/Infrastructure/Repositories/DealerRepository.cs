@@ -1,12 +1,11 @@
-﻿using Application.ExceptionHandler;
-using BrandService.Context;
-using BrandService.Entities;
-using BrandService.Extensions.Query;
-using BrandService.Model;
+﻿using DealerService.Models;
+using DealerService.Extensions.Query;
 using Microsoft.EntityFrameworkCore;
-using System;
+using DealerService.Context;
+using DealerService.Entities;
+using DealerService.ExceptionHandler;
 
-namespace BrandService.Infrastructure.Repositories
+namespace DealerService.Infrastructure.Repositories
 {
     public class DealerRepository
     {
@@ -17,24 +16,13 @@ namespace BrandService.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<Dealer>> GetAllAsync()
-        {
-            try
-            {
-                return await _context.Dealers.ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"{ex.Message}");
-            }
-        }
-
         public async Task<PagedResult<Dealer>> GetPagedAsync(int pageNumber, int pageSize)
         {
             try
             {
                 return await _context.Dealers
                 .AsNoTracking()
+                .OrderByDescending(d => d.DealerCode)
                 .ToPagedResultAsync(pageNumber, pageSize);
             }
             catch (Exception ex)
@@ -61,7 +49,7 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
-                var dealer =  await _context.Dealers.FindAsync(id);
+                var dealer = await _context.Dealers.FindAsync(id);
                 if (dealer == null)
                 {
                     throw new NotFoundException("Dealer not found");
@@ -70,7 +58,7 @@ namespace BrandService.Infrastructure.Repositories
             }
             catch (NotFoundException ex)
             {
-                throw new NotFoundException("Dealer not found");
+                throw new NotFoundException(ex.Message);
             }
             catch (Exception ex)
             {
@@ -107,7 +95,7 @@ namespace BrandService.Infrastructure.Repositories
             {
 
                 if (DoesDealerExist(dealer.DealerCode, dealer.DealerId))
-                    throw new Exception("Dealer has already exist");
+                    throw new BadRequestException("Dealer has already exist");
 
                 _context.Dealers.Update(dealer);
                 await _context.SaveChangesAsync();
@@ -127,12 +115,5 @@ namespace BrandService.Infrastructure.Repositories
         {
             return _context.Dealers.AsNoTracking().Any(d => d.DealerCode == dealerCode && (excludeDealerId == null || d.DealerId != excludeDealerId));
         }
-
-        //public async Task<List<DealerTarget>> GetTargetsAsync(Guid dealerId)
-        //{
-        //    return await _context.DealerTargets
-        //        .Where(t => t.DealerId == dealerId)
-        //        .ToListAsync();
-        //}
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace BrandService.DTOs.Responses.DealerDTOs
+﻿namespace DealerService.DTOs.Responses.DealerDTOs
 {
     public class DealerResponse
     {
@@ -10,7 +10,5 @@
         public string? ContactEmail { get; set; }
         public string? ContactPhone { get; set; }
         public string Status { get; set; } = null!;
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
     }
 }

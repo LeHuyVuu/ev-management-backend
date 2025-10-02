@@ -3,7 +3,7 @@ using Confluent.Kafka.Admin;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
-namespace IdentityService;
+namespace IdentityService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api/[controller]")]
