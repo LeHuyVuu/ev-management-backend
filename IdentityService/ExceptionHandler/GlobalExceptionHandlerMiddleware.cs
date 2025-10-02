@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System.Text.Encodings.Web;
+﻿using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
-using BrandService.Models; // nơi chứa ApiResponse<T>
+using IdentityService.Model;
 
-namespace Application.ExceptionHandler
+// nơi chứa ApiResponse<T>
+
+namespace IdentityService.ExceptionHandler
 {
     public class GlobalExceptionHandlerMiddleware
     {

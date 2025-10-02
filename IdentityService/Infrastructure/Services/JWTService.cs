@@ -1,10 +1,10 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BrandService.DTOs.Responses.UserDTOs;
+using IdentityService.DTOs.Responses.UserDTOs;
 using Microsoft.IdentityModel.Tokens;
 
-namespace BrandService.Infrastructure.Services
+namespace IdentityService.Infrastructure.Services
 {
     public class JWTService
     {
