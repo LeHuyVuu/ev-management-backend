@@ -22,8 +22,8 @@ namespace DealerService.Extensions.Mapper
             CreateMap<DealerTarget, DealerTargetResponse>()
                 .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
                 .ForMember(dest => dest.Period,
-                    opt => opt.MapFrom(src => char.ToUpper(src.Period[0]) + src.Period.Substring(1).ToLower()
-        ));
+                    opt => opt.MapFrom(src => char.ToUpper(src.Period[0]) + src.Period.Substring(1).ToLower()))
+                .ForMember(dest => dest.DealerName, opt => opt.MapFrom(src => src.Dealer.Name));
         }
     }
 }

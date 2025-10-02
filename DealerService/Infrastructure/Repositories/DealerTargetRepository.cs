@@ -18,6 +18,21 @@ namespace DealerService.Infrastructure.Repositories
             _dealerRepository = dealerRepository;
         }
 
+        public async Task<PagedResult<DealerTarget>> GetPagedAllAsync(int pageNumber, int pageSize)
+        {
+            try
+            {
+                return await _context.DealerTargets.Include(t => t.Dealer)
+                     .AsNoTracking()
+                     .OrderByDescending(t => t.StartDate)
+                     .ToPagedResultAsync(pageNumber, pageSize);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"{ex.Message}");
+            }
+        }
+
         public async Task<PagedResult<DealerTarget>> GetPagedByDealerAsync(Guid dealerId, int pageNumber, int pageSize)
         {
             try
@@ -25,7 +40,8 @@ namespace DealerService.Infrastructure.Repositories
                 var dealer = await _dealerRepository.GetByIdAsync(dealerId);
                 if (dealer == null)
                     throw new NotFoundException("Dealer not found");
-                return await _context.DealerTargets
+
+                return await _context.DealerTargets.Include(t => t.Dealer)
                     .Where(t => t.DealerId == dealerId)
                     .AsNoTracking()
                     .OrderByDescending(t => t.StartDate)
@@ -48,7 +64,8 @@ namespace DealerService.Infrastructure.Repositories
                 var dealer = await _dealerRepository.GetByIdAsync(dealerId);
                 if (dealer == null)
                     throw new NotFoundException("Dealer not found");
-                var target = await _context.DealerTargets
+
+                var target = await _context.DealerTargets.Include(t => t.Dealer)
                     .FirstOrDefaultAsync(t => t.DealerTargetId == targetId && t.DealerId == dealerId);
                 if (target == null)
                     throw new NotFoundException("Dealer target not found");
