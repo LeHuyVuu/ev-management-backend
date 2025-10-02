@@ -75,7 +75,7 @@ public class ContractController : ControllerBase
     /// <summary>
     /// Lấy ra các contract của dealer
     /// </summary>
-    //[Authorize(Roles = "dealer_staff")]
+    //[Authorize(Roles = "evm_staff")]
     [HttpGet]
     [Route("/contracts/dealers/{dealerId}")]
     public async Task<IActionResult> GetContractByDealerId(Guid dealerId)
