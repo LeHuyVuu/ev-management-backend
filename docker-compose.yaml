@@ -67,18 +67,7 @@ services:
     restart: always
     env_file:
       - ./CustomerService/.env
-    
-  apphost:
-    build: ./AppHost
-    container_name: apphost
-    restart: always
-    ports:
-      - "18888:18888"   # Aspire dashboard
-      - "5000:8080"    # Nếu bạn có expose HTTP API từ AppHost
-    environment:
-      - DOTNET_ENVIRONMENT=Production
-
-
+  
 networks:
   default:
     driver: bridge
