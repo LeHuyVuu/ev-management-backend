@@ -55,6 +55,7 @@ jobs:
             echo "${{ secrets.ENV_FINANCIAL }}" > "$ENV_DIR/FinancialService/.env"
             echo "${{ secrets.ENV_IDENTITY }}" > "$ENV_DIR/IdentityService/.env"
             echo "${{ secrets.ENV_UTILITY }}" > "$ENV_DIR/UtilityService/.env"
+            echo "${{ secrets.ENV_CUSTOMER }}" > "$ENV_DIR/CustomerService/.env"
             echo "✅ Wrote .env files for all services."
 
       # 5. Build & run Docker containers trên VPS

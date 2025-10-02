@@ -155,12 +155,11 @@ app.UseSwagger(c =>
 {
     c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
     {
-        // Nếu là production thì luôn luôn https://evm.webredirect.org/dealer-service
         if (builder.Environment.IsProduction())
         {
             swaggerDoc.Servers = new List<OpenApiServer>
             {
-                new OpenApiServer { Url = $"https://evm.webredirect.org{pathBase}" }
+                new OpenApiServer { Url = $"https://prn232.freeddns.org{pathBase}" }
             };
         }
         else

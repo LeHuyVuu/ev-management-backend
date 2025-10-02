@@ -4,12 +4,12 @@ EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY IdentityService.csproj .
+COPY CustomerService.csproj .
 RUN dotnet restore
 COPY . .
-RUN dotnet publish IdentityService.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish CustomerService.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "IdentityService.dll"]
+ENTRYPOINT ["dotnet", "CustomerService.dll"]

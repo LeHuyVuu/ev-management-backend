@@ -147,7 +147,7 @@ var app = builder.Build();
 
 
 // ✅ THÊM: path base nếu chạy dưới sub-path (ví dụ: /brand-service)
-var pathBase = "/identity-service"; // ⬅️ Sửa theo đúng sub-path bạn dùng
+var pathBase = "/customer-service"; // ⬅️ Sửa theo đúng sub-path bạn dùng
 app.UsePathBase(pathBase);
 
 
