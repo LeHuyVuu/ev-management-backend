@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ProductService.Entities;
+namespace CustomerService.Entities;
 
 public partial class Promotion
 {

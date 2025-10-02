@@ -1,9 +1,8 @@
 ﻿using AutoMapper;
-using ProductService.Context;
-using ProductService.DTOs;
-using ProductService.Infrastructure.Repositories;
+using CustomerService.DTOs.Responses.OrderDTOs;
+using CustomerService.Infrastructure.Repositories;
 
-namespace ProductService.Infrastructure.Services;
+namespace CustomerService.Infrastructure.Services;
 
 public class OrderService
 {

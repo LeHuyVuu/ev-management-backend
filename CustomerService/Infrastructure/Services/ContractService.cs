@@ -1,11 +1,11 @@
-﻿using Application.ExceptionHandler;
+﻿using CustomerService.ExceptionHandler;
 using AutoMapper;
-using ProductService.DTOs;
-using ProductService.DTOs.Requests.ContractDTOs;
-using ProductService.Entities;
-using ProductService.Infrastructure.Repositories;
+using CustomerService.DTOs.Requests.ContractDTOs;
+using CustomerService.DTOs.Responses.ContractDTOs;
+using CustomerService.Entities;
+using CustomerService.Infrastructure.Repositories;
 
-namespace ProductService.Infrastructure.Services;
+namespace CustomerService.Infrastructure.Services;
 
 public class ContractService
 {

@@ -1,4 +1,4 @@
-﻿namespace ProductService.DTOs.Responses.QuoteDTOs;
+﻿namespace CustomerService.DTOs.Responses.QuoteDTOs;
 
 public class QuoteDetailResponse
 {

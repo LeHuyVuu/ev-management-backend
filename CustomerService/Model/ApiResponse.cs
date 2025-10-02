@@ -1,4 +1,4 @@
-namespace DealerService.Models;
+namespace CustomerService.Models;
 
 public record ApiResponse<T>(
     int Status,

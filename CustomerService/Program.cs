@@ -9,10 +9,11 @@ using Npgsql;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using ProductService.Context;
-using ProductService.Extensions.Mapper;
-using ProductService.Infrastructure.Repositories;
-using ProductService.Infrastructure.Services;
+using CustomerService.Context;
+using CustomerService.Extensions.Mapper;
+using CustomerService.Infrastructure.Repositories;
+using CustomerService.Infrastructure.Services;
+using CustomerServiceClass = CustomerService.Infrastructure.Services.CustomerService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -101,7 +102,7 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 // DI các Repository và Service
 builder.Services.AddScoped<CustomerRepository>();
-builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<CustomerServiceClass>();
 builder.Services.AddScoped<OrderRepository>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<ContractRepository>();

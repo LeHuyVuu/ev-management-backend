@@ -1,7 +1,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 
-namespace ProductService.Infrastructure.Services;
+namespace CustomerService.Infrastructure.Services;
 
 public class S3StorageService
 {

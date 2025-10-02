@@ -1,8 +1,8 @@
-using DealerService.Models;
+using CustomerService.Models;
 using Microsoft.AspNetCore.Mvc;
-using ProductService.Infrastructure.Services;
+using CustomerService.Infrastructure.Services;
 
-namespace ProductService.Infrastructure.Controller;
+namespace CustomerService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api/[controller]")]

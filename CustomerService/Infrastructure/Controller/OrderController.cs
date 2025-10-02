@@ -1,10 +1,10 @@
-﻿using DealerService.Models;
+﻿using CustomerService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProductService.DTOs;
-using ProductService.Infrastructure.Services;
+using CustomerService.DTOs.Responses.OrderDTOs;
+using CustomerService.Infrastructure.Services;
 
-namespace ProductService.Infrastructure.Controller;
+namespace CustomerService.Infrastructure.Controller;
 
 public class OrderController : ControllerBase
 {

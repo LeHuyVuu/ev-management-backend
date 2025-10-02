@@ -1,11 +1,12 @@
 ﻿using System.Data;
 using AutoMapper;
-using ProductService.DTOs;
-using ProductService.Entities;
-using ProductService.Extensions.Mapper;
-using ProductService.Infrastructure.Repositories;
+using CustomerService.DTOs.Requests.CustomerDTOs;
+using CustomerService.DTOs.Responses.CustomerDTOs;
+using CustomerService.Entities;
+using CustomerService.Infrastructure.Repositories;
+using CustomerService.Models;
 
-namespace ProductService.Infrastructure.Services;
+namespace CustomerService.Infrastructure.Services;
 
 public class CustomerService
 {
@@ -37,9 +38,10 @@ public class CustomerService
         bool isExist = await _customerRepository.EmailExists(request.Email);
         if (isExist)
             throw new DuplicateNameException("Email already exists");
-        var customer = _mapper.Map<CustomerCreateModel>(request);
+
+        var customer = _mapper.Map<Customer>(request);
         customer.DealerId = dealerId;
-        return await _customerRepository.CreateCustomer(_mapper.Map<Customer>(customer));
+        return await _customerRepository.CreateCustomer(customer);
     }
 
     public async Task<bool> UpdateCustomer(CustomerUpdateRequest request)

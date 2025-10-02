@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProductService.DTOs.Requests.QuoteDTOs;
+namespace CustomerService.DTOs.Requests.QuoteDTOs;
 
 public class QuoteUpdateRequest
 {

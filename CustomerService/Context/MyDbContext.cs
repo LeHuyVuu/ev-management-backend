@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using ProductService.Entities;
+using CustomerService.Entities;
 
-namespace ProductService.Context;
+namespace CustomerService.Context;
 
 public partial class MyDbContext : DbContext
 {

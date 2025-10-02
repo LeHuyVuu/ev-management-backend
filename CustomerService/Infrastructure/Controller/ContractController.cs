@@ -1,12 +1,13 @@
-﻿using Application.ExceptionHandler;
-using DealerService.Models;
+﻿using CustomerService.ExceptionHandler;
+using CustomerService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProductService.DTOs;
-using ProductService.DTOs.Requests.ContractDTOs;
-using ProductService.Infrastructure.Services;
+using CustomerService.DTOs;
+using CustomerService.DTOs.Requests.ContractDTOs;
+using CustomerService.DTOs.Responses.ContractDTOs;
+using CustomerService.Infrastructure.Services;
 
-namespace ProductService.Infrastructure.Controller;
+namespace CustomerService.Infrastructure.Controller;
 
 [ApiController]
 public class ContractController : ControllerBase

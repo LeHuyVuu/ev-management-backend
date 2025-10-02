@@ -1,19 +1,20 @@
 ﻿using System.Data;
 using System.Security.Claims;
-using DealerService.Models;
-using Microsoft.AspNetCore.Authorization;
+using CustomerService.DTOs.Requests.CustomerDTOs;
+using CustomerService.DTOs.Responses.CustomerDTOs;
+using CustomerService.Infrastructure.Services;
+using CustomerService.Models;
 using Microsoft.AspNetCore.Mvc;
-using ProductService.DTOs;
-using ProductService.Infrastructure.Services;
+using CustomerServiceClass = CustomerService.Infrastructure.Services.CustomerService;
 
-namespace ProductService.Infrastructure.Controller;
+namespace CustomerService.Infrastructure.Controller;
 
 [ApiController]
 public class CustomerController : ControllerBase
 {
-    private readonly CustomerService _customerService;
+    private readonly CustomerServiceClass _customerService;
 
-    public CustomerController(CustomerService customerService)
+    public CustomerController(CustomerServiceClass customerService)
     {
         _customerService = customerService;
     }

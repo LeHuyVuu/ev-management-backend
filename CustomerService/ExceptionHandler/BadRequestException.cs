@@ -1,4 +1,4 @@
-﻿namespace Application.ExceptionHandler
+﻿namespace CustomerService.ExceptionHandler
 {
     public class BadRequestException : BaseException
     {

@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
-using ProductService.DTOs;
-using ProductService.DTOs.Requests.ContractDTOs;
-using ProductService.DTOs.Requests.QuoteDTOs;
-using ProductService.DTOs.Responses.QuoteDTOs;
-using ProductService.Entities;
+using CustomerService.DTOs.Requests.ContractDTOs;
+using CustomerService.DTOs.Requests.CustomerDTOs;
+using CustomerService.DTOs.Requests.QuoteDTOs;
+using CustomerService.DTOs.Responses.ContractDTOs;
+using CustomerService.DTOs.Responses.CustomerDTOs;
+using CustomerService.DTOs.Responses.OrderDTOs;
+using CustomerService.Entities;
+using CustomerService.Models;
 
-namespace ProductService.Extensions.Mapper
+namespace CustomerService.Extensions.Mapper;
+
+public class AutoMapperProfiles : Profile
 {
-    public class AutoMapperProfiles : Profile
-    {
         public AutoMapperProfiles()
         {
             //Customer
@@ -72,5 +75,4 @@ namespace ProductService.Extensions.Mapper
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
         }
-    }
 }

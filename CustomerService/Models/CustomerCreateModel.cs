@@ -1,4 +1,4 @@
-﻿namespace ProductService.DTOs;
+﻿namespace CustomerService.Models;
 
 public class CustomerCreateModel
 {

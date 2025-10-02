@@ -1,11 +1,11 @@
-﻿using Application.ExceptionHandler;
+﻿using CustomerService.ExceptionHandler;
 using AutoMapper;
-using ProductService.DTOs.Requests.QuoteDTOs;
-using ProductService.DTOs.Responses.QuoteDTOs;
-using ProductService.Entities;
-using ProductService.Infrastructure.Repositories;
+using CustomerService.DTOs.Requests.QuoteDTOs;
+using CustomerService.DTOs.Responses.QuoteDTOs;
+using CustomerService.Entities;
+using CustomerService.Infrastructure.Repositories;
 
-namespace ProductService.Infrastructure.Services;
+namespace CustomerService.Infrastructure.Services;
 
 public class QuoteService
 {

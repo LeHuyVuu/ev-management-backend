@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using ProductService.Context;
-using ProductService.DTOs;
-using ProductService.Entities;
+using CustomerService.Context;
+using CustomerService.Entities;
 
-namespace ProductService.Infrastructure.Repositories;
+namespace CustomerService.Infrastructure.Repositories;
 
 public class OrderRepository
 {

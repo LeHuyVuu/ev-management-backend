@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ProductService.DTOs.Requests.ContractDTOs;
+namespace CustomerService.DTOs.Requests.ContractDTOs;
 
 public class ContractCreateRequest
 {

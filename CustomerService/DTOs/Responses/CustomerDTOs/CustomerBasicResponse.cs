@@ -1,4 +1,4 @@
-﻿namespace ProductService.DTOs;
+﻿namespace CustomerService.DTOs.Responses.CustomerDTOs;
 
 public class CustomerBasicResponse
 {

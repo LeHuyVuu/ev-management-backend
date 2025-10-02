@@ -1,13 +1,13 @@
-﻿using Application.ExceptionHandler;
-using DealerService.Models;
+﻿using CustomerService.ExceptionHandler;
+using CustomerService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using ProductService.DTOs.Requests.QuoteDTOs;
-using ProductService.DTOs.Responses.QuoteDTOs;
-using ProductService.Infrastructure.Services;
+using CustomerService.DTOs.Requests.QuoteDTOs;
+using CustomerService.DTOs.Responses.QuoteDTOs;
+using CustomerService.Infrastructure.Services;
 
-namespace ProductService.Infrastructure.Controller;
+namespace CustomerService.Infrastructure.Controller;
 
 public class QuoteController : ControllerBase
 {
