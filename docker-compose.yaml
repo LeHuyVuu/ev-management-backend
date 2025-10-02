@@ -58,6 +58,15 @@ services:
     restart: always
     env_file:
       - ./UtilityService/.env
+  
+  customer-service:
+    build: ./CustomerService
+    ports:
+      - "1223:8080"
+    container_name: customer-service
+    restart: always
+    env_file:
+      - ./CustomerService/.env
 
 networks:
   default:

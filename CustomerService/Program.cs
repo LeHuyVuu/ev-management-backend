@@ -1,18 +1,14 @@
-using System.Reflection;
-using System.Text;
-using System.Text.Json.Serialization;
+
+using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using DotNetEnv;
 using Npgsql;
-
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-
-using Amazon.S3;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -41,10 +37,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 
-// AutoMapper
-// builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
-
-
 // Swagger + JWT
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -56,7 +48,7 @@ builder.Services.AddSwaggerGen(options =>
         options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
     }
 
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Brand API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -100,23 +92,17 @@ builder.Services.AddCors(options =>
 
 // var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 // var dataSource = dataSourceBuilder.Build();
-//
 // builder.Services.AddDbContext<MyDbContext>(options =>
 //     options.UseNpgsql(connectionString));
 
 // DI các Repository và Service
 
 
-// Repositories
 
-// Đăng ký Amazon S3 client
-builder.Services.AddAWSService<IAmazonS3>();
+// AutoMapper
+// builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
 
-// Đăng ký custom service
-// builder.Services.AddScoped<S3StorageService>();
-// builder.Services.AddHostedService<ProductStockUpdateConsumer>();
-
-// Authentication
+// Authentication + xử lý lỗi không có token
 builder.Services.AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
@@ -145,7 +131,7 @@ builder.Services.AddAuthentication("Bearer")
             },
             OnChallenge = context =>
             {
-                context.HandleResponse();
+                context.HandleResponse(); // Ngăn lỗi mặc định
                 context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 return context.Response.WriteAsync(
@@ -160,8 +146,8 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 
-// ✅ THÊM: nếu bạn reverse proxy dưới sub-path (ví dụ: /product-service)
-var pathBase = "/financial-service"; // 🧠 sửa theo sub-path của service bạn
+// ✅ THÊM: path base nếu chạy dưới sub-path (ví dụ: /brand-service)
+var pathBase = "/customer-service"; // ⬅️ Sửa theo đúng sub-path bạn dùng
 app.UsePathBase(pathBase);
 
 
@@ -188,23 +174,16 @@ app.UseSwagger(c =>
     });
 });
 
+
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Brand API V1");
     c.RoutePrefix = "swagger";
 });
 
 
 
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "My API V1");
-    c.RoutePrefix = "swagger";
-});
-
-
-
-// ✅ Giữ nguyên toàn bộ logic cũ bên dưới
+// ✅ GIỮ NGUYÊN: Middleware cũ
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
 

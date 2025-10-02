@@ -160,7 +160,7 @@ app.UseSwagger(c =>
         {
             swaggerDoc.Servers = new List<OpenApiServer>
             {
-                new OpenApiServer { Url = $"https://evm.webredirect.org{pathBase}" }
+                new OpenApiServer { Url = $"https://prn232.freeddns.org/{pathBase}" }
             };
         }
         else
