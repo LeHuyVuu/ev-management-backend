@@ -17,7 +17,5 @@ public partial class WholesalePrice
 
     public DateOnly? ValidTo { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
     public virtual VehicleVersion VehicleVersion { get; set; } = null!;
 }

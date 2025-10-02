@@ -13,7 +13,7 @@ public partial class Inventory
 
     public int StockQuantity { get; set; }
 
-    public DateTime LastUpdated { get; set; }
+    public DateOnly LastUpdated { get; set; }
 
     public virtual Dealer Dealer { get; set; } = null!;
 

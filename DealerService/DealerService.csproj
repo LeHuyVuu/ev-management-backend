@@ -7,7 +7,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>ProductService</RootNamespace>
+        <RootNamespace>DealerService</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

@@ -19,8 +19,6 @@ public partial class VehicleAllocation
 
     public string Status { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
-
     public virtual Dealer Dealer { get; set; } = null!;
 
     public virtual VehicleVersion VehicleVersion { get; set; } = null!;

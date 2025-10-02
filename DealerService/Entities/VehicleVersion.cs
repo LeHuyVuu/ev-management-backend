@@ -19,10 +19,6 @@ public partial class VehicleVersion
 
     public decimal BasePrice { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-
-    public DateTime UpdatedAt { get; set; }
-
     public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
 
     public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();

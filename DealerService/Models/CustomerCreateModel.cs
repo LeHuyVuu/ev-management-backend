@@ -15,8 +15,4 @@ public class CustomerCreateModel
     public string Status { get; set; } = "active";
 
     public DateOnly LastInteractionDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 }

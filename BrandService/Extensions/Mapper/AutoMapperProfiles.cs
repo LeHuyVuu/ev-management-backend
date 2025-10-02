@@ -1,4 +1,7 @@
 ﻿using AutoMapper;
+using BrandService.DTOs;
+using BrandService.DTOs.Requests.UserDTOs;
+using BrandService.DTOs.Responses.UserDTOs;
 using BrandService.DTOs.Requests.DealerDTOs;
 using BrandService.DTOs.Requests.DealerTargetDTOs;
 using BrandService.DTOs.Responses.DealerDTOs;
@@ -13,6 +16,13 @@ namespace BrandService.Extensions.Mapper
         {
             CreateMap<Dealer, DealerRequest>().ReverseMap();
             CreateMap<Dealer, DealerResponse>().ReverseMap();
+            
+
+            CreateMap<User, UserResponse>()
+                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
+            CreateMap<UserLoginRequest, User>();
+            CreateMap<UserRegisterRequest, User>();
+            CreateMap<UserUpdateRequest, User>();  
 
             CreateMap<DealerTargetRequest, DealerTarget>()
                 .ForMember(dest => dest.Period, opt => opt.MapFrom(src => src.Period.ToLower()))
