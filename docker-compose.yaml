@@ -67,7 +67,7 @@ services:
     restart: always
     env_file:
       - ./CustomerService/.env
-
+  
 networks:
   default:
     driver: bridge
