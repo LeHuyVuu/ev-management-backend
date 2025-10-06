@@ -4,6 +4,8 @@ public class ContractCustomerResponse
 {
     public Guid ContractId { get; set; }
     
+    public string StaffContract {  get; set; }
+    
     public string Brand {get; set; }
     
     public string VehicleName {get; set; }

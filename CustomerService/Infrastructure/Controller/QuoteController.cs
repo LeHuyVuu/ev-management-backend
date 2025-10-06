@@ -34,6 +34,10 @@ public class QuoteController : ControllerBase
         {
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
         }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
     }
 
     /// <summary>
@@ -44,12 +48,19 @@ public class QuoteController : ControllerBase
     [Route("api/quotes/dealers/{dealerId}")]
     public async Task<IActionResult> GetQuotesByDealerId(Guid dealerId)
     {
-        var quotes = await _quoteService.GetQuotesByDealerId(dealerId);
-        
-        if (!quotes.Any())
-            return NotFound(ApiResponse<IEnumerable<QuoteBasicResponse>>.NotFound("No quotes found"));
-        
-        return Ok(ApiResponse<IEnumerable<QuoteBasicResponse>>.Success(quotes));
+        try
+        {
+            var quotes = await _quoteService.GetQuotesByDealerId(dealerId);
+
+            if (!quotes.Any())
+                return NotFound(ApiResponse<IEnumerable<QuoteBasicResponse>>.NotFound("No quotes found"));
+
+            return Ok(ApiResponse<IEnumerable<QuoteBasicResponse>>.Success(quotes));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
     }
 
     /// <summary>
@@ -68,6 +79,10 @@ public class QuoteController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(ApiResponse<bool>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
 }

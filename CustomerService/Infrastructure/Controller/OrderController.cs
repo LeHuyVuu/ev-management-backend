@@ -32,5 +32,9 @@ public class OrderController : ControllerBase
         {
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
         }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
     }
 }

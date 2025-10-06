@@ -19,10 +19,17 @@ public class OrderService
 
     public async Task<IEnumerable<OrderCustomerResponse>> GetAllOrdersByCustomerId(Guid customerId)
     {
-        bool isExist = await _customerRepository.CustomerExists(customerId);
-        if (!isExist)
-            throw new KeyNotFoundException("Customer does not exist!");
+        var customerExists = await _customerRepository.CustomerExists(customerId);
+        if (!customerExists)
+            throw new KeyNotFoundException("Customer does not exist");
+
         var orders = await _orderRepository.GetAllOrdersByCustomerId(customerId);
-        return _mapper.Map<IEnumerable<OrderCustomerResponse>>(orders);
+        if (orders == null || !orders.Any())
+            return Enumerable.Empty<OrderCustomerResponse>();
+
+        var orderResponses = _mapper.Map<IEnumerable<OrderCustomerResponse>>(orders) 
+                             ?? Enumerable.Empty<OrderCustomerResponse>();
+
+        return orderResponses;
     }
 }
