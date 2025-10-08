@@ -121,6 +121,9 @@ builder.Services.AddScoped<PromotionRepository>();
 builder.Services.AddScoped<PromotionService>();
 builder.Services.AddScoped<DealerDiscountService>();
 builder.Services.AddScoped<DealerDiscountRepository>();
+builder.Services.AddScoped<InventoryReportRepository>();
+builder.Services.AddScoped<InventoryReportService>();
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // builder.Services.AddScoped<S3StorageService>();

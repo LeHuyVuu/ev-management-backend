@@ -1,0 +1,6 @@
+@IntelliAIService_HostAddress = http://localhost:5269
+
+GET {{IntelliAIService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
