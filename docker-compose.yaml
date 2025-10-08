@@ -68,11 +68,11 @@ services:
     env_file:
       - ./CustomerService/.env
   
-  intelliAI-service:
+  intelliai-service:
     build: ./IntelliAIService
     ports:
       - "8888:8080"
-    container_name: intelliAI-service
+    container_name: intelliai-service
     restart: always
     env_file:
       - ./IntelliAIService/.env
