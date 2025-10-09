@@ -131,7 +131,7 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // ✅ Path base (nếu chạy dưới sub-path)
-var pathBase = "/identify-service";
+var pathBase = "/identity-service";
 app.UsePathBase(pathBase);
 
 // ✅ Swagger
