@@ -11,6 +11,7 @@ using DealerService.Context;
 using DealerService.Extensions.Mapper;
 using DealerService.Infrastructure.Repositories;
 using DealerService.Infrastructure.Services;
+using DealerService.ExceptionHandler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -150,6 +151,7 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // ✅ THÊM: nếu bạn reverse proxy dưới sub-path (ví dụ: /product-service)
 var pathBase = "/dealer-service"; // 🧠 sửa theo sub-path của service bạn

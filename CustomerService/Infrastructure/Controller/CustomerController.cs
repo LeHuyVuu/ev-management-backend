@@ -4,6 +4,7 @@ using CustomerService.DTOs.Requests.CustomerDTOs;
 using CustomerService.DTOs.Responses.CustomerDTOs;
 using CustomerService.Infrastructure.Services;
 using CustomerService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CustomerServiceClass = CustomerService.Infrastructure.Services.CustomerService;
 
@@ -20,21 +21,26 @@ public class CustomerController : ControllerBase
     }
     
     /// <summary>
-    /// Lấy danh sách khách hàng.
+    /// Lấy danh sách khách hàng dựa theo dealer đang đăng nhập
     /// </summary>
     //[Authorize(Roles = "dealer_staff")]
     [HttpGet]
     [Route("api/customers")]
-    public async Task<IActionResult> GetAllCustomers()
+    public async Task<IActionResult> GetCustomersByDealerId()
     {
         try
         {
-            var customers = await _customerService.GetAllCustomers();
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            var customers = await _customerService.GetCustomersByDealerId(dealerId);
             return Ok(ApiResponse<IEnumerable<CustomerBasicResponse>>.Success(customers));
         }
         catch (KeyNotFoundException ex)
         {
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
 
@@ -55,12 +61,16 @@ public class CustomerController : ControllerBase
         {
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
         }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
     }
 
     /// <summary>
     /// Tạo mới khách hàng.
     /// </summary>
-    //[Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpPost]
     [Route("api/customers")]
     public async Task<IActionResult> CreateCustomer(CustomerCreateRequest request)
@@ -68,15 +78,19 @@ public class CustomerController : ControllerBase
         try
         {
             Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
-            if(dealerId == null || dealerId == Guid.Empty)
-                return NotFound(ApiResponse<string>.NotFound("Bạn không có dealerId để thực hiện chức năng này"));
-            
+            if (dealerId == Guid.Empty)
+                return NotFound(ApiResponse<string>.NotFound("You don't have a dealerId to perform this action"));
+
             bool isSuccess = await _customerService.CreateCustomer(dealerId, request);
             return Ok(ApiResponse<bool>.Success(isSuccess, "Customer was created successfully"));
         }
         catch (DuplicateNameException ex)
         {
             return BadRequest(ApiResponse<string>.Duplicate(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
 
@@ -90,12 +104,16 @@ public class CustomerController : ControllerBase
     {
         try
         {
-            bool isSuccess = await _customerService.UpdateCustomer(request);;
-            return Ok(ApiResponse<bool>.Success(isSuccess, "Customer was created successfully"));
+            bool isSuccess = await _customerService.UpdateCustomer(request);
+            return Ok(ApiResponse<bool>.Success(isSuccess, "Customer was updated successfully"));
         }
         catch (KeyNotFoundException ex)
         {
-            return BadRequest(ApiResponse<string>.Duplicate(ex.Message));
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
 }

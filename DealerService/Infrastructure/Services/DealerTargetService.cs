@@ -18,6 +18,20 @@ namespace DealerService.Infrastructure.Services
             _mapper = mapper;
         }
 
+        public async Task<PagedResult<DealerTargetResponse>> GetPagedAllAsync(int pageNumber, int pageSize)
+        {
+            var paged = await _repo.GetPagedAllAsync(pageNumber, pageSize);
+
+            return new PagedResult<DealerTargetResponse>
+            {
+                Items = _mapper.Map<List<DealerTargetResponse>>(paged.Items),
+                TotalItems = paged.TotalItems,
+                PageNumber = paged.PageNumber,
+                PageSize = paged.PageSize
+            };
+        }
+
+
         public async Task<PagedResult<DealerTargetResponse>> GetTargetsByDealerAsync(Guid dealerId, int pageNumber, int pageSize)
         {
             var paged = await _repo.GetPagedByDealerAsync(dealerId, pageNumber, pageSize);

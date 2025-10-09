@@ -67,7 +67,15 @@ services:
     restart: always
     env_file:
       - ./CustomerService/.env
-
+  
+  intelliai-service:
+    build: ./IntelliAIService
+    ports:
+      - "8888:8080"
+    container_name: intelliai-service
+    restart: always
+    env_file:
+      - ./IntelliAIService/.env
 networks:
   default:
     driver: bridge
