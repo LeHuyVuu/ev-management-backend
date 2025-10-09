@@ -43,7 +43,7 @@ builder.Services.AddSwaggerGen(options =>
     if (File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath, true);
 
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Brand API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Identify API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
