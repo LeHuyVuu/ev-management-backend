@@ -3,6 +3,7 @@ using IdentityService.DTOs.Requests.UserDTOs;
 using IdentityService.DTOs.Responses.UserDTOs;
 using IdentityService.Entities;
 using IdentityService.Infrastructure.Repositories;
+using IdentityService.Model;
 
 namespace IdentityService.Infrastructure.Services;
 
@@ -19,6 +20,18 @@ public class UserService
         _mapper = mapper;
     }
 
+    public async Task<PagedResult<UserResponse>> GetUsersAsync(int pageNumber, int pageSize)
+    {
+        var paged = await _repo.GetPagedAsync(pageNumber, pageSize);
+
+        return new PagedResult<UserResponse>
+        {
+            Items = _mapper.Map<List<UserResponse>>(paged.Items),
+            TotalItems = paged.TotalItems,
+            PageNumber = paged.PageNumber,
+            PageSize = paged.PageSize
+        };
+    }
     public async Task<UserResponse?> GetUserById(Guid id)
     {
         try
@@ -107,10 +120,15 @@ public class UserService
             return false;
         }
     }
-
-
     public async Task<bool> CheckUserExists(Guid id)
     {
         return await _repo.CheckUserExists(id);
     }
+
+    public async Task<bool> UpdateRoleUser(Guid id, int roleId)
+    {
+        return await _repo.UpdateRole(id, roleId);
+    }
+    
+    
 }

@@ -82,6 +82,8 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<RoleRepository>();
+builder.Services.AddScoped<RoleService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
@@ -129,7 +131,7 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // ✅ Path base (nếu chạy dưới sub-path)
-var pathBase = "/identity-service";
+var pathBase = "/identify-service";
 app.UsePathBase(pathBase);
 
 // ✅ Swagger

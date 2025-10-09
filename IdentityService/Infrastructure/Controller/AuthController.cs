@@ -51,22 +51,5 @@ public class AuthController : ControllerBase
         return Ok(ApiResponse<UserLoginResponse>.Success(response, "Đăng nhập thành công"));
     }
     
-    /// <summary>
-    /// POST /api/users/register
-    /// Đăng ký user mới
-    /// </summary>
-    [HttpPost("register")]
-    public async Task<ActionResult<ApiResponse<UserResponse>>> Register([FromBody] UserRegisterRequest request)
-    {
-        // Hash password trước khi lưu
-        request.PasswordHash = PasswordHelper.HashPassword(request.PasswordHash);
 
-        var created = await _userService.CreateUser(request);
-        if (created == null)
-        {
-            return BadRequest(ApiResponse<UserResponse>.Fail(400, "Không thể tạo user"));
-        }
-
-        return Ok(ApiResponse<UserResponse>.Success(created, "Đăng ký user thành công"));
-    }
 }

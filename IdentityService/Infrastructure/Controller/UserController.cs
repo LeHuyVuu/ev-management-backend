@@ -3,6 +3,7 @@ using IdentityService.DTOs.Requests.UserDTOs;
 using IdentityService.DTOs.Responses.UserDTOs;
 using IdentityService.Infrastructure.Services;
 using IdentityService.Model;
+using IdentityService.Utilities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityService.Infrastructure.Controller;
