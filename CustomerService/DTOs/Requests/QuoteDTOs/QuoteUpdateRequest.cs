@@ -6,7 +6,7 @@ public class QuoteUpdateRequest
 {
     // public Guid QuoteId { get; set; }
         
-    public Guid DealerId { get; set; }
+    // public Guid DealerId { get; set; }
 
     public Guid CustomerId { get; set; }
 

@@ -1,4 +1,5 @@
-﻿using CustomerService.ExceptionHandler;
+﻿using System.Security.Claims;
+using CustomerService.ExceptionHandler;
 using CustomerService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -45,11 +46,12 @@ public class QuoteController : ControllerBase
     /// </summary>
     // [Authorize(Roles = "evm_staff")]
     [HttpGet]
-    [Route("api/quotes/dealers/{dealerId}")]
-    public async Task<IActionResult> GetQuotesByDealerId(Guid dealerId)
+    [Route("api/quotes/dealers")]
+    public async Task<IActionResult> GetQuotesByDealerId()
     {
         try
         {
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
             var quotes = await _quoteService.GetQuotesByDealerId(dealerId);
 
             if (!quotes.Any())
