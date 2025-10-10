@@ -4,17 +4,13 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <NoWarn>$(NoWarn);1591</NoWarn>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-        <RootNamespace>UtilityService</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.3.1" />
         <PackageReference Include="AWSSDK.S3" Version="4.0.7.4" />
         <PackageReference Include="Confluent.Kafka" Version="2.9.0" />
-        <PackageReference Include="MailKit" Version="4.14.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
         <PackageReference Include="Npgsql" Version="8.0.7" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
