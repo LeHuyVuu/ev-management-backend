@@ -6,5 +6,6 @@ builder.AddProject<Projects.CustomerService>("CustomerService");
 builder.AddProject<Projects.IdentityService>("IdentityService");
 builder.AddProject<Projects.FinancialService>("FinancialService");
 builder.AddProject<Projects.UtilityService>("UtilityService");
-
+builder.AddProject<Projects.IntelliAIService>("IntelliAIService");
+builder.AddProject<Projects.OrderService>("OrderService");
 builder.Build().Run();
