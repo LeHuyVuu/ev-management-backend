@@ -12,6 +12,9 @@ public class VehicleVersionController : ControllerBase
         _vehicleVersionService = vehicleVersionService;
     }
 
+    /// <summary>
+    /// Lấy ra tất cả các phiên bản của xe mà mình muốn xem
+    /// </summary>
     [HttpGet]
     [Route("/vehicles/{id}/versions")]
     public async Task<IActionResult> GetVehicleVersionsByVehicleId(Guid id)

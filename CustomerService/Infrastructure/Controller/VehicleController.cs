@@ -13,6 +13,9 @@ public class VehicleController : ControllerBase
         _vehicleService = vehicleService;
     }
 
+    /// <summary>
+    /// Lấy ra tất cả các xe
+    /// </summary>
     [HttpGet]
     [Route("/vehicles")]
     public async Task<IActionResult> GetVehicles()
