@@ -9,7 +9,17 @@ namespace OrderService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
-            CreateMap<VehicleAllocation, VehicleAllocationResponse>();
+            CreateMap<DateTime, DateOnly>().ConvertUsing(src => DateOnly.FromDateTime(src));
+            CreateMap<DateTime?, DateOnly?>().ConvertUsing(src => src.HasValue ? DateOnly.FromDateTime(src.Value) : null);
+
+            
+            CreateMap<VehicleAllocation, VehicleAllocationResponse>()
+                .ForMember(dest => dest.DealerName, 
+                    opt => opt.MapFrom(src => src.Dealer.Name))
+                .ForMember(dest => dest.VehicleName, 
+                    opt => opt.MapFrom(src => 
+                        $"{src.VehicleVersion.Vehicle.ModelName} ({src.VehicleVersion.VersionName})"));
+
             CreateMap<VehicleAllocationRequest, VehicleAllocation>();
         }
     }
