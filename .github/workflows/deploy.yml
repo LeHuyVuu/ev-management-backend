@@ -56,7 +56,6 @@ jobs:
             echo "${{ secrets.ENV_IDENTITY }}" > "$ENV_DIR/IdentityService/.env"
             echo "${{ secrets.ENV_UTILITY }}" > "$ENV_DIR/UtilityService/.env"
             echo "${{ secrets.ENV_CUSTOMER }}" > "$ENV_DIR/CustomerService/.env"
-            echo "${{ secrets.ENV_INTELLIAI }}" > "$ENV_DIR/IntelliAIService/.env"
             echo "${{ secrets.ENV_ORDER }}" > "$ENV_DIR/OrderService/.env"
 
       # 5. Build & run Docker containers trên VPS
