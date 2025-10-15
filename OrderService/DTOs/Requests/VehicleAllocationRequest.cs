@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+namespace IntelliAIService.DTOs.Requests;
 
-namespace OrderService.Entities;
-
-public partial class VehicleAllocation
+public class VehicleAllocationRequest
 {
     public Guid AllocationId { get; set; }
 
@@ -18,8 +15,4 @@ public partial class VehicleAllocation
     public DateOnly? ExpectedDelivery { get; set; }
 
     public string Status { get; set; } = null!;
-
-    public virtual Dealer Dealer { get; set; } = null!;
-
-    public virtual VehicleVersion VehicleVersion { get; set; } = null!;
 }

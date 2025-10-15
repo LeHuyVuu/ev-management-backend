@@ -1,4 +1,7 @@
-﻿namespace OrderService.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace OrderService.Entities;
 
 public partial class Role
 {

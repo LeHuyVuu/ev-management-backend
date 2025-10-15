@@ -42,8 +42,6 @@
 
 
     <ItemGroup>
-      <Folder Include="DTOs\Requests\" />
-      <Folder Include="DTOs\Responses\" />
       <Folder Include="Infrastructure\Controller\" />
       <Folder Include="Infrastructure\Repositories\" />
       <Folder Include="Infrastructure\Services\" />
