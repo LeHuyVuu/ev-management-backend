@@ -61,4 +61,9 @@ public class CustomerRepository
     {
         return await _dbContext.Customers.Where(c => c.DealerId == dealerId).ToListAsync();
     }
+
+    public async Task<Customer> GetCustomerByNameAndPhone(string name, string phone)
+    {
+        return await _dbContext.Customers.FirstOrDefaultAsync(c => c.Name == name && c.Phone == phone);
+    }
 }

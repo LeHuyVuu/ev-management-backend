@@ -6,6 +6,8 @@ using CustomerService.DTOs.Requests.QuoteDTOs;
 using CustomerService.DTOs.Responses.ContractDTOs;
 using CustomerService.DTOs.Responses.CustomerDTOs;
 using CustomerService.DTOs.Responses.OrderDTOs;
+using CustomerService.DTOs.Responses.VehicleDTOs;
+using CustomerService.DTOs.Responses.VehicleVersionDTOs;
 using CustomerService.Entities;
 using CustomerService.Models;
 
@@ -82,6 +84,18 @@ public class AutoMapperProfiles : Profile
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
             CreateMap<OrderCreateModel, Order>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            
+            // Vehicle
+            CreateMap<Vehicle, VehicleBasicResponse>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            
+            // Version
+            CreateMap<VehicleVersion, VersionBasicResponse>()
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));
