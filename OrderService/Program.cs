@@ -82,6 +82,8 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 // ✅ DI Repositories & Services
 builder.Services.AddScoped<VehicleAllocationRepository>();
 builder.Services.AddScoped<VehicleAllocationService>();
+builder.Services.AddScoped<VehicleTransferOrderRepository>();
+builder.Services.AddScoped<VehicleTransferOrderService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
