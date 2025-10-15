@@ -55,11 +55,13 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<VehicleVersion> VehicleVersions { get; set; }
 
     public virtual DbSet<WholesalePrice> WholesalePrices { get; set; }
-    
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=34.41.11.58;Port=5443;Database=EVMDatabase;Username=evm_user;Password=lehuyvu-db-ggcloud;Include Error Detail=true ");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresExtension("pgcrypto");
-
         modelBuilder.Entity<Contract>(entity =>
         {
             entity.HasKey(e => e.ContractId).HasName("contracts_pkey");
@@ -367,7 +369,9 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.PermissionKey, "permissions_permission_key_key").IsUnique();
 
-            entity.Property(e => e.PermissionId).HasColumnName("permission_id");
+            entity.Property(e => e.PermissionId)
+                .HasDefaultValueSql("nextval('permissions_permission_id_seq'::regclass)")
+                .HasColumnName("permission_id");
             entity.Property(e => e.PermissionKey)
                 .HasMaxLength(100)
                 .HasColumnName("permission_key");
@@ -419,9 +423,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.DiscountCode)
                 .HasMaxLength(100)
                 .HasColumnName("discount_code");
-            entity.Property(e => e.OptionsJson)
-                .HasColumnType("jsonb")
-                .HasColumnName("options_json");
+            entity.Property(e => e.OptionsJson).HasColumnName("options_json");
             entity.Property(e => e.Status)
                 .HasMaxLength(30)
                 .HasColumnName("status");
@@ -462,7 +464,9 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.RoleKey, "roles_role_key_key").IsUnique();
 
-            entity.Property(e => e.RoleId).HasColumnName("role_id");
+            entity.Property(e => e.RoleId)
+                .HasDefaultValueSql("nextval('roles_role_id_seq'::regclass)")
+                .HasColumnName("role_id");
             entity.Property(e => e.RoleKey)
                 .HasMaxLength(50)
                 .HasColumnName("role_key");
@@ -558,7 +562,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(200)
                 .HasColumnName("name");
-            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            entity.Property(e => e.PasswordHash)
+                .HasMaxLength(200)
+                .HasColumnName("password_hash");
             entity.Property(e => e.Phone)
                 .HasMaxLength(50)
                 .HasColumnName("phone");
@@ -649,6 +655,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("ev_type");
             entity.Property(e => e.HorsePower).HasColumnName("horse_power");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.VehicleId).HasColumnName("vehicle_id");
             entity.Property(e => e.VersionName)
                 .HasMaxLength(150)

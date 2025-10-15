@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DealerService.Entities;
+﻿namespace DealerService.Entities;
 
 public partial class Dealer
 {
@@ -39,7 +36,7 @@ public partial class Dealer
 
     public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
 
-    public virtual ICollection<TestDrive> TestDrives { get; set; } = new List<TestDrive>();
+    public virtual ICollection<TestDrife> TestDrives { get; set; } = new List<TestDrife>();
 
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 
