@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
-using BrandService.DTOs;
-using BrandService.DTOs.Requests.UserDTOs;
-using BrandService.DTOs.Responses.UserDTOs;
+using BrandService.DTOs.Requests.VehicleDTOs;
+using BrandService.DTOs.Requests.InventoryDTOs;
+using BrandService.DTOs.Responses.VehicleDTOs;
+using BrandService.DTOs.Responses.InventoryDTOs;
 using BrandService.Entities;
 
 namespace BrandService.Extensions.Mapper
@@ -10,12 +11,18 @@ namespace BrandService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
+            // VEHICLE
+            CreateMap<Vehicle, VehicleResponse>();
+            CreateMap<Vehicle, VehicleDetailResponse>();
+            CreateMap<CreateVehicleRequest, Vehicle>();
 
-            CreateMap<User, UserResponse>()
-                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
-            CreateMap<UserLoginRequest, User>();
-            CreateMap<UserRegisterRequest, User>();
-            CreateMap<UserUpdateRequest, User>();  
+            // VEHICLE VERSION
+            CreateMap<VehicleVersion, VehicleVersionResponse>();
+            CreateMap<CreateVehicleVersionRequest, VehicleVersion>();
+
+            // INVENTORY
+            CreateMap<Inventory, InventoryResponse>();
+            CreateMap<UpdateInventoryRequest, Inventory>();
         }
     }
 }

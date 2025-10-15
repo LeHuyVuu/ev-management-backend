@@ -11,7 +11,7 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using Application.ExceptionHandler;
+using BrandService.ExceptionHandler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,9 +81,8 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 
 // ✅ DI Repositories & Services
 builder.Services.AddSingleton<BrandProducer>();
-builder.Services.AddScoped<JWTService>();
-builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<VehicleRepository>();
+builder.Services.AddScoped<VehicleService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);

@@ -1,4 +1,4 @@
-﻿namespace Application.ExceptionHandler
+﻿namespace BrandService.ExceptionHandler
 {
     public class BaseException : Exception
     {
