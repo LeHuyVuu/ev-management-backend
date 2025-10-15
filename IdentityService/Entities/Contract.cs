@@ -1,4 +1,7 @@
-﻿namespace IdentityService.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace IdentityService.Entities;
 
 public partial class Contract
 {
@@ -17,6 +20,8 @@ public partial class Contract
     public string Status { get; set; } = null!;
 
     public DateOnly? SignedDate { get; set; }
+
+    public string? FileUrl { get; set; }
 
     public virtual Customer Customer { get; set; } = null!;
 

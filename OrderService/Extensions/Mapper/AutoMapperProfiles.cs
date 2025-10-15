@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using IntelliAIService.DTOs.Requests;
+using IntelliAIService.DTOs.Responses;
 using OrderService.Entities;
 
 namespace OrderService.Extensions.Mapper
@@ -7,7 +9,8 @@ namespace OrderService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
-            
+            CreateMap<VehicleAllocation, VehicleAllocationResponse>();
+            CreateMap<VehicleAllocationRequest, VehicleAllocation>();
         }
     }
 }

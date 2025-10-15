@@ -1,4 +1,7 @@
-﻿namespace IdentityService.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace IdentityService.Entities;
 
 public partial class Dealer
 {
@@ -41,4 +44,8 @@ public partial class Dealer
     public virtual ICollection<User> Users { get; set; } = new List<User>();
 
     public virtual ICollection<VehicleAllocation> VehicleAllocations { get; set; } = new List<VehicleAllocation>();
+
+    public virtual ICollection<VehicleTransferOrder> VehicleTransferOrderFromDealers { get; set; } = new List<VehicleTransferOrder>();
+
+    public virtual ICollection<VehicleTransferOrder> VehicleTransferOrderToDealers { get; set; } = new List<VehicleTransferOrder>();
 }

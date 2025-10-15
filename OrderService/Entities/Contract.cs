@@ -21,6 +21,8 @@ public partial class Contract
 
     public DateOnly? SignedDate { get; set; }
 
+    public string? FileUrl { get; set; }
+
     public virtual Customer Customer { get; set; } = null!;
 
     public virtual Dealer Dealer { get; set; } = null!;
