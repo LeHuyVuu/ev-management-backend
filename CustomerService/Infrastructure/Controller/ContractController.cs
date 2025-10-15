@@ -1,4 +1,5 @@
-﻿using CustomerService.ExceptionHandler;
+﻿using System.Security.Claims;
+using CustomerService.ExceptionHandler;
 using CustomerService.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,10 @@ public class ContractController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
     /// <summary>
@@ -78,11 +83,12 @@ public class ContractController : ControllerBase
     /// </summary>
     //[Authorize(Roles = "evm_staff")]
     [HttpGet]
-    [Route("/contracts/dealers/{dealerId}")]
-    public async Task<IActionResult> GetContractByDealerId(Guid dealerId)
+    [Route("/contracts/dealers")]
+    public async Task<IActionResult> GetContractByDealerId()
     {
         try
         {
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
             var contract = await _contractService.GetAllContractsByDealerId(dealerId);
             return Ok(ApiResponse<IEnumerable<ContractDealerResponse>>.Success(contract)); 
         }

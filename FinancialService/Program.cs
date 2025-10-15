@@ -13,6 +13,9 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 using Amazon.S3;
+using FinancialService.Context;
+using FinancialService.Repositories;
+using FinancialService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,7 +100,8 @@ builder.Services.AddCors(options =>
 });
 
 // DbContext
-
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 // var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
 // var dataSource = dataSourceBuilder.Build();
 //
@@ -113,6 +117,15 @@ builder.Services.AddCors(options =>
 builder.Services.AddAWSService<IAmazonS3>();
 
 // Đăng ký custom service
+builder.Services.AddScoped<PromotionRepository>();
+builder.Services.AddScoped<PromotionService>();
+builder.Services.AddScoped<DealerDiscountService>();
+builder.Services.AddScoped<DealerDiscountRepository>();
+builder.Services.AddScoped<InventoryReportRepository>();
+builder.Services.AddScoped<InventoryReportService>();
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 // builder.Services.AddScoped<S3StorageService>();
 // builder.Services.AddHostedService<ProductStockUpdateConsumer>();
 

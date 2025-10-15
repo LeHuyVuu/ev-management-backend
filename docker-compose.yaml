@@ -67,7 +67,16 @@ services:
     restart: always
     env_file:
       - ./CustomerService/.env
-
+  
+        
+  order-service:
+    build: ./OrderService
+    ports:
+      - "4755:8080"
+    container_name: order-service
+    restart: always
+    env_file:
+      - ./OrderService/.env
 networks:
   default:
     driver: bridge

@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 using CustomerService.DTOs.Requests.ContractDTOs;
 using CustomerService.DTOs.Requests.CustomerDTOs;
+using CustomerService.DTOs.Requests.OrderDTOs;
 using CustomerService.DTOs.Requests.QuoteDTOs;
 using CustomerService.DTOs.Responses.ContractDTOs;
 using CustomerService.DTOs.Responses.CustomerDTOs;
 using CustomerService.DTOs.Responses.OrderDTOs;
+using CustomerService.DTOs.Responses.VehicleDTOs;
+using CustomerService.DTOs.Responses.VehicleVersionDTOs;
 using CustomerService.Entities;
 using CustomerService.Models;
 
@@ -71,6 +74,28 @@ public class AutoMapperProfiles : Profile
             CreateMap<QuoteUpdateRequest, Quote>()
                 .ForMember(dest => dest.Subtotal, opt => opt.Ignore())
                 .ForMember(dest => dest.TotalPrice, opt => opt.Ignore())
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            
+            // Order
+            CreateMap<OrderCreateRequest, OrderCreateModel>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            CreateMap<OrderCreateModel, Order>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            
+            // Vehicle
+            CreateMap<Vehicle, VehicleBasicResponse>()
+                .ForAllMembers(opt 
+                    => opt.Condition((src, dest, srcMember) 
+                        => srcMember != null));
+            
+            // Version
+            CreateMap<VehicleVersion, VersionBasicResponse>()
                 .ForAllMembers(opt 
                     => opt.Condition((src, dest, srcMember) 
                         => srcMember != null));

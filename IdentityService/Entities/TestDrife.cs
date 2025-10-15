@@ -1,4 +1,7 @@
-﻿namespace IdentityService.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace IdentityService.Entities;
 
 public partial class TestDrife
 {

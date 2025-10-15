@@ -43,7 +43,7 @@ builder.Services.AddSwaggerGen(options =>
     if (File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath, true);
 
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Brand API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Identify API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -82,6 +82,8 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 builder.Services.AddScoped<JWTService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<RoleRepository>();
+builder.Services.AddScoped<RoleService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
@@ -129,7 +131,7 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // ✅ Path base (nếu chạy dưới sub-path)
-var pathBase = "/brand-service";
+var pathBase = "/identity-service";
 app.UsePathBase(pathBase);
 
 // ✅ Swagger
@@ -142,7 +144,7 @@ app.UseSwagger(c =>
             new OpenApiServer
             {
                 Url = app.Environment.IsProduction()
-                    ? $"https://evm.webredirect.org{pathBase}"
+                    ? $"https://prn232.freeddns.org{pathBase}"
                     : $"{httpReq.Scheme}://{httpReq.Host.Value}{pathBase}"
             }
         };

@@ -56,4 +56,14 @@ public class CustomerRepository
     {
         return await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId);
     }
+
+    public async Task<IEnumerable<Customer>> GetCustomersByDealerId(Guid dealerId)
+    {
+        return await _dbContext.Customers.Where(c => c.DealerId == dealerId).ToListAsync();
+    }
+
+    public async Task<Customer> GetCustomerByNameAndPhone(string name, string phone)
+    {
+        return await _dbContext.Customers.FirstOrDefaultAsync(c => c.Name == name && c.Phone == phone);
+    }
 }

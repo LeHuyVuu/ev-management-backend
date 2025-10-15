@@ -58,7 +58,7 @@ namespace DealerService.Infrastructure.Repositories
             }
             catch (NotFoundException ex)
             {
-                throw new NotFoundException("Dealer not found");
+                throw new NotFoundException(ex.Message);
             }
             catch (Exception ex)
             {
@@ -95,7 +95,7 @@ namespace DealerService.Infrastructure.Repositories
             {
 
                 if (DoesDealerExist(dealer.DealerCode, dealer.DealerId))
-                    throw new Exception("Dealer has already exist");
+                    throw new BadRequestException("Dealer has already exist");
 
                 _context.Dealers.Update(dealer);
                 await _context.SaveChangesAsync();

@@ -6,8 +6,6 @@ public class CustomerUpdateRequest
 {
     [Required]
     public Guid CustomerId { get; set; }
-    
-    public Guid? DealerId { get; set; }
 
     [Required]
     public string Name { get; set; } = null!;

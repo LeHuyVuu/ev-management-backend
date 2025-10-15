@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DealerService.Entities;
+﻿namespace DealerService.Entities;
 
 public partial class DealerDiscount
 {

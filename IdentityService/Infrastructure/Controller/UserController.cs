@@ -3,6 +3,8 @@ using IdentityService.DTOs.Requests.UserDTOs;
 using IdentityService.DTOs.Responses.UserDTOs;
 using IdentityService.Infrastructure.Services;
 using IdentityService.Model;
+using IdentityService.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityService.Infrastructure.Controller;
@@ -25,6 +27,7 @@ public class UserController : ControllerBase
     /// Lấy thông tin user hiện tại (dùng UserId từ token)
     /// </summary>
     [HttpGet("me")]
+    [Authorize]
     public async Task<ActionResult<ApiResponse<UserResponse>>> GetCurrentUser()
     {
         var userIdClaim = User.FindFirstValue("UserId");
@@ -46,14 +49,27 @@ public class UserController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<ApiResponse<UserResponse>>> UpdateUser(Guid id, [FromBody] UserUpdateRequest request)
     {
-        if (id != request.UserId)
-            return BadRequest(ApiResponse<UserResponse>.Fail(400, "Id không khớp với dữ liệu gửi lên"));
+        try
+        {
+            if (id != request.UserId)
+            {
+                return BadRequest(ApiResponse<UserResponse>.Fail(400, "Id trong route không khớp với body"));
+            }
 
-        var updated = await _service.UpdateUser(request);
-        if (updated == null)
-            return NotFound(ApiResponse<UserResponse>.Fail(404, "Không tìm thấy user"));
+            var updated = await _service.UpdateUser(request);
+            if (updated == null)
+            {
+                _logger.LogWarning("Không tìm thấy user {UserId} để cập nhật", id);
+                return NotFound(ApiResponse<UserResponse>.Fail(404, "Không tìm thấy user hoặc không thể cập nhật"));
+            }
 
-        return Ok(ApiResponse<UserResponse>.Success(updated, "Cập nhật user thành công"));
+            return Ok(ApiResponse<UserResponse>.Success(updated, "Cập nhật user thành công"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi cập nhật user {UserId}", id);
+            return StatusCode(500, ApiResponse<UserResponse>.Fail(500, "Có lỗi xảy ra khi cập nhật user"));
+        }
     }
 
     /// <summary>
@@ -61,7 +77,7 @@ public class UserController : ControllerBase
     /// Kích hoạt / khóa user
     /// </summary>
     [HttpPatch("{id:guid}/status")]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(Guid id, [FromBody] string status)
+    public async Task<ActionResult<ApiResponse<object>>> UpdateStatus(Guid id, [FromQuery] string status)
     {
         var result = await _service.UpdateStatusUser(id, status);
         if (!result)
