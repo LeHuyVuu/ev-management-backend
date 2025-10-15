@@ -5,9 +5,6 @@ namespace CustomerService.DTOs.Requests.ContractDTOs;
 public class ContractCreateRequest
 {
     [Required] 
-    public Guid DealerId { get; set; }
-
-    [Required] 
     public Guid QuoteId { get; set; }
 
     [Required] 

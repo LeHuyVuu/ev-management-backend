@@ -70,8 +70,10 @@ public class ContractService
     }
 
 
-    public async Task<bool> CreateContract(ContractCreateRequest request)
+    public async Task<bool> CreateContract(Guid dealerId, ContractCreateRequest request)
     {
+        if(dealerId == Guid.Empty)
+            throw new KeyNotFoundException("You don't have an dealer Id to access this function.");
         if (request == null)
             throw new ArgumentNullException(nameof(request), "The contract creation request cannot be null.");
 
@@ -91,6 +93,7 @@ public class ContractService
 
         contract.TotalValue = quote.TotalPrice;
         contract.SignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        contract.DealerId = dealerId;
 
         var isCreated = await _contractRepository.CreateContract(contract);
         if (!isCreated)
