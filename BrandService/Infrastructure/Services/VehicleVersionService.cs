@@ -17,26 +17,26 @@ namespace BrandService.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<VehicleVersionResponse>> AddVersionAsync(Guid vehicleId, VehicleVersionRequest request)
+        public async Task<ApiResponse<BrandVehicleVersionResponse>> AddVersionAsync(Guid vehicleId, VehicleVersionRequest request)
         {
             var version = _mapper.Map<VehicleVersion>(request);
             version.VehicleId = vehicleId;
             var added = await _repo.AddVersionAsync(version);
-            return ApiResponse<VehicleVersionResponse>.Success(_mapper.Map<VehicleVersionResponse>(added), "Version created");
+            return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(added), "Version created");
         }
 
-        public async Task<ApiResponse<VehicleVersionResponse>> UpdateVersionAsync(Guid vehicleVersionId, VehicleVersionRequest request)
+        public async Task<ApiResponse<BrandVehicleVersionResponse>> UpdateVersionAsync(Guid vehicleVersionId, VehicleVersionRequest request)
         {
             var version = _mapper.Map<VehicleVersion>(request);
             version.VehicleVersionId = vehicleVersionId;
             var updated = await _repo.UpdateVersionAsync(version);
-            return ApiResponse<VehicleVersionResponse>.Success(_mapper.Map<VehicleVersionResponse>(updated), "Version updated");
+            return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(updated), "Version updated");
         }
 
-        public async Task<ApiResponse<VehicleVersionResponse>> GetVersionByIdAsync(Guid id)
+        public async Task<ApiResponse<BrandVehicleVersionResponse>> GetVersionByIdAsync(Guid id)
         {
             var version = await _repo.GetVersionByIdAsync(id);
-            return ApiResponse<VehicleVersionResponse>.Success(_mapper.Map<VehicleVersionResponse>(version));
+            return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(version));
         }
     }
 }

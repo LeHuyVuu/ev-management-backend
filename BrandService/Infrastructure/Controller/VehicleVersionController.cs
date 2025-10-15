@@ -21,27 +21,38 @@ namespace BrandService.Infrastructure.Controller
         /// Add a new version for a vehicle.
         /// </summary>
         [HttpPost("{vehicleId}")]
-        [ProducesResponseType(typeof(ApiResponse<VehicleVersionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> AddVersion(Guid vehicleId, [FromBody] VehicleVersionRequest request)
         {
             var version = await _vehicleVersionService.AddVersionAsync(vehicleId, request);
-            return Ok(ApiResponse<VehicleVersionResponse>.Success(version.Data));
+            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
         }
 
-        /// <summary>
-        /// Get details of a specific vehicle version.
-        /// </summary>
-        [HttpGet("{versionId}")]
-        [ProducesResponseType(typeof(ApiResponse<VehicleVersionResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetVersion(Guid versionId)
-        {
-            var version = await _vehicleVersionService.GetVersionByIdAsync(versionId);
-            return Ok(ApiResponse<VehicleVersionResponse>.Success(version.Data));
-        }
+        ///// <summary>
+        ///// Get details of a specific vehicle version.
+        ///// </summary>
+        //[HttpGet("{versionId}")]
+        //[ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        //public async Task<ActionResult> GetVersion(Guid versionId)
+        //{
+        //    var version = await _vehicleVersionService.GetVersionByIdAsync(versionId);
+        //    return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
+        //}
+
+        //[HttpGet("{dealerId}")]
+        //[ProducesResponseType(typeof(ApiResponse<IEnumerable<BrandVehicleVersionResponse>>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        //public async Task<ActionResult> GetVersionsByDealerId(Guid dealerId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, string? searchValue)
+        //{
+        //    var versions = await _vehicleVersionService.GetVersionsByDealerIdAsync(dealerId);
+        //    return Ok(ApiResponse<IEnumerable<BrandVehicleVersionResponse>>.Success(versions.Data));
+        //}
+
 
         /// <summary>
         /// Update an existing vehicle version.
@@ -50,13 +61,13 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPut("{versionId}")]
-        [ProducesResponseType(typeof(ApiResponse<VehicleVersionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> UpdateVersion(Guid versionId, [FromBody] VehicleVersionRequest request)
         {
             var version = await _vehicleVersionService.UpdateVersionAsync(versionId, request);
-            return Ok(ApiResponse<VehicleVersionResponse>.Success(version.Data));
+            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
         }
     }
 }

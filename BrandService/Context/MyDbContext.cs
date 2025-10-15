@@ -55,11 +55,9 @@ public partial class MyDbContext : DbContext
     public virtual DbSet<VehicleVersion> VehicleVersions { get; set; }
 
     public virtual DbSet<WholesalePrice> WholesalePrices { get; set; }
-    
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresExtension("pgcrypto");
-
         modelBuilder.Entity<Contract>(entity =>
         {
             entity.HasKey(e => e.ContractId).HasName("contracts_pkey");
@@ -558,7 +556,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(200)
                 .HasColumnName("name");
-            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            entity.Property(e => e.PasswordHash)
+                .HasMaxLength(200)
+                .HasColumnName("password_hash");
             entity.Property(e => e.Phone)
                 .HasMaxLength(50)
                 .HasColumnName("phone");
@@ -649,6 +649,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("ev_type");
             entity.Property(e => e.HorsePower).HasColumnName("horse_power");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.VehicleId).HasColumnName("vehicle_id");
             entity.Property(e => e.VersionName)
                 .HasMaxLength(150)
@@ -690,3 +691,4 @@ public partial class MyDbContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+

@@ -7,5 +7,6 @@
         public string? EvType { get; set; }
         public int? HorsePower { get; set; }
         public decimal BasePrice { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

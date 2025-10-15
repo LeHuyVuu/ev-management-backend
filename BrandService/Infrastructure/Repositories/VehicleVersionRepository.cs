@@ -53,6 +53,7 @@ namespace BrandService.Infrastructure.Repositories
                 existingVersion.EvType = version.EvType;
                 existingVersion.HorsePower = version.HorsePower;
                 existingVersion.BasePrice = version.BasePrice;
+                existingVersion.ImageUrl = version.ImageUrl;
                 await _context.SaveChangesAsync();
                 return existingVersion;
             }
@@ -75,8 +76,10 @@ namespace BrandService.Infrastructure.Repositories
             try
             {
                 var version = await _context.VehicleVersions
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(v => v.VehicleVersionId == id);
+                                            .Include(vv => vv.Vehicle)
+                                            .Include(vv => vv.Inventories)
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == id);
 
                 if (version == null)
                     throw new NotFoundException("Vehicle version not found");
@@ -102,6 +105,5 @@ namespace BrandService.Infrastructure.Repositories
                     v.VersionName.ToLower() == versionName.ToLower() &&
                     v.Color.ToLower() == color.ToLower());
         }
-
     }
 }
