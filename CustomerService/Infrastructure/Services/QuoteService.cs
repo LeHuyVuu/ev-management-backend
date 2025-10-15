@@ -49,11 +49,35 @@ public class QuoteService
             throw new NotFoundException("Vehicle version not found");
 
         var optionsJson = "";
-        if (quote.OptionsJson != null)
+
+        if (!string.IsNullOrWhiteSpace(quote.OptionsJson))
         {
-            var deserialized = JsonSerializer.Deserialize<List<string>>(quote.OptionsJson);
-            optionsJson = deserialized == null ? string.Empty : string.Join(", ", deserialized);
+            var json = quote.OptionsJson.Trim();
+
+            if (json.StartsWith("\""))
+            {
+                try
+                {
+                    json = JsonSerializer.Deserialize<string>(json) ?? json;
+                }
+                catch
+                {
+                    
+                }
+            }
+
+            try
+            {
+                var deserialized = JsonSerializer.Deserialize<List<string>>(json);
+                optionsJson = deserialized == null ? string.Empty : string.Join(", ", deserialized);
+            }
+            catch (JsonException ex)
+            {
+                Console.WriteLine($"OptionsJson parse error: {ex.Message}");
+                optionsJson = string.Empty;
+            }
         }
+
 
         return new QuoteDetailResponse
         {
