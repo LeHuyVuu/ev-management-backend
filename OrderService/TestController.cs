@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace IntelliAIService;
+namespace OrderService;
 [ApiController]
 [Route("[controller]")]
 public class TestController

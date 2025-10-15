@@ -2,20 +2,93 @@ name: Deploy Microservices to VPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    name: Build & Deploy to VPS (with SSH key)
+    name: Build & Deploy to VPS (only changed services)
+
+    env:
+      # Liệt kê map service ↔ thư mục (tên service đúng với docker-compose.yml)
+      MAP: |
+        BrandService:BrandService
+        DealerService:DealerService
+        FinancialService:FinancialService
+        IdentityService:IdentityService
+        UtilityService:UtilityService
+        CustomerService:CustomerService
+        IntelliAIService:IntelliAIService
+        OrderService:OrderService
 
     steps:
-      # 1. Lấy code từ repo
+      # 1) Checkout đầy đủ lịch sử để so diff
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # 2. Dọn folder cũ trên VPS (nếu có) & tạo lại thư mục
+      # 2) Xác định service thay đổi (so với commit trước trên main)
+      - name: Detect changed services
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Xác định ref để diff:
+          # - Nếu là merge commit, lấy HEAD~1; nếu là push thường on:push, lấy commit trước đó trên origin/main.
+          BASE_REF="$(git rev-parse HEAD~1 || true)"
+          if [ -z "${BASE_REF}" ]; then
+            git fetch origin main --depth=2
+            BASE_REF="origin/main"
+          fi
+
+          echo "Base for diff: ${BASE_REF}"
+
+          # Lấy file thay đổi
+          CHANGED=$(git diff --name-only "${BASE_REF}" HEAD || true)
+          echo "Changed files:"
+          echo "${CHANGED}"
+
+          # Parse map dịch vụ
+          SERVICES_CHANGED=()
+          SRC_PATHS=()
+          while IFS=':' read -r svc dir; do
+            [ -z "${svc}${dir}" ] && continue
+            if echo "${CHANGED}" | grep -qE "^${dir}/"; then
+              SERVICES_CHANGED+=("${svc}")
+              SRC_PATHS+=("${dir}")
+            fi
+          done <<< "${MAP}"
+
+          # Nếu file chung thay đổi → build tất
+          # (ví dụ docker-compose, thư viện dùng chung, scripts hạ tầng, .github…)
+          if echo "${CHANGED}" | grep -qE '(^docker-compose\.ya?ml$)|(^compose\.ya?ml$)|(^infra/)|(^scripts/)|(^common/)|(^libs/)|(^.github/)'; then
+            echo "common-changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "common-changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Nếu không detect được gì (ví dụ commit rename nhẹ) → fallback build-all
+          if [ "${#SERVICES_CHANGED[@]}" -eq 0 ]; then
+            echo "No service-specific change detected → will build all."
+            echo "services=" >> "$GITHUB_OUTPUT"
+            echo "src=." >> "$GITHUB_OUTPUT"
+          else
+            # Tạo list dịch vụ & path nguồn để scp
+            printf -v SVC_LIST "%s " "${SERVICES_CHANGED[@]}"
+            printf -v SRC_LIST "%s " "${SRC_PATHS[@]}"
+            # luôn copy các file compose & root
+            SRC_LIST="${SRC_LIST} docker-compose.yml compose.yml .dockerignore Dockerfile*"
+
+            echo "services=${SVC_LIST}" >> "$GITHUB_OUTPUT"
+            echo "src=${SRC_LIST}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 3) Chuẩn bị thư mục VPS (không xoá sạch để tận dụng cache/rsync)
       - name: Prepare folder on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -24,23 +97,27 @@ jobs:
           key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
+            set -e
             sudo mkdir -p /var/www/microservices
             sudo chown -R $USER:$USER /var/www/microservices
-            rm -rf /var/www/microservices/*
-            echo "✅ Cleaned old code and ensured /var/www/microservices is ready."
+            # KHÔNG rm -rf toàn bộ để không mất timestamp/rsync delta & giữ cache build
+            find /var/www/microservices -type d -name ".git" -prune -o -type f -name ".DS_Store" -delete
+            echo "✅ Prepared /var/www/microservices (kept existing cache)."
 
-      # 3. Copy code từ GitHub Action runner lên VPS
+      # 4) Copy code (chỉ những path thay đổi, fallback toàn repo)
       - name: Copy source code to VPS
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_KEY }}
           port: 22
-          source: "."
+          source: ${{ steps.detect.outputs.src }}
           target: "/var/www/microservices"
+          overwrite: true
+          strip_components: 0
 
-      # 4. Viết .env cho từng service (lấy từ GitHub Secrets)
+      # 5) Ghi .env (nhanh nên cứ ghi toàn bộ như cũ)
       - name: Write .env files for Services
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -49,6 +126,7 @@ jobs:
           key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
+            set -e
             ENV_DIR="/var/www/microservices"
             echo "${{ secrets.ENV_BRAND }}" > "$ENV_DIR/BrandService/.env"
             echo "${{ secrets.ENV_DEALER }}" > "$ENV_DIR/DealerService/.env"
@@ -58,18 +136,40 @@ jobs:
             echo "${{ secrets.ENV_CUSTOMER }}" > "$ENV_DIR/CustomerService/.env"
             echo "${{ secrets.ENV_INTELLIAI }}" > "$ENV_DIR/IntelliAIService/.env"
             echo "${{ secrets.ENV_ORDER }}" > "$ENV_DIR/OrderService/.env"
+            echo "🧩 .env updated."
 
-      # 5. Build & run Docker containers trên VPS
+      # 6) Build & deploy: chỉ build service thay đổi (fallback build tất)
       - name: Build & deploy Docker containers
         uses: appleboy/ssh-action@v1.0.0
+        env:
+          SERVICES: ${{ steps.detect.outputs.services }}
+          COMMON_CHANGED: ${{ steps.detect.outputs['common-changed'] }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_KEY }}
           port: 22
           script: |
+            set -euo pipefail
             cd /var/www/microservices
-            docker compose down
-            docker compose up -d --build
-            docker ps
-            echo "🚀 Deployed successfully including IntelliAIService!"
+
+            # Bật BuildKit để cache tối ưu
+            export DOCKER_BUILDKIT=1
+            export COMPOSE_DOCKER_CLI_BUILD=1
+
+            # Nếu file chung thay đổi hoặc không detect được service → build/up tất
+            if [ "${COMMON_CHANGED}" = "true" ] || [ -z "${SERVICES:-}" ]; then
+              echo "🔁 Full rebuild due to common changes or no detection"
+              docker compose pull || true
+              docker compose up -d --build --remove-orphans
+            else
+              echo "🧠 Changed services: ${SERVICES}"
+              # Build song song các service thay đổi
+              # (compose v2 hỗ trợ build chọn service)
+              docker compose build --parallel ${SERVICES}
+              # Up chỉ các service đó (giữ nguyên service khác đang chạy)
+              docker compose up -d ${SERVICES}
+            fi
+
+            docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}"
+            echo "🚀 Deployment done."
