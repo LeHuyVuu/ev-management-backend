@@ -14,7 +14,7 @@ jobs:
     name: Build & Deploy to VPS (only changed services)
 
     env:
-      # Liệt kê map service ↔ thư mục (tên service đúng với docker-compose.yml)
+      # Map service ↔ thư mục (tên service đúng với docker-compose.yml)
       MAP: |
         BrandService:BrandService
         DealerService:DealerService
@@ -32,24 +32,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      # 2) Xác định service thay đổi (so với commit trước trên main)
+      # 2) Xác định service thay đổi (so với commit trước)
       - name: Detect changed services
         id: detect
         shell: bash
         run: |
           set -euo pipefail
-          # Xác định ref để diff:
-          # - Nếu là merge commit, lấy HEAD~1; nếu là push thường on:push, lấy commit trước đó trên origin/main.
-          BASE_REF="$(git rev-parse HEAD~1 || true)"
-          if [ -z "${BASE_REF}" ]; then
+
+          # Xác định base ref để diff
+          if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            BASE_REF="$(git rev-parse HEAD~1)"
+          else
             git fetch origin main --depth=2
             BASE_REF="origin/main"
           fi
-
           echo "Base for diff: ${BASE_REF}"
 
-          # Lấy file thay đổi
-          CHANGED=$(git diff --name-only "${BASE_REF}" HEAD || true)
+          # Lấy danh sách file thay đổi
+          CHANGED="$(git diff --name-only "${BASE_REF}" HEAD || true)"
           echo "Changed files:"
           echo "${CHANGED}"
 
@@ -65,30 +65,32 @@ jobs:
           done <<< "${MAP}"
 
           # Nếu file chung thay đổi → build tất
-          # (ví dụ docker-compose, thư viện dùng chung, scripts hạ tầng, .github…)
           if echo "${CHANGED}" | grep -qE '(^docker-compose\.ya?ml$)|(^compose\.ya?ml$)|(^infra/)|(^scripts/)|(^common/)|(^libs/)|(^.github/)'; then
             echo "common-changed=true" >> "$GITHUB_OUTPUT"
           else
             echo "common-changed=false" >> "$GITHUB_OUTPUT"
           fi
 
-          # Nếu không detect được gì (ví dụ commit rename nhẹ) → fallback build-all
+          # Nếu không detect được service nào → fallback build-all
           if [ "${#SERVICES_CHANGED[@]}" -eq 0 ]; then
             echo "No service-specific change detected → will build all."
             echo "services=" >> "$GITHUB_OUTPUT"
             echo "src=." >> "$GITHUB_OUTPUT"
           else
-            # Tạo list dịch vụ & path nguồn để scp
+            # Tạo list service & path nguồn để copy
             printf -v SVC_LIST "%s " "${SERVICES_CHANGED[@]}"
             printf -v SRC_LIST "%s " "${SRC_PATHS[@]}"
-            # luôn copy các file compose & root
-            SRC_LIST="${SRC_LIST} docker-compose.yml compose.yml .dockerignore Dockerfile*"
+
+            # Luôn copy file compose & file gốc cần thiết nếu có
+            for f in docker-compose.yml compose.yml .dockerignore Dockerfile Dockerfile.*; do
+              [ -e "$f" ] && SRC_LIST="${SRC_LIST} $f"
+            done
 
             echo "services=${SVC_LIST}" >> "$GITHUB_OUTPUT"
             echo "src=${SRC_LIST}" >> "$GITHUB_OUTPUT"
           fi
 
-      # 3) Chuẩn bị thư mục VPS (không xoá sạch để tận dụng cache/rsync)
+      # 3) Chuẩn bị thư mục VPS (FIX lỗi find -delete/-prune)
       - name: Prepare folder on VPS
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -100,11 +102,11 @@ jobs:
             set -e
             sudo mkdir -p /var/www/microservices
             sudo chown -R $USER:$USER /var/www/microservices
-            # KHÔNG rm -rf toàn bộ để không mất timestamp/rsync delta & giữ cache build
-            find /var/www/microservices -type d -name ".git" -prune -o -type f -name ".DS_Store" -delete
+            # Chỉ dọn file rác, KHÔNG rm -rf toàn bộ để giữ cache/layer
+            find /var/www/microservices -type f -name ".DS_Store" -delete
             echo "✅ Prepared /var/www/microservices (kept existing cache)."
 
-      # 4) Copy code (chỉ những path thay đổi, fallback toàn repo)
+      # 4) Copy source code (chỉ path thay đổi, fallback toàn repo)
       - name: Copy source code to VPS
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -117,7 +119,7 @@ jobs:
           overwrite: true
           strip_components: 0
 
-      # 5) Ghi .env (nhanh nên cứ ghi toàn bộ như cũ)
+      # 5) Ghi .env (ghi toàn bộ cho nhanh/gọn)
       - name: Write .env files for Services
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -153,21 +155,18 @@ jobs:
             set -euo pipefail
             cd /var/www/microservices
 
-            # Bật BuildKit để cache tối ưu
+            # Bật BuildKit để cache build tốt hơn
             export DOCKER_BUILDKIT=1
             export COMPOSE_DOCKER_CLI_BUILD=1
 
-            # Nếu file chung thay đổi hoặc không detect được service → build/up tất
+            # Tùy kịch bản để build/up
             if [ "${COMMON_CHANGED}" = "true" ] || [ -z "${SERVICES:-}" ]; then
               echo "🔁 Full rebuild due to common changes or no detection"
               docker compose pull || true
               docker compose up -d --build --remove-orphans
             else
               echo "🧠 Changed services: ${SERVICES}"
-              # Build song song các service thay đổi
-              # (compose v2 hỗ trợ build chọn service)
               docker compose build --parallel ${SERVICES}
-              # Up chỉ các service đó (giữ nguyên service khác đang chạy)
               docker compose up -d ${SERVICES}
             fi
 
