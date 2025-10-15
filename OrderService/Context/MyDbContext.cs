@@ -16,6 +16,8 @@ public partial class MyDbContext : DbContext
     {
     }
 
+    public virtual DbSet<BrandInventory> BrandInventories { get; set; }
+
     public virtual DbSet<Contract> Contracts { get; set; }
 
     public virtual DbSet<Customer> Customers { get; set; }
@@ -52,16 +54,31 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<VehicleAllocation> VehicleAllocations { get; set; }
 
+    public virtual DbSet<VehicleTransferOrder> VehicleTransferOrders { get; set; }
+
     public virtual DbSet<VehicleVersion> VehicleVersions { get; set; }
 
     public virtual DbSet<WholesalePrice> WholesalePrices { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Host=34.41.11.58;Port=5443;Database=EVMDatabase;Username=evm_user;Password=lehuyvu-db-ggcloud;Include Error Detail=true ");
-
+    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<BrandInventory>(entity =>
+        {
+            entity.HasKey(e => e.VehicleVersionId).HasName("brand_inventory_pkey");
+
+            entity.ToTable("brand_inventory", "evm");
+
+            entity.Property(e => e.VehicleVersionId)
+                .ValueGeneratedNever()
+                .HasColumnName("vehicle_version_id");
+            entity.Property(e => e.StockQuantity).HasColumnName("stock_quantity");
+
+            entity.HasOne(d => d.VehicleVersion).WithOne(p => p.BrandInventory)
+                .HasForeignKey<BrandInventory>(d => d.VehicleVersionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("brand_inventory_vehicle_version_id_fkey");
+        });
+
         modelBuilder.Entity<Contract>(entity =>
         {
             entity.HasKey(e => e.ContractId).HasName("contracts_pkey");
@@ -73,6 +90,7 @@ public partial class MyDbContext : DbContext
                 .HasColumnName("contract_id");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
+            entity.Property(e => e.FileUrl).HasColumnName("file_url");
             entity.Property(e => e.PaymentMethod)
                 .HasMaxLength(30)
                 .HasColumnName("payment_method");
@@ -369,7 +387,9 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.PermissionKey, "permissions_permission_key_key").IsUnique();
 
-            entity.Property(e => e.PermissionId).HasColumnName("permission_id");
+            entity.Property(e => e.PermissionId)
+                .HasDefaultValueSql("nextval('permissions_permission_id_seq'::regclass)")
+                .HasColumnName("permission_id");
             entity.Property(e => e.PermissionKey)
                 .HasMaxLength(100)
                 .HasColumnName("permission_key");
@@ -421,9 +441,7 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.DiscountCode)
                 .HasMaxLength(100)
                 .HasColumnName("discount_code");
-            entity.Property(e => e.OptionsJson)
-                .HasColumnType("jsonb")
-                .HasColumnName("options_json");
+            entity.Property(e => e.OptionsJson).HasColumnName("options_json");
             entity.Property(e => e.Status)
                 .HasMaxLength(30)
                 .HasColumnName("status");
@@ -464,7 +482,9 @@ public partial class MyDbContext : DbContext
 
             entity.HasIndex(e => e.RoleKey, "roles_role_key_key").IsUnique();
 
-            entity.Property(e => e.RoleId).HasColumnName("role_id");
+            entity.Property(e => e.RoleId)
+                .HasDefaultValueSql("nextval('roles_role_id_seq'::regclass)")
+                .HasColumnName("role_id");
             entity.Property(e => e.RoleKey)
                 .HasMaxLength(50)
                 .HasColumnName("role_key");
@@ -630,6 +650,37 @@ public partial class MyDbContext : DbContext
                 .HasForeignKey(d => d.VehicleVersionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("vehicle_allocations_vehicle_version_id_fkey");
+        });
+
+        modelBuilder.Entity<VehicleTransferOrder>(entity =>
+        {
+            entity.HasKey(e => e.VehicleTransferOrderId).HasName("vehicle_transfer_order_pkey");
+
+            entity.ToTable("vehicle_transfer_order", "evm");
+
+            entity.Property(e => e.VehicleTransferOrderId)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("vehicle_transfer_order_id");
+            entity.Property(e => e.FromDealerId).HasColumnName("from_dealer_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.RequestDate).HasColumnName("request_date");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .HasColumnName("status");
+            entity.Property(e => e.ToDealerId).HasColumnName("to_dealer_id");
+            entity.Property(e => e.VehicleVersionId).HasColumnName("vehicle_version_id");
+
+            entity.HasOne(d => d.FromDealer).WithMany(p => p.VehicleTransferOrderFromDealers)
+                .HasForeignKey(d => d.FromDealerId)
+                .HasConstraintName("vehicle_transfer_order_from_dealer_id_fkey");
+
+            entity.HasOne(d => d.ToDealer).WithMany(p => p.VehicleTransferOrderToDealers)
+                .HasForeignKey(d => d.ToDealerId)
+                .HasConstraintName("vehicle_transfer_order_to_dealer_id_fkey");
+
+            entity.HasOne(d => d.VehicleVersion).WithMany(p => p.VehicleTransferOrders)
+                .HasForeignKey(d => d.VehicleVersionId)
+                .HasConstraintName("vehicle_transfer_order_vehicle_version_id_fkey");
         });
 
         modelBuilder.Entity<VehicleVersion>(entity =>
