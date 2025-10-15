@@ -8,17 +8,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace BrandService.Infrastructure.Controller
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/vehicles")]
     public class VehicleController : ControllerBase
     {
         private readonly VehicleService _vehicleService;
-
         public VehicleController(VehicleService vehicleService)
         {
             _vehicleService = vehicleService;
         }
-
-        // ---------------- VEHICLES ----------------
 
         /// <summary>
         /// Get all vehicles with pagination.
@@ -52,38 +49,26 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<VehicleResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> Create([FromBody] CreateVehicleRequest request)
+        public async Task<ActionResult> Create([FromBody] VehicleRequest request)
         {
             var created = await _vehicleService.AddAsync(request);
             return Ok(ApiResponse<VehicleResponse>.Success(created.Data));
         }
 
-        // ---------------- VEHICLE VERSIONS ----------------
-
         /// <summary>
-        /// Add a new version for a vehicle.
+        /// Update an existing vehicle model.
         /// </summary>
-        [HttpPost("{vehicleId}/versions")]
-        [ProducesResponseType(typeof(ApiResponse<VehicleVersionResponse>), StatusCodes.Status200OK)]
+        /// <param name="id"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<VehicleResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> AddVersion(Guid vehicleId, [FromBody] CreateVehicleVersionRequest request)
+        public async Task<ActionResult> Update(Guid id, [FromBody] VehicleRequest request)
         {
-            var version = await _vehicleService.AddVersionAsync(vehicleId, request);
-            return Ok(ApiResponse<VehicleVersionResponse>.Success(version.Data));
-        }
-
-        /// <summary>
-        /// Get details of a specific vehicle version.
-        /// </summary>
-        [HttpGet("versions/{versionId}")]
-        [ProducesResponseType(typeof(ApiResponse<VehicleVersionResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetVersion(Guid versionId)
-        {
-            var version = await _vehicleService.GetVersionByIdAsync(versionId);
-            return Ok(ApiResponse<VehicleVersionResponse>.Success(version.Data));
+            var updated = await _vehicleService.UpdateAsync(id, request);
+            return Ok(ApiResponse<VehicleResponse>.Success(updated.Data));
         }
     }
 }

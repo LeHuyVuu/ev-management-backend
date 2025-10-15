@@ -14,11 +14,11 @@ namespace BrandService.Extensions.Mapper
             // VEHICLE
             CreateMap<Vehicle, VehicleResponse>();
             CreateMap<Vehicle, VehicleDetailResponse>();
-            CreateMap<CreateVehicleRequest, Vehicle>();
+            CreateMap<VehicleRequest, Vehicle>();
 
             // VEHICLE VERSION
             CreateMap<VehicleVersion, VehicleVersionResponse>();
-            CreateMap<CreateVehicleVersionRequest, VehicleVersion>();
+            CreateMap<VehicleVersionRequest, VehicleVersion>();
 
             // INVENTORY
             CreateMap<Inventory, InventoryResponse>();

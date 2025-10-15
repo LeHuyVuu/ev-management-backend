@@ -1,6 +1,6 @@
 ﻿namespace BrandService.DTOs.Requests.VehicleDTOs
 {
-    public class CreateVehicleVersionRequest
+    public class VehicleVersionRequest
     {
         public string VersionName { get; set; } = null!;
         public string? Color { get; set; }

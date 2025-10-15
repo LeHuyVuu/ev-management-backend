@@ -41,32 +41,19 @@ namespace BrandService.Infrastructure.Services
             return ApiResponse<VehicleDetailResponse>.Success(dto);
         }
 
-        public async Task<ApiResponse<VehicleResponse>> AddAsync(CreateVehicleRequest request)
+        public async Task<ApiResponse<VehicleResponse>> AddAsync(VehicleRequest request)
         {
             var entity = _mapper.Map<Vehicle>(request);
             var added = await _repo.AddAsync(entity);
             return ApiResponse<VehicleResponse>.Success(_mapper.Map<VehicleResponse>(added), "Vehicle created");
         }
 
-        public async Task<ApiResponse<VehicleVersionResponse>> AddVersionAsync(Guid vehicleId, CreateVehicleVersionRequest request)
+        public async Task<ApiResponse<VehicleResponse>> UpdateAsync(Guid id, VehicleRequest request)
         {
-            var version = new VehicleVersion
-            {
-                VehicleId = vehicleId,
-                VersionName = request.VersionName,
-                Color = request.Color,
-                EvType = request.EvType,
-                HorsePower = request.HorsePower,
-                BasePrice = request.BasePrice
-            };
-            var added = await _repo.AddVersionAsync(version);
-            return ApiResponse<VehicleVersionResponse>.Success(_mapper.Map<VehicleVersionResponse>(added), "Version created");
-        }
-
-        public async Task<ApiResponse<VehicleVersionResponse>> GetVersionByIdAsync(Guid id)
-        {
-            var version = await _repo.GetVersionByIdAsync(id);
-            return ApiResponse<VehicleVersionResponse>.Success(_mapper.Map<VehicleVersionResponse>(version));
+            var entity = _mapper.Map<Vehicle>(request);
+            entity.VehicleId = id;
+            var updated = await _repo.UpdateAsync(entity);
+            return ApiResponse<VehicleResponse>.Success(_mapper.Map<VehicleResponse>(updated), "Vehicle updated");
         }
     }
 }

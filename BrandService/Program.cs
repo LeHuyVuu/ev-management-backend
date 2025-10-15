@@ -82,7 +82,9 @@ builder.Services.AddDbContext<MyDbContext>(options =>
 // ✅ DI Repositories & Services
 builder.Services.AddSingleton<BrandProducer>();
 builder.Services.AddScoped<VehicleRepository>();
+builder.Services.AddScoped<VehicleVersionRepository>();
 builder.Services.AddScoped<VehicleService>();
+builder.Services.AddScoped<VehicleVersionService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);

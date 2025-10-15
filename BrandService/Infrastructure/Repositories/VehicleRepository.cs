@@ -76,36 +76,34 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<VehicleVersion> AddVersionAsync(VehicleVersion version)
+        public async Task<Vehicle> UpdateAsync(Vehicle vehicle)
         {
             try
             {
-                _context.VehicleVersions.Add(version);
+                var existingVehicle = await _context.Vehicles.FindAsync(vehicle.VehicleId);
+                if (existingVehicle == null)
+                    throw new NotFoundException("Vehicle not found");
+                if (DoesVehicleExist(vehicle.Brand, vehicle.ModelName) &&
+                    (existingVehicle.Brand.ToLower() != vehicle.Brand.ToLower() ||
+                     existingVehicle.ModelName.ToLower() != vehicle.ModelName.ToLower()))
+                {
+                    throw new BadRequestException("Another vehicle with the same brand and model name already exists.");
+                }
+                existingVehicle.Brand = vehicle.Brand;
+                existingVehicle.ModelName = vehicle.ModelName;
+                existingVehicle.Description = vehicle.Description;
+                existingVehicle.VehicleVersions = vehicle.VehicleVersions;
+                _context.Vehicles.Update(existingVehicle);
                 await _context.SaveChangesAsync();
-                return version;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
-
-        public async Task<VehicleVersion?> GetVersionByIdAsync(Guid id)
-        {
-            try
-            {
-                var version = await _context.VehicleVersions
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(v => v.VehicleVersionId == id);
-
-                if (version == null)
-                    throw new NotFoundException("Vehicle version not found");
-
-                return version;
+                return existingVehicle;
             }
             catch (NotFoundException ex)
             {
                 throw new NotFoundException(ex.Message);
+            }
+            catch (BadRequestException ex)
+            {
+                throw new BadRequestException(ex.Message);
             }
             catch (Exception ex)
             {
