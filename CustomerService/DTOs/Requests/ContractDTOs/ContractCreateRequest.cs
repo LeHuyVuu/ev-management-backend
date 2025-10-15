@@ -9,6 +9,8 @@ public class ContractCreateRequest
 
     [Required] 
     public Guid CustomerId { get; set; }
+    
+    public string FileUrl { get; set; }
 
     public string PaymentMethod { get; set; } = null!;
 
