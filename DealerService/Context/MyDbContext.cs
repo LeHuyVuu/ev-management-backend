@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using DealerService.Entities;
 using Microsoft.EntityFrameworkCore;
-using DealerService.Entities;
 
 namespace DealerService.Context;
 
@@ -44,7 +42,7 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<TestDrive> TestDrives { get; set; }
+    public virtual DbSet<TestDrife> TestDrives { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -58,8 +56,6 @@ public partial class MyDbContext : DbContext
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresExtension("pgcrypto");
-
         modelBuilder.Entity<Contract>(entity =>
         {
             entity.HasKey(e => e.ContractId).HasName("contracts_pkey");
@@ -490,7 +486,7 @@ public partial class MyDbContext : DbContext
                     });
         });
 
-        modelBuilder.Entity<TestDrive>(entity =>
+        modelBuilder.Entity<TestDrife>(entity =>
         {
             entity.HasKey(e => e.TestDriveId).HasName("test_drives_pkey");
 
@@ -558,7 +554,9 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(200)
                 .HasColumnName("name");
-            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+            entity.Property(e => e.PasswordHash)
+                .HasMaxLength(200)
+                .HasColumnName("password_hash");
             entity.Property(e => e.Phone)
                 .HasMaxLength(50)
                 .HasColumnName("phone");
@@ -649,6 +647,7 @@ public partial class MyDbContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("ev_type");
             entity.Property(e => e.HorsePower).HasColumnName("horse_power");
+            entity.Property(e => e.ImageUrl).HasColumnName("image_url");
             entity.Property(e => e.VehicleId).HasColumnName("vehicle_id");
             entity.Property(e => e.VersionName)
                 .HasMaxLength(150)

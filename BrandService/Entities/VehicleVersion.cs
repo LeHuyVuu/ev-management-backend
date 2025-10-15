@@ -19,6 +19,8 @@ public partial class VehicleVersion
 
     public decimal BasePrice { get; set; }
 
+    public string? ImageUrl { get; set; }
+
     public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
 
     public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();

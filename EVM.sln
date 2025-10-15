@@ -19,8 +19,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinancialService", "Financi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomerService", "CustomerService\CustomerService.csproj", "{53488794-C28C-4D02-8021-587AB27D1DF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntelliAIService", "IntelliAIService\IntelliAIService.csproj", "{42F09706-5690-4C4E-B285-CE947EFD2E54}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrderService", "OrderService\OrderService.csproj", "{AEAD32F1-B7C1-4206-91C3-33F86235F076}"
 EndProject
 Global
@@ -61,10 +59,6 @@ Global
 		{53488794-C28C-4D02-8021-587AB27D1DF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53488794-C28C-4D02-8021-587AB27D1DF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53488794-C28C-4D02-8021-587AB27D1DF9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{42F09706-5690-4C4E-B285-CE947EFD2E54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{42F09706-5690-4C4E-B285-CE947EFD2E54}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{42F09706-5690-4C4E-B285-CE947EFD2E54}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{42F09706-5690-4C4E-B285-CE947EFD2E54}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AEAD32F1-B7C1-4206-91C3-33F86235F076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AEAD32F1-B7C1-4206-91C3-33F86235F076}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AEAD32F1-B7C1-4206-91C3-33F86235F076}.Release|Any CPU.ActiveCfg = Release|Any CPU
