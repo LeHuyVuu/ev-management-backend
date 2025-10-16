@@ -75,7 +75,7 @@ public partial class MyDbContext : DbContext
 
             entity.HasOne(d => d.VehicleVersion).WithOne(p => p.BrandInventory)
                 .HasForeignKey<BrandInventory>(d => d.VehicleVersionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("brand_inventory_vehicle_version_id_fkey");
         });
 

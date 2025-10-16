@@ -8,5 +8,6 @@
         public int? HorsePower { get; set; }
         public decimal BasePrice { get; set; }
         public string? ImageUrl { get; set; }
+        public int? StockQuantity { get; set; }  // tồn kho của hãng (EVM)
     }
 }

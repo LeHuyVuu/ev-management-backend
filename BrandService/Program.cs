@@ -84,6 +84,7 @@ builder.Services.AddSingleton<BrandProducer>();
 builder.Services.AddScoped<VehicleRepository>();
 builder.Services.AddScoped<VehicleVersionRepository>();
 builder.Services.AddScoped<InventoryRepository>();
+builder.Services.AddScoped<BrandInventoryRepository>();
 builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<VehicleVersionService>();
 builder.Services.AddScoped<InventoryService>();

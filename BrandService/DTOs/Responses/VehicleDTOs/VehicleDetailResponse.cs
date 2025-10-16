@@ -8,6 +8,6 @@ namespace BrandService.DTOs.Responses.VehicleDTOs
         public string Brand { get; set; } = null!;
         public string ModelName { get; set; } = null!;
         public string? Description { get; set; }
-        public List<BrandVehicleVersionResponse> Versions { get; set; } = new();
+        public List<VehicleVersionResponse> Versions { get; set; } = new();
     }
 }

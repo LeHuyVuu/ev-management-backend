@@ -1,6 +1,7 @@
 ﻿using BrandService.Context;
 using BrandService.Entities;
 using BrandService.ExceptionHandler;
+using BrandService.Model;
 using Microsoft.EntityFrameworkCore;
 
 namespace BrandService.Infrastructure.Repositories
@@ -71,6 +72,53 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
+        public async Task<PagedResult<VehicleVersion>> GetPagedAsync(int pageNumber, int pageSize, string? searchValue)
+        {
+            try
+            {
+                var query = _context.VehicleVersions
+                    .Include(vv => vv.Vehicle)
+                    .Include(vv => vv.BrandInventory)
+                    .Include(vv => vv.Inventories)
+                    .AsNoTracking();
+
+                if (!string.IsNullOrEmpty(searchValue))
+                {
+                    var keyword = searchValue.Trim().ToLower();
+
+                    query = query.Where(vv =>
+                        vv.Vehicle.Brand.ToLower().Contains(keyword) ||
+                        vv.Vehicle.ModelName.ToLower().Contains(keyword) ||
+                        vv.VersionName.ToLower().Contains(keyword) ||
+                        (vv.Color != null && vv.Color.ToLower().Contains(keyword)) ||
+                        (vv.EvType != null && vv.EvType.ToLower().Contains(keyword))
+                    );
+                }
+
+                var totalItems = await query.CountAsync();
+
+                var items = await query
+                    .OrderBy(vv => vv.Vehicle.Brand)
+                    .ThenBy(vv => vv.Vehicle.ModelName)
+                    .ThenBy(vv => vv.VersionName)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return new PagedResult<VehicleVersion>
+                {
+                    Items = items,
+                    TotalItems = totalItems,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error fetching vehicle versions: {ex.Message}");
+            }
+        }
+
         public async Task<VehicleVersion?> GetVersionByIdAsync(Guid id)
         {
             try
@@ -89,6 +137,31 @@ namespace BrandService.Infrastructure.Repositories
             catch (NotFoundException ex)
             {
                 throw new NotFoundException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<bool> DeleteVersionAsync(Guid id)
+        {
+            try
+            {
+                var version = await _context.VehicleVersions.FindAsync(id);
+                if (version == null)
+                    throw new NotFoundException("Vehicle version not found");
+                _context.VehicleVersions.Remove(version);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (NotFoundException ex)
+            {
+                throw new NotFoundException(ex.Message);
+            }
+            catch (DbUpdateException dbEx)
+            {
+                throw new BadRequestException("Cannot delete vehicle version as it is referenced by other records.");
             }
             catch (Exception ex)
             {

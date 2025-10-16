@@ -18,14 +18,14 @@ namespace BrandService.Infrastructure.Controller
         }
 
         /// <summary>
-        /// Get all vehicles with pagination.
+        /// Get a paginated list of vehicles with optional search.
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<PagedResult<VehicleResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null)
         {
-            var vehicles = await _vehicleService.GetPagedAsync(pageNumber, pageSize);
+            var vehicles = await _vehicleService.GetPagedAsync(pageNumber, pageSize, searchValue);
             return Ok(ApiResponse<PagedResult<VehicleResponse>>.Success(vehicles.Data));
         }
 
@@ -43,7 +43,7 @@ namespace BrandService.Infrastructure.Controller
         }
 
         /// <summary>
-        /// Create a new vehicle model.
+        /// Create a new vehicle model with duplicate check.
         /// </summary>
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<VehicleResponse>), StatusCodes.Status200OK)]
@@ -56,7 +56,7 @@ namespace BrandService.Infrastructure.Controller
         }
 
         /// <summary>
-        /// Update an existing vehicle model.
+        /// Update an existing vehicle model by Id with duplicate check.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="request"></param>
@@ -64,11 +64,28 @@ namespace BrandService.Infrastructure.Controller
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ApiResponse<VehicleResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> Update(Guid id, [FromBody] VehicleRequest request)
         {
             var updated = await _vehicleService.UpdateAsync(id, request);
             return Ok(ApiResponse<VehicleResponse>.Success(updated.Data));
+        }
+
+        /// <summary>
+        /// Delete a vehicle model by Id with reference check.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> Delete(Guid id)
+        {
+            var deleted = await _vehicleService.DeleteAsync(id);
+            return Ok(ApiResponse<string>.Success(deleted.Data));
         }
     }
 }

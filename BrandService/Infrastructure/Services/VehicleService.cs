@@ -20,24 +20,28 @@ namespace BrandService.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<PagedResult<VehicleResponse>>> GetPagedAsync(int page, int size)
+        public async Task<ApiResponse<PagedResult<VehicleResponse>>> GetPagedAsync(int pageNumber, int pageSize, string? searchValue)
         {
-            var result = await _repo.GetPagedAsync(page, size);
-            var mapped = new PagedResult<VehicleResponse>
+            var pagedVehicles = await _repo.GetPagedAsync(pageNumber, pageSize, searchValue);
+            var mapped = _mapper.Map<IEnumerable<VehicleResponse>>(pagedVehicles.Items).ToList();
+
+            var pagedResult = new PagedResult<VehicleResponse>
             {
-                Items = result.Items.Select(_mapper.Map<VehicleResponse>).ToList(),
-                TotalItems = result.TotalItems,
-                PageNumber = result.PageNumber,
-                PageSize = result.PageSize
+                Items = mapped,
+                TotalItems = pagedVehicles.TotalItems,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
             };
-            return ApiResponse<PagedResult<VehicleResponse>>.Success(mapped);
+
+            return ApiResponse<PagedResult<VehicleResponse>>.Success(pagedResult);
         }
+
 
         public async Task<ApiResponse<VehicleDetailResponse>> GetByIdAsync(Guid id)
         {
             var entity = await _repo.GetByIdAsync(id);
             var dto = _mapper.Map<VehicleDetailResponse>(entity);
-            dto.Versions = entity.VehicleVersions.Select(_mapper.Map<BrandVehicleVersionResponse>).ToList();
+            dto.Versions = entity.VehicleVersions.Select(_mapper.Map<VehicleVersionResponse>).ToList();
             return ApiResponse<VehicleDetailResponse>.Success(dto);
         }
 
@@ -54,6 +58,12 @@ namespace BrandService.Infrastructure.Services
             entity.VehicleId = id;
             var updated = await _repo.UpdateAsync(entity);
             return ApiResponse<VehicleResponse>.Success(_mapper.Map<VehicleResponse>(updated), "Vehicle updated");
+        }
+
+        public async Task<ApiResponse<string>> DeleteAsync(Guid id)
+        {
+            await _repo.DeleteAsync(id);
+            return ApiResponse<string>.Success("Vehicle deleted");
         }
     }
 }

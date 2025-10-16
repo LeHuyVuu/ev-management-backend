@@ -18,18 +18,15 @@ namespace BrandService.Extensions.Mapper
 
             // VEHICLE VERSION
             CreateMap<VehicleVersionRequest, VehicleVersion>();
-            CreateMap<VehicleVersion, DealerVehicleVersionResponse>()
+            CreateMap<VehicleVersion, VehicleVersionResponse>()
             .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Vehicle.Brand))
             .ForMember(dest => dest.ModelName, opt => opt.MapFrom(src => src.Vehicle.ModelName))
-            .ForMember(dest => dest.stockQuantity, opt => opt.MapFrom(src =>
-                src.Inventories.Any() ? src.Inventories.FirstOrDefault().StockQuantity : 0
-            ));
-            CreateMap<VehicleVersion, BrandVehicleVersionResponse>()
-            .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Vehicle.Brand))
-            .ForMember(dest => dest.ModelName, opt => opt.MapFrom(src => src.Vehicle.ModelName))
-            .ForMember(dest => dest.stockQuantity, opt => opt.MapFrom(src =>
-                src.Inventories != null && src.Inventories.Any()
-                    ? src.Inventories.Sum(i => i.StockQuantity) : 0
+            .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src =>
+                src.BrandInventory != null ? src.BrandInventory.StockQuantity : 0
+            ))
+            .ForMember(dest => dest.TotalStockQuantity, opt => opt.MapFrom(src =>
+                (src.BrandInventory != null ? src.BrandInventory.StockQuantity : 0)
+                + (src.Inventories != null ? src.Inventories.Sum(i => i.StockQuantity) : 0)
             ));
 
             // INVENTORY
