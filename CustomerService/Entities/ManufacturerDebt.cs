@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace CustomerService.Entities;
+﻿namespace CustomerService.Entities;
 
 public partial class ManufacturerDebt
 {

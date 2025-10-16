@@ -1,4 +1,7 @@
-﻿namespace IdentityService.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace IdentityService.Entities;
 
 public partial class VehicleVersion
 {
@@ -16,6 +19,10 @@ public partial class VehicleVersion
 
     public decimal BasePrice { get; set; }
 
+    public string? ImageUrl { get; set; }
+
+    public virtual BrandInventory? BrandInventory { get; set; }
+
     public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
 
     public virtual ICollection<Quote> Quotes { get; set; } = new List<Quote>();
@@ -25,6 +32,8 @@ public partial class VehicleVersion
     public virtual Vehicle Vehicle { get; set; } = null!;
 
     public virtual ICollection<VehicleAllocation> VehicleAllocations { get; set; } = new List<VehicleAllocation>();
+
+    public virtual ICollection<VehicleTransferOrder> VehicleTransferOrders { get; set; } = new List<VehicleTransferOrder>();
 
     public virtual ICollection<WholesalePrice> WholesalePrices { get; set; } = new List<WholesalePrice>();
 }

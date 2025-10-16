@@ -1,4 +1,3 @@
-
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +6,11 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using IntelliAIService.Infrastructure.Repositories;
+using IntelliAIService.Infrastructure.Services;
+using OrderService.Context;
+using OrderService.ExceptionHandler;
+using OrderService.Extensions.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +31,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        
     });
 
 // ✅ Swagger + JWT
@@ -39,7 +44,7 @@ builder.Services.AddSwaggerGen(options =>
     if (File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath, true);
 
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Brand API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Identify API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -71,12 +76,17 @@ builder.Services.AddCors(options =>
 });
 
 // ✅ DbContext
-
+builder.Services.AddDbContext<MyDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // ✅ DI Repositories & Services
-
+builder.Services.AddScoped<VehicleAllocationRepository>();
+builder.Services.AddScoped<VehicleAllocationService>();
+builder.Services.AddScoped<VehicleTransferOrderRepository>();
+builder.Services.AddScoped<VehicleTransferOrderService>();
 
 // ✅ AutoMapper
+builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 
 // ✅ Authentication + JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -118,9 +128,10 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // ✅ Exception handler (luôn bật, kể cả Dev/Prod)
+app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // ✅ Path base (nếu chạy dưới sub-path)
-var pathBase = "/order-service";
+var pathBase = "/identity-service";
 app.UsePathBase(pathBase);
 
 // ✅ Swagger
