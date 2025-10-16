@@ -14,6 +14,5 @@ public class OrderCreateRequest
     public string DeliveryAddress { get; set; }
     
     [Required]
-    [DataType(DataType.Date)]
-    public DateTime DeliveryDate { get; set; }
+    public DateOnly DeliveryDate { get; set; }
 }
