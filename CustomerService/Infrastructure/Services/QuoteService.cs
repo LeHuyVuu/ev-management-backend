@@ -32,14 +32,9 @@ public class QuoteService
 
     public async Task<QuoteDetailResponse> GetQuoteDetailByQuoteId(Guid quoteId)
     {
-        Console.WriteLine($"[DEBUG] ===== START GetQuoteDetailByQuoteId({quoteId}) =====");
-
         var quote = await _quoteRepository.GetQuoteByQuoteId(quoteId);
         if (quote == null)
             throw new NotFoundException("Quote not found");
-
-        Console.WriteLine($"[DEBUG] Quote found. Type of OptionsJson: {quote.OptionsJson?.GetType().FullName}");
-        Console.WriteLine($"[DEBUG] Raw OptionsJson from DB: {quote.OptionsJson}");
 
         var customer = await _quoteRepository.GetCustomerByQuoteId(quoteId);
         if (customer == null)
@@ -98,8 +93,6 @@ public class QuoteService
 
     public async Task<bool> UpdateQuoteByQuoteId(Guid quoteId, QuoteUpdateRequest request)
     {
-        Console.WriteLine($"[DEBUG] ===== START UpdateQuoteByQuoteId({quoteId}) =====");
-
         var quote = await _quoteRepository.GetQuoteByQuoteId(quoteId);
         if (quote == null)
             throw new KeyNotFoundException("Quote not found");

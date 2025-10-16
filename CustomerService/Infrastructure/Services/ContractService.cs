@@ -141,6 +141,7 @@ public class ContractService
             Brand = vehicle.Brand,
             VehicleName = vehicle.ModelName,
             VersionName = vehicleVersion.VersionName,
+            FileUrl = contract.FileUrl ?? "Contract don't have file",
             TotalValue = contract.TotalValue,
             PaymentMethod = contract.PaymentMethod,
             Status = contract.Status,

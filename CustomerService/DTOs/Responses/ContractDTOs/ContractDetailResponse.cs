@@ -21,6 +21,8 @@ public class ContractDetailResponse
     public string VehicleName {get; set; }
     
     public string VersionName {get; set; }
+
+    public string FileUrl { get; set; }
     
     public decimal TotalValue { get; set; }
 
