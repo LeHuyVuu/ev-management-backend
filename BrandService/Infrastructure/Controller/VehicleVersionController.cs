@@ -25,7 +25,7 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="searchValue"></param>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponse<PagedResult<VehicleVersionResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<BrandVehicleVersionResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null)
         {
@@ -37,13 +37,13 @@ namespace BrandService.Infrastructure.Controller
         /// Add a new version for a vehicle.
         /// </summary>
         [HttpPost("{vehicleId}")]
-        [ProducesResponseType(typeof(ApiResponse<VehicleVersionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> AddVersion(Guid vehicleId, [FromBody] VehicleVersionRequest request)
         {
             var version = await _vehicleVersionService.AddVersionAsync(vehicleId, request);
-            return Ok(ApiResponse<VehicleVersionResponse>.Success(version.Data));
+            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
         }
 
         ///// <summary>
@@ -77,13 +77,13 @@ namespace BrandService.Infrastructure.Controller
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPut("{versionId}")]
-        [ProducesResponseType(typeof(ApiResponse<VehicleVersionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> UpdateVersion(Guid versionId, [FromBody] VehicleVersionRequest request)
         {
             var version = await _vehicleVersionService.UpdateVersionAsync(versionId, request);
-            return Ok(ApiResponse<VehicleVersionResponse>.Success(version.Data));
+            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
         }
 
         [HttpDelete("{versionId}")]

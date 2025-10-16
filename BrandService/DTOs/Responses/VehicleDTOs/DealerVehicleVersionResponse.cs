@@ -12,6 +12,5 @@
         public int? HorsePower { get; set; }
         public decimal BasePrice { get; set; }
         public string? ImageUrl { get; set; }
-        public int stockQuantity { get; set; }
     }
 }

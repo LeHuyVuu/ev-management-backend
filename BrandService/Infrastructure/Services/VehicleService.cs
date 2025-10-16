@@ -41,7 +41,7 @@ namespace BrandService.Infrastructure.Services
         {
             var entity = await _repo.GetByIdAsync(id);
             var dto = _mapper.Map<VehicleDetailResponse>(entity);
-            dto.Versions = entity.VehicleVersions.Select(_mapper.Map<VehicleVersionResponse>).ToList();
+            dto.Versions = entity.VehicleVersions.Select(_mapper.Map<BrandVehicleVersionResponse>).ToList();
             return ApiResponse<VehicleDetailResponse>.Success(dto);
         }
 

@@ -1,6 +1,6 @@
 ﻿namespace BrandService.DTOs.Responses.VehicleDTOs
 {
-    public class VehicleVersionResponse
+    public class BrandVehicleVersionResponse
     {
         public Guid VehicleVersionId { get; set; }
         public Guid VehicleId { get; set; }

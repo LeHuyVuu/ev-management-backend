@@ -2,6 +2,7 @@
 using BrandService.DTOs.Requests.InventoryDTOs;
 using BrandService.DTOs.Responses.InventoryDTOs;
 using BrandService.Infrastructure.Repositories;
+using BrandService.Model;
 using BrandService.Models;
 
 namespace BrandService.Infrastructure.Services
@@ -17,18 +18,39 @@ namespace BrandService.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<ApiResponse<List<InventoryResponse>>> GetAllAsync()
+        public async Task<ApiResponse<InventoryResponse>> GetByIdAsync(Guid id)
         {
-            var list = await _repo.GetAllAsync();
-            var data = list.Select(_mapper.Map<InventoryResponse>).ToList();
-            return ApiResponse<List<InventoryResponse>>.Success(data);
+            var inventory = await _repo.GetByIdAsync(id);
+            var mapped = _mapper.Map<InventoryResponse>(inventory);
+            return ApiResponse<InventoryResponse>.Success(mapped);
         }
 
-        public async Task<ApiResponse<List<InventoryResponse>>> GetByDealerAsync(Guid dealerId)
+        public async Task<ApiResponse<PagedResult<InventoryResponse>>> GetPagedAsync(int pageNumber, int pageSize, string? searchValue)
         {
-            var list = await _repo.GetByDealerAsync(dealerId);
-            var data = list.Select(_mapper.Map<InventoryResponse>).ToList();
-            return ApiResponse<List<InventoryResponse>>.Success(data);
+            var paged = await _repo.GetPagedAsync(pageNumber, pageSize, searchValue);
+            var mapped = _mapper.Map<List<InventoryResponse>>(paged.Items);
+
+            return ApiResponse<PagedResult<InventoryResponse>>.Success(new PagedResult<InventoryResponse>
+            {
+                Items = mapped,
+                TotalItems = paged.TotalItems,
+                PageNumber = paged.PageNumber,
+                PageSize = paged.PageSize,
+            });
+        }
+
+        public async Task<ApiResponse<PagedResult<InventoryResponse>>> GetByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue)
+        {
+            var paged = await _repo.GetByDealerAsync(dealerId, pageNumber, pageSize, searchValue);
+            var mapped = _mapper.Map<List<InventoryResponse>>(paged.Items);
+
+            return ApiResponse<PagedResult<InventoryResponse>>.Success(new PagedResult<InventoryResponse>
+            {
+                Items = mapped,
+                TotalItems = paged.TotalItems,
+                PageNumber = paged.PageNumber,
+                PageSize = paged.PageSize,
+            });
         }
 
         public async Task<ApiResponse<InventoryResponse>> UpdateStockAsync(Guid id, UpdateInventoryRequest req)
