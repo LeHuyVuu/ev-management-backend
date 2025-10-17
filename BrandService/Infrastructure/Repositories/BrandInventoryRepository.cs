@@ -26,26 +26,23 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<BrandInventory> UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
+        public async Task UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
         {
             try
             {
-                var inventory = await _context.BrandInventories
-               .FirstOrDefaultAsync(b => b.VehicleVersionId == vehicleVersionId);
-
-                if (inventory == null)
-                    throw new NotFoundException("Brand inventory not found for this vehicle version.");
-
-                var newStock = inventory.StockQuantity + deltaQuantity;
+                var existing = await _context.BrandInventories.FirstOrDefaultAsync(bi => bi.VehicleVersionId == vehicleVersionId);
+                if (existing == null)
+                {
+                    throw new NotFoundException("Brand inventory not found");
+                }
+                var newStock = (existing.StockQuantity ?? 0) + deltaQuantity;
                 if (newStock < 0)
-                    throw new BadRequestException("Stock quantity cannot be negative.");
-
-                inventory.StockQuantity = newStock;
-
-                _context.BrandInventories.Update(inventory);
+                {
+                    throw new BadRequestException("Cannot decrease stock by more than the current available quantity");
+                }
+                existing.StockQuantity = newStock;
+                _context.BrandInventories.Update(existing);
                 await _context.SaveChangesAsync();
-
-                return inventory;
             }
             catch (NotFoundException ex)
             {

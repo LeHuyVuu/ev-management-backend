@@ -88,6 +88,7 @@ builder.Services.AddScoped<BrandInventoryRepository>();
 builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<VehicleVersionService>();
 builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<BrandInventoryService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);

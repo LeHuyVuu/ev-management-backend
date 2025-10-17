@@ -28,8 +28,8 @@ namespace BrandService.Infrastructure.Controller
         public async Task<ActionResult> UpdateStock(Guid versionId, [FromQuery] int deltaQuantity)
         {
             // deltaQuantity > 0 => tăng, < 0 => giảm
-            var result = await _brandInventoryService.UpdateStockAsync(versionId, deltaQuantity);
-            return Ok(result);
+            await _brandInventoryService.UpdateStockAsync(versionId, deltaQuantity);
+            return Ok(ApiResponse<object>.Success(null, "Stock updated successfully"));
         }
     }
 }

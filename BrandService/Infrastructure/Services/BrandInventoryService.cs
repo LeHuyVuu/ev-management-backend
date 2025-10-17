@@ -12,11 +12,9 @@ namespace BrandService.Infrastructure.Services
             _brandInventoryRepo = brandInventoryRepo;
         }
 
-        public async Task<ApiResponse<BrandInventory>> UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
+        public async Task UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
         {
-            var updated = await _brandInventoryRepo.UpdateStockAsync(vehicleVersionId, deltaQuantity);
-            return ApiResponse<BrandInventory>.Success(updated, "Stock updated successfully");
-          
+            await _brandInventoryRepo.UpdateStockAsync(vehicleVersionId, deltaQuantity);
         }
     }
 }
