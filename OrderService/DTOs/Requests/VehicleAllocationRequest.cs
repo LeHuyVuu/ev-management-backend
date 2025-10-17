@@ -2,7 +2,6 @@ namespace IntelliAIService.DTOs.Requests;
 
 public class VehicleAllocationRequest
 {
-    public Guid AllocationId { get; set; }
 
     public Guid DealerId { get; set; }
 
@@ -10,9 +9,9 @@ public class VehicleAllocationRequest
 
     public int Quantity { get; set; }
 
-    public DateOnly RequestDate { get; set; }
+    public DateTime RequestDate { get; set; }
 
-    public DateOnly? ExpectedDelivery { get; set; }
+    public DateTime? ExpectedDelivery { get; set; }
 
     public string Status { get; set; } = null!;
 }

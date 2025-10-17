@@ -40,10 +40,4 @@
       </Content>
     </ItemGroup>
 
-
-    <ItemGroup>
-      <Folder Include="Infrastructure\Controller\" />
-      <Folder Include="Infrastructure\Services\" />
-    </ItemGroup>
-
 </Project>

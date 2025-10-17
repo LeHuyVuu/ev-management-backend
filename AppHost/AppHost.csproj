@@ -22,7 +22,6 @@
       <ProjectReference Include="..\BrandService\BrandService.csproj" />
       <ProjectReference Include="..\FinancialService\FinancialService.csproj" />
       <ProjectReference Include="..\IdentityService\IdentityService.csproj" />
-      <ProjectReference Include="..\IntelliAIService\IntelliAIService.csproj" />
       <ProjectReference Include="..\OrderService\OrderService.csproj" />
       <ProjectReference Include="..\UtilityService\UtilityService.csproj" />
     </ItemGroup>

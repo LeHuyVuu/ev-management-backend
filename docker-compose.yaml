@@ -67,8 +67,6 @@ services:
     restart: always
     env_file:
       - ./CustomerService/.env
-  
-        
   order-service:
     build: ./OrderService
     ports:

@@ -6,6 +6,8 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using IntelliAIService.Infrastructure.Repositories;
+using IntelliAIService.Infrastructure.Services;
 using OrderService.Context;
 using OrderService.ExceptionHandler;
 using OrderService.Extensions.Mapper;
@@ -29,6 +31,7 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        
     });
 
 // ✅ Swagger + JWT
@@ -77,7 +80,10 @@ builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // ✅ DI Repositories & Services
-
+builder.Services.AddScoped<VehicleAllocationRepository>();
+builder.Services.AddScoped<VehicleAllocationService>();
+builder.Services.AddScoped<VehicleTransferOrderRepository>();
+builder.Services.AddScoped<VehicleTransferOrderService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
