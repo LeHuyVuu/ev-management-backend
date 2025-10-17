@@ -1,10 +1,10 @@
-using IntelliAIService.DTOs.Requests;
-using IntelliAIService.DTOs.Responses;
-using IntelliAIService.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.DTOs.Requests;
+using OrderService.DTOs.Responses;
+using OrderService.Infrastructure.Services;
 using OrderService.Model;
 
-namespace IntelliAIService.Infrastructure.Controller;
+namespace OrderService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -49,7 +49,7 @@ public class VehicleAllocationController : ControllerBase
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<VehicleAllocationResponse>.Fail(400, "Invalid request", ModelState));
-
+            
             var created = await _service.CreateAsync(request);
             return StatusCode(201, ApiResponse<VehicleAllocationResponse>.Success(created, "Vehicle allocation created successfully"));
         }

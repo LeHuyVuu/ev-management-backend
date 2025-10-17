@@ -1,10 +1,10 @@
-using IntelliAIService.DTOs.Requests;
-using IntelliAIService.DTOs.Responses;
-using IntelliAIService.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using OrderService.DTOs.Requests;
+using OrderService.DTOs.Responses;
+using OrderService.Infrastructure.Services;
 using OrderService.Model;
 
-namespace IntelliAIService.Infrastructure.Controller;
+namespace OrderService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api/[controller]")]
