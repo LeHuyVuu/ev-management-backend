@@ -74,10 +74,16 @@ namespace BrandService.Infrastructure.Services
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(updated), "Version updated");
         }
 
-        public async Task<ApiResponse<BrandVehicleVersionResponse>> GetVersionByIdAsync(Guid id)
+        public async Task<ApiResponse<BrandVehicleVersionResponse>> GetBrandVersionByIdAsync(Guid id)
         {
             var version = await _vehicleVersionRepo.GetVersionByIdAsync(id);
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(version));
+        }
+
+        public async Task<ApiResponse<DealerVehicleVersionResponse>> GetDealerVersionByIdAsync(Guid id)
+        {
+            var version = await _vehicleVersionRepo.GetVersionByIdAsync(id);
+            return ApiResponse<DealerVehicleVersionResponse>.Success(_mapper.Map<DealerVehicleVersionResponse>(version));
         }
 
         public async Task<ApiResponse<string>> DeleteVersionAsync(Guid id)
