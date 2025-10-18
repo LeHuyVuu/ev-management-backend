@@ -107,6 +107,8 @@ builder.Services.AddScoped<DealerRepository>();
 builder.Services.AddScoped<DealerTargetRepository>();
 builder.Services.AddScoped<DealerAppService>();
 builder.Services.AddScoped<DealerTargetService>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<UserService>();
 
 // Authentication
 builder.Services.AddAuthentication("Bearer")
