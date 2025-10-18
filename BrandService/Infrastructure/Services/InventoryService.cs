@@ -53,10 +53,9 @@ namespace BrandService.Infrastructure.Services
             });
         }
 
-        public async Task<ApiResponse<InventoryResponse>> UpdateStockAsync(Guid id, UpdateInventoryRequest req)
+        public Task UpdateDealerStockAsync(Guid dealerId, Guid versionId, int deltaQuantity)
         {
-            var updated = await _repo.UpdateStockAsync(id, req.StockQuantity);
-            return ApiResponse<InventoryResponse>.Success(_mapper.Map<InventoryResponse>(updated), "Stock updated");
+            return _repo.UpdateDealerStockAsync(dealerId, versionId, deltaQuantity);
         }
     }
 }

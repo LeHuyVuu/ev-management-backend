@@ -66,20 +66,37 @@ namespace BrandService.Infrastructure.Controller
         public async Task<ActionResult> AddVersion(Guid vehicleId, [FromBody] VehicleVersionRequest request)
         {
             var version = await _vehicleVersionService.AddVersionAsync(vehicleId, request);
-            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
+            return Ok(version);
         }
 
         /// <summary>
-        /// Get details of a specific vehicle version.
+        /// Get a vehicle version with brand stock details.
         /// </summary>
-        [HttpGet("{versionId}")]
+        /// <param name="versionId"></param>
+        /// <returns></returns>
+        [HttpGet("{versionId}/brand")]
         [ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetVersion(Guid versionId)
+        public async Task<ActionResult> GetBrandVersion(Guid versionId)
         {
-            var version = await _vehicleVersionService.GetVersionByIdAsync(versionId);
-            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
+            var version = await _vehicleVersionService.GetBrandVersionByIdAsync(versionId);
+            return Ok(version);
+        }
+
+        /// <summary>
+        /// Get a vehicle version with dealer stock details.
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <returns></returns>
+        [HttpGet("{versionId}/dealer")]
+        [ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetDealerVersion(Guid versionId)
+        {
+            var version = await _vehicleVersionService.GetDealerVersionByIdAsync(versionId);
+            return Ok(version);
         }
 
         /// <summary>
@@ -95,7 +112,7 @@ namespace BrandService.Infrastructure.Controller
         public async Task<ActionResult> UpdateVersion(Guid versionId, [FromBody] VehicleVersionRequest request)
         {
             var version = await _vehicleVersionService.UpdateVersionAsync(versionId, request);
-            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
+            return Ok(version);
         }
 
         /// <summary>
