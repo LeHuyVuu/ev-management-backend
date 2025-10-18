@@ -6,11 +6,11 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using IntelliAIService.Infrastructure.Repositories;
-using IntelliAIService.Infrastructure.Services;
 using OrderService.Context;
 using OrderService.ExceptionHandler;
 using OrderService.Extensions.Mapper;
+using OrderService.Infrastructure.Repositories;
+using OrderService.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,7 +44,7 @@ builder.Services.AddSwaggerGen(options =>
     if (File.Exists(xmlPath))
         options.IncludeXmlComments(xmlPath, true);
 
-    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Identify API", Version = "v1" });
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Order API", Version = "v1" });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -84,6 +84,8 @@ builder.Services.AddScoped<VehicleAllocationRepository>();
 builder.Services.AddScoped<VehicleAllocationService>();
 builder.Services.AddScoped<VehicleTransferOrderRepository>();
 builder.Services.AddScoped<VehicleTransferOrderService>();
+builder.Services.AddScoped<TestDriveRepository>();
+builder.Services.AddScoped<TestDriveService>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
@@ -131,7 +133,7 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
 // ✅ Path base (nếu chạy dưới sub-path)
-var pathBase = "/identity-service";
+var pathBase = "/order-service";
 app.UsePathBase(pathBase);
 
 // ✅ Swagger
@@ -152,7 +154,7 @@ app.UseSwagger(c =>
 });
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Brand API V1");
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Order API V1");
     c.RoutePrefix = "swagger";
 });
 

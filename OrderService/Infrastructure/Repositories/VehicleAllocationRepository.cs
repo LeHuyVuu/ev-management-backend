@@ -1,11 +1,10 @@
-using IntelliAIService.DTOs.Requests;
 using Microsoft.EntityFrameworkCore;
 using OrderService.Context;
 using OrderService.Entities;
 using OrderService.Extensions.Query;
 using OrderService.Model;
 
-namespace IntelliAIService.Infrastructure.Repositories;
+namespace OrderService.Infrastructure.Repositories;
 
 public class VehicleAllocationRepository
 {
