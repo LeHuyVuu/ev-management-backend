@@ -1,10 +1,14 @@
 using AutoMapper;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
 using OrderService.Entities;
+using OrderService.Events;
 using OrderService.Infrastructure.Repositories;
+using OrderService.Messaging;
 using OrderService.Model;
+using OrderService.Settings;
 
 namespace OrderService.Infrastructure.Services
 {
@@ -13,15 +17,23 @@ namespace OrderService.Infrastructure.Services
         private readonly ILogger<TestDriveService> _logger;
         private readonly TestDriveRepository _repository;
         private readonly IMapper _mapper;
+        private readonly IKafkaProducer _kafkaProducer;
+        private readonly string _kafkaTopic;
+        
 
         public TestDriveService(
             ILogger<TestDriveService> logger,
             TestDriveRepository repository,
-            IMapper mapper)
+            IMapper mapper,
+            IKafkaProducer kafkaProducer,                  // ✅ inject producer
+            IOptions<KafkaSettings> kafkaOptions)          // ✅ inject options
         {
             _logger = logger;
             _repository = repository;
             _mapper = mapper;
+            _kafkaProducer = kafkaProducer;
+            _kafkaTopic = kafkaOptions.Value.Topic 
+                          ?? throw new InvalidOperationException("KafkaSettings:Topic missing");
         }
 
         public async Task<PagedResult<TestDriveResponse>> GetTestDrivesAsync(Guid? dealerId, int pageNumber, int pageSize)
@@ -69,7 +81,40 @@ namespace OrderService.Infrastructure.Services
                 entity.DealerId = dealerId;
 
                 var created = await _repository.CreateAsync(entity);
-                return _mapper.Map<TestDriveResponse>(created);
+                if (created is null)
+                {
+                    _logger.LogError("Repository.CreateAsync returned null for dealer {DealerId}", dealerId);
+                    return null!;
+                }
+
+                var response = _mapper.Map<TestDriveResponse>(created);
+                if (response is null)
+                {
+                    _logger.LogError("AutoMapper mapped null for entity {Entity}", created);
+                    return null!;
+                }
+
+                var testDriveId = created.GetType().GetProperty("TestDriveId") != null
+                    ? (Guid)created.GetType().GetProperty("TestDriveId")!.GetValue(created)!
+                    : (Guid)created.GetType().GetProperty("Id")!.GetValue(created)!;
+
+                var ev = new TestDriveCreatedEvent(
+                    TestDriveId: testDriveId,
+                    DealerId: dealerId,
+                    CustomerId: request.CustomerId,
+                    VehicleVersionId: request.VehicleVersionId,
+                    DriveDate: request.DriveDate,
+                    TimeSlot: request.TimeSlot ?? "",
+                    ConfirmSms: request.ConfirmSms,
+                    ConfirmEmail: request.ConfirmEmail,
+                    Status: request.Status ?? "",
+                    OccurredAtUtc: DateTime.UtcNow
+                );
+
+                // ✅ dùng topic đã lấy sẵn từ options
+                await _kafkaProducer.PublishAsync(_kafkaTopic, dealerId.ToString(), ev);
+
+                return response;
             }
             catch (Exception ex)
             {
@@ -77,6 +122,9 @@ namespace OrderService.Infrastructure.Services
                 throw;
             }
         }
+    
+
+
 
         public async Task<TestDriveResponse?> UpdateStatusAsync(Guid id, string status)
         {

@@ -1,52 +1,51 @@
-﻿using System.Net.Mail;
-using FinancialService.Models;
-using MailKit.Net.Smtp;
+﻿using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using Microsoft.Extensions.Options;
-using SmtpClient = MailKit.Net.Smtp.SmtpClient;
+using UtilityService.Models;
 
-namespace FinancialService.Repositories
+namespace UtilityService.Infrastructure.Repositories;
+
+public class EmailRepository
 {
-    public class EmailRepository
+    private readonly EmailSettings _settings;
+    private readonly ILogger<EmailRepository> _logger;
+
+    public EmailRepository(IOptions<EmailSettings> options, ILogger<EmailRepository> logger)
     {
-        private readonly EmailSettings _settings;
+        _settings = options.Value;
+        _logger = logger;
+    }
 
-        public EmailRepository(IOptions<EmailSettings> options)
+    public async Task<bool> SendEmailAsync(string to, string subject, string htmlBody)
+    {
+        try
         {
-            _settings = options.Value;
+            var email = new MimeMessage();
+            email.Sender = MailboxAddress.Parse(_settings.SenderEmail);
+            email.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
+            email.To.Add(MailboxAddress.Parse(to));
+            email.Subject = subject;
+
+            var builder = new BodyBuilder
+            {
+                HtmlBody = htmlBody,
+                TextBody = "Your email client does not support HTML content."
+            };
+            email.Body = builder.ToMessageBody();
+
+            using var smtp = new SmtpClient();
+            await smtp.ConnectAsync(_settings.SmtpServer, _settings.Port, SecureSocketOptions.StartTls);
+            await smtp.AuthenticateAsync(_settings.SenderEmail, _settings.Password);
+            await smtp.SendAsync(email);
+            await smtp.DisconnectAsync(true);
+
+            return true;
         }
-
-        public async Task<bool> SendEmailAsync(string to, string subject, string body)
+        catch (Exception ex)
         {
-            try
-            {
-                var email = new MimeMessage();
-                email.Sender = MailboxAddress.Parse(_settings.SenderEmail);
-                email.From.Add(new MailboxAddress(_settings.SenderName, _settings.SenderEmail));
-                email.To.Add(MailboxAddress.Parse(to));
-                email.Subject = subject;
-
-                var builder = new BodyBuilder
-                {
-                    HtmlBody = body,
-                    TextBody = "Your email client does not support HTML content."
-                };
-
-                email.Body = builder.ToMessageBody();
-
-                using var smtp = new SmtpClient();
-                await smtp.ConnectAsync(_settings.SmtpServer, _settings.Port, SecureSocketOptions.StartTls);
-                await smtp.AuthenticateAsync(_settings.SenderEmail, _settings.Password);
-                await smtp.SendAsync(email);
-                await smtp.DisconnectAsync(true);
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            _logger.LogError(ex, "EmailRepository.SendEmailAsync failed");
+            return false;
         }
     }
 }

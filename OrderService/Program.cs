@@ -11,6 +11,8 @@ using OrderService.ExceptionHandler;
 using OrderService.Extensions.Mapper;
 using OrderService.Infrastructure.Repositories;
 using OrderService.Infrastructure.Services;
+using OrderService.Messaging;
+using OrderService.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -86,6 +88,12 @@ builder.Services.AddScoped<VehicleTransferOrderRepository>();
 builder.Services.AddScoped<VehicleTransferOrderService>();
 builder.Services.AddScoped<TestDriveRepository>();
 builder.Services.AddScoped<TestDriveService>();
+
+
+// Kafka 
+builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));
+
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
