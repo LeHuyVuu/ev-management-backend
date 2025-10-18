@@ -38,6 +38,20 @@ namespace BrandService.Infrastructure.Services
             return ApiResponse<PagedResult<BrandVehicleVersionResponse>>.Success(result);
         }
 
+        public async Task<ApiResponse<PagedResult<DealerVehicleVersionResponse>>> GetPagedForDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue)
+        {
+            var pagedVersions = await _vehicleVersionRepo.GetPagedByDealerAsync(dealerId, pageNumber, pageSize, searchValue);
+            var mapped = _mapper.Map<IEnumerable<DealerVehicleVersionResponse>>(pagedVersions.Items).ToList();
+            var result = new PagedResult<DealerVehicleVersionResponse>
+            {
+                Items = mapped,
+                TotalItems = pagedVersions.TotalItems,
+                PageNumber = pagedVersions.PageNumber,
+                PageSize = pagedVersions.PageSize,
+            };
+            return ApiResponse<PagedResult<DealerVehicleVersionResponse>>.Success(result);
+        }
+
         public async Task<ApiResponse<BrandVehicleVersionResponse>> AddVersionAsync(Guid vehicleId, VehicleVersionRequest request)
         {
             var version = _mapper.Map<VehicleVersion>(request);

@@ -34,6 +34,29 @@ namespace BrandService.Infrastructure.Controller
         }
 
         /// <summary>
+        /// Get a paginated list of vehicle versions for the authenticated dealer with optional search.
+        /// </summary>
+        /// <param name="pageNumber"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="searchValue"></param>
+        /// <returns></returns>
+        [HttpGet("/dealer")]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerVehicleVersionResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetByDealerId([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null)
+        {
+            var dealerIdClaim = User.FindFirst("DealerId")?.Value;
+
+            if (dealerIdClaim == null)
+                return Unauthorized(ApiResponse<object>.Fail(403, "Dealer information missing in token."));
+
+            var dealerId = Guid.Parse(dealerIdClaim);
+            var result = await _vehicleVersionService.GetPagedForDealerAsync(dealerId, pageNumber, pageSize, searchValue);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Add a new version for a vehicle.
         /// </summary>
         [HttpPost("{vehicleId}")]
@@ -46,29 +69,18 @@ namespace BrandService.Infrastructure.Controller
             return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
         }
 
-        ///// <summary>
-        ///// Get details of a specific vehicle version.
-        ///// </summary>
-        //[HttpGet("{versionId}")]
-        //[ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        //public async Task<ActionResult> GetVersion(Guid versionId)
-        //{
-        //    var version = await _vehicleVersionService.GetVersionByIdAsync(versionId);
-        //    return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
-        //}
-
-        //[HttpGet("{dealerId}")]
-        //[ProducesResponseType(typeof(ApiResponse<IEnumerable<BrandVehicleVersionResponse>>), StatusCodes.Status200OK)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        //[ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        //public async Task<ActionResult> GetVersionsByDealerId(Guid dealerId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, string? searchValue)
-        //{
-        //    var versions = await _vehicleVersionService.GetVersionsByDealerIdAsync(dealerId);
-        //    return Ok(ApiResponse<IEnumerable<BrandVehicleVersionResponse>>.Success(versions.Data));
-        //}
-
+        /// <summary>
+        /// Get details of a specific vehicle version.
+        /// </summary>
+        [HttpGet("{versionId}")]
+        [ProducesResponseType(typeof(ApiResponse<BrandVehicleVersionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetVersion(Guid versionId)
+        {
+            var version = await _vehicleVersionService.GetVersionByIdAsync(versionId);
+            return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
+        }
 
         /// <summary>
         /// Update an existing vehicle version.
@@ -86,6 +98,11 @@ namespace BrandService.Infrastructure.Controller
             return Ok(ApiResponse<BrandVehicleVersionResponse>.Success(version.Data));
         }
 
+        /// <summary>
+        /// Delete a vehicle version with reference check.
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <returns></returns>
         [HttpDelete("{versionId}")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]

@@ -1,6 +1,7 @@
 ﻿using BrandService.Context;
 using BrandService.Entities;
 using BrandService.ExceptionHandler;
+using BrandService.Extensions.Query;
 using BrandService.Model;
 using Microsoft.EntityFrameworkCore;
 
@@ -118,6 +119,50 @@ namespace BrandService.Infrastructure.Repositories
                 throw new Exception($"Error fetching vehicle versions: {ex.Message}");
             }
         }
+
+        public async Task<PagedResult<VehicleVersion>> GetPagedByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue)
+        {
+            try
+            {
+                var dealerExists = await _context.Dealers
+                    .AsNoTracking()
+                    .AnyAsync(d => d.DealerId == dealerId);
+
+                if (!dealerExists)
+                    throw new NotFoundException("Dealer not found");
+
+                var query = _context.VehicleVersions
+                    .Include(vv => vv.Vehicle)
+                    .Include(vv => vv.Inventories.Where(i => i.DealerId == dealerId))
+                    .AsNoTracking()
+                    .AsQueryable();
+
+                if (!string.IsNullOrWhiteSpace(searchValue))
+                {
+                    searchValue = searchValue.Trim().ToLower();
+
+                    query = query.Where(vv =>
+                        vv.Vehicle.Brand.ToLower().Contains(searchValue) ||
+                        vv.Vehicle.ModelName.ToLower().Contains(searchValue) ||
+                        vv.VersionName.ToLower().Contains(searchValue) ||
+                        (vv.Color != null && vv.Color.ToLower().Contains(searchValue))
+                    );
+                }
+
+                query = query.OrderBy(vv => vv.Vehicle.ModelName).ThenBy(vv => vv.VersionName);
+
+                return await query.ToPagedResultAsync(pageNumber, pageSize);
+            }
+            catch (NotFoundException ex)
+            {
+                throw new NotFoundException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error when getting vehicle versions for dealer");
+            }
+        }
+
 
         public async Task<VehicleVersion?> GetVersionByIdAsync(Guid id)
         {

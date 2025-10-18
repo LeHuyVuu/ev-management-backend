@@ -149,7 +149,7 @@ app.UseSwagger(c =>
             new OpenApiServer
             {
                 Url = app.Environment.IsProduction()
-                    ? $"https://evm.webredirect.org{pathBase}"
+                    ? $"https://prn232.freeddns.org{pathBase}"
                     : $"{httpReq.Scheme}://{httpReq.Host.Value}{pathBase}"
             }
         };

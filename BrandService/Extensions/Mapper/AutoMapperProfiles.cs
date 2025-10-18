@@ -31,7 +31,13 @@ namespace BrandService.Extensions.Mapper
 
             CreateMap<VehicleVersion, DealerVehicleVersionResponse>()
                 .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Vehicle.Brand))
-                .ForMember(dest => dest.ModelName, opt => opt.MapFrom(src => src.Vehicle.ModelName));
+                .ForMember(dest => dest.ModelName, opt => opt.MapFrom(src => src.Vehicle.ModelName))
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src =>
+                    src.Inventories != null && src.Inventories.Any()
+                        ? src.Inventories.FirstOrDefault().StockQuantity
+                        : 0
+                ));
+
 
             // INVENTORY
             CreateMap<UpdateInventoryRequest, Inventory>();
