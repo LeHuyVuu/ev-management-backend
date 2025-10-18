@@ -57,5 +57,10 @@ namespace BrandService.Infrastructure.Services
         {
             return _repo.UpdateDealerStockAsync(dealerId, versionId, deltaQuantity);
         }
+
+        public async Task<bool> DoesDealerHasVehicleVersion(Guid versionId, Guid dealerId)
+        {
+            return await _repo.DoesDealerHasVehicleVersion(versionId, dealerId);
+        }
     }
 }
