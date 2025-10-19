@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
@@ -23,13 +25,20 @@ namespace OrderService.Infrastructure.Controller
 
         // ✅ 1️⃣ GET /api/test-drives?dealerId=xxx&pageNumber=1&pageSize=10
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetTestDrives(
-            [FromQuery] Guid? dealerId,
             [FromQuery] int pageNumber = 1,
             [FromQuery] int pageSize = 10)
         {
             try
             {
+                var dealerIdClaim = User.FindFirstValue("DealerId");
+
+                if (string.IsNullOrEmpty(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var dealerId))
+                {
+                    return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing DealerId in token"));
+                }
+
                 var result = await _service.GetTestDrivesAsync(dealerId, pageNumber, pageSize);
                 return Ok(ApiResponse<PagedResult<TestDriveResponse>>.Success(result, "Fetched test drives successfully"));
             }
@@ -63,14 +72,28 @@ namespace OrderService.Infrastructure.Controller
 
         // ✅ 3️⃣ POST /api/test-drives?dealerId=xxx
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] TestDriveRequest request, [FromQuery] Guid dealerId)
+        [Authorize]
+        public async Task<IActionResult> Create([FromBody] TestDriveRequest request)
         {
+            var dealerIdClaim = User.FindFirstValue("DealerId");
+
+            if (string.IsNullOrEmpty(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var dealerId))
+            {
+                return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing DealerId in token"));
+            }
+            var staffIdClaim = User.FindFirstValue("UserId");
+
+            if (string.IsNullOrEmpty(staffIdClaim) || !Guid.TryParse(staffIdClaim, out var staffId))
+            {
+                return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing userId in token"));
+            }
             try
             {
+                
                 if (!ModelState.IsValid)
                     return BadRequest(ApiResponse<TestDriveResponse>.Fail(400, "Invalid request", ModelState));
 
-                var created = await _service.CreateAsync(request, dealerId);
+                var created = await _service.CreateAsync(request, dealerId, staffId);
                 if (created == null)
                     return StatusCode(500, ApiResponse<TestDriveResponse>.Fail(500, "Failed to create test drive."));
 
