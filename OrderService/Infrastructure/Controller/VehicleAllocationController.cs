@@ -23,10 +23,10 @@ public class VehicleAllocationController : ControllerBase
         _logger = logger;
     }
 
-    // ✅ 1️⃣ GET /api/vehicle-allocations?dealerId=xxx&pageNumber=1&pageSize=10
-    [HttpGet]
+    // ✅ 1️⃣ GET /api/vehicle-allocationsDealer?dealerId=xxx&pageNumber=1&pageSize=10
+    [HttpGet("dealer")]
     [Authorize]
-    public async Task<IActionResult> GetVehicleAllocations(
+    public async Task<IActionResult> GetVehicleAllocationsDealer(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -39,6 +39,24 @@ public class VehicleAllocationController : ControllerBase
         try
         {
             var result = await _service.GetVehicleAllocationsAsync(dealerId, pageNumber, pageSize);
+            return Ok(ApiResponse<PagedResult<VehicleAllocationResponse>>.Success(result, "Fetched vehicle allocations successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle allocations");
+            return StatusCode(500, ApiResponse<PagedResult<VehicleAllocationResponse>>.Fail(
+                500, "Internal server error", ex.Message));
+        }
+    }
+    [HttpGet("all")]
+    public async Task<IActionResult> GetVehicleAllocations(
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+
+        try
+        {
+            var result = await _service.GetVehicleAllocationsAsync(null, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<VehicleAllocationResponse>>.Success(result, "Fetched vehicle allocations successfully"));
         }
         catch (Exception ex)
