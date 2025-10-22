@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
@@ -23,11 +25,17 @@ public class VehicleAllocationController : ControllerBase
 
     // ✅ 1️⃣ GET /api/vehicle-allocations?dealerId=xxx&pageNumber=1&pageSize=10
     [HttpGet]
+    [Authorize]
     public async Task<IActionResult> GetVehicleAllocations(
-        [FromQuery] Guid? dealerId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
+        var dealerIdClaim = User.FindFirstValue("DealerId");
+
+        if (string.IsNullOrEmpty(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var dealerId))
+        {
+            return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing DealerId in token"));
+        }
         try
         {
             var result = await _service.GetVehicleAllocationsAsync(dealerId, pageNumber, pageSize);
@@ -43,14 +51,21 @@ public class VehicleAllocationController : ControllerBase
 
     // ✅ 2️⃣ POST /api/vehicle-allocations
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> CreateVehicleAllocation([FromBody] VehicleAllocationRequest request)
     {
+        var dealerIdClaim = User.FindFirstValue("DealerId");
+
+        if (string.IsNullOrEmpty(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var dealerId))
+        {
+            return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing DealerId in token"));
+        }
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest(ApiResponse<VehicleAllocationResponse>.Fail(400, "Invalid request", ModelState));
             
-            var created = await _service.CreateAsync(request);
+            var created = await _service.CreateAsync(request, dealerId);
             return StatusCode(201, ApiResponse<VehicleAllocationResponse>.Success(created, "Vehicle allocation created successfully"));
         }
         catch (Exception ex)

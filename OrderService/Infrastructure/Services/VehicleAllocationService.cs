@@ -46,11 +46,12 @@ public class VehicleAllocationService
         }
     }
 
-    public async Task<VehicleAllocationResponse> CreateAsync(VehicleAllocationRequest request)
+    public async Task<VehicleAllocationResponse> CreateAsync(VehicleAllocationRequest request, Guid dealerId)
     {
         try
         {
             var entity = _mapper.Map<VehicleAllocation>(request);
+            entity.DealerId = dealerId;
 
             var created = await _repository.CreateAsync(entity);
 

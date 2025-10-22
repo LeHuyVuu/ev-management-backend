@@ -191,5 +191,19 @@ namespace BrandService.Infrastructure.Repositories
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<bool> DoesDealerHasVehicleVersion(Guid versionId, Guid dealerId)
+        {
+            try
+            {
+                return await _context.Inventories
+                    .AsNoTracking()
+                    .AnyAsync(i => i.VehicleVersionId == versionId && i.DealerId == dealerId && i.StockQuantity > 0);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error checking dealer's vehicle version");
+            }
+        }
     }
 }

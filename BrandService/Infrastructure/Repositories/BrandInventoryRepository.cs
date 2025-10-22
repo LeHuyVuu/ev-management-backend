@@ -58,37 +58,6 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<BrandInventory> UpdateInventoryAsync(Guid versionId, int stockQuantity)
-        {
-            try
-            {
-                if (stockQuantity < 0)
-                {
-                    throw new BadRequestException("Stock quantity cannot be negative");
-                }
-                var existing = await _context.BrandInventories.FirstOrDefaultAsync(bi => bi.VehicleVersionId == versionId);
-                if (existing == null)
-                {
-                    throw new NotFoundException("Brand inventory not found");
-                }
-                existing.StockQuantity = stockQuantity;
-                _context.BrandInventories.Update(existing);
-                await _context.SaveChangesAsync();
-                return existing;
-
-            }
-            catch (BadRequestException ex)
-            {
-                throw new BadRequestException(ex.Message);
-            }
-            catch (NotFoundException ex)
-            {
-                throw new NotFoundException(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
-        }
+        
     }
 }
