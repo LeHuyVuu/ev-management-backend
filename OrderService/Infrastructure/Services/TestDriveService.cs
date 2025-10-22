@@ -81,6 +81,12 @@ namespace OrderService.Infrastructure.Services
                 entity.DealerId = dealerId;
                 entity.StaffUserId = staffId;
 
+                bool isAvailable = await _repository.CheckSlotAvailableAsync(entity);
+                if (!isAvailable)
+                {
+                    _logger.LogWarning("Slot have exsit. DealerId: {DealerId}, Date: {Date}, TimeSlot: {Slot}", dealerId, entity.DriveDate, entity.TimeSlot);
+                    return null!; // hoặc có thể throw exception / trả response lỗi tùy logic bạn muốn
+                }
                 var created = await _repository.CreateAsync(entity);
                 if (created is null)
                 {
@@ -124,9 +130,6 @@ namespace OrderService.Infrastructure.Services
             }
         }
     
-
-
-
         public async Task<TestDriveResponse?> UpdateStatusAsync(Guid id, string status)
         {
             try
