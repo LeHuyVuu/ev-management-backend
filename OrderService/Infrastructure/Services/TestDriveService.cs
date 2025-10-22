@@ -73,12 +73,13 @@ namespace OrderService.Infrastructure.Services
             }
         }
 
-        public async Task<TestDriveResponse> CreateAsync(TestDriveRequest request, Guid dealerId)
+        public async Task<TestDriveResponse> CreateAsync(TestDriveRequest request, Guid dealerId, Guid staffId)
         {
             try
             {
                 var entity = _mapper.Map<TestDrife>(request);
                 entity.DealerId = dealerId;
+                entity.StaffUserId = staffId;
 
                 var created = await _repository.CreateAsync(entity);
                 if (created is null)

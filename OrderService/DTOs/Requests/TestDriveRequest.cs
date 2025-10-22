@@ -6,8 +6,6 @@ public class TestDriveRequest
 
     public Guid VehicleVersionId { get; set; }
     
-    public Guid? StaffUserId { get; set; }
-
     public DateTime DriveDate { get; set; }
 
     public string TimeSlot { get; set; } = null!;
