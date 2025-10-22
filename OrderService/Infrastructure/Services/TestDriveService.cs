@@ -85,7 +85,7 @@ namespace OrderService.Infrastructure.Services
                 if (!isAvailable)
                 {
                     _logger.LogWarning("Slot have exsit. DealerId: {DealerId}, Date: {Date}, TimeSlot: {Slot}", dealerId, entity.DriveDate, entity.TimeSlot);
-                    return null!; // hoặc có thể throw exception / trả response lỗi tùy logic bạn muốn
+                    throw new Exception("Slot has exsit.");
                 }
                 var created = await _repository.CreateAsync(entity);
                 if (created is null)
