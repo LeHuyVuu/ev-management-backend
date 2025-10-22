@@ -142,6 +142,7 @@ public class TestDriveRepository
             .AnyAsync(td =>
                 td.DealerId == request.DealerId &&
                 td.DriveDate == request.DriveDate &&
+                td.VehicleVersionId == request.VehicleVersionId &&
                 td.TimeSlot == request.TimeSlot);
 
         if (slotTaken)
