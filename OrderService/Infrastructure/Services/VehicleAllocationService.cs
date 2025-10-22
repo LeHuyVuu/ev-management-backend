@@ -1,11 +1,11 @@
 using AutoMapper;
-using IntelliAIService.DTOs.Requests;
-using IntelliAIService.DTOs.Responses;
-using IntelliAIService.Infrastructure.Repositories;
+using OrderService.DTOs.Requests;
+using OrderService.DTOs.Responses;
 using OrderService.Entities;
+using OrderService.Infrastructure.Repositories;
 using OrderService.Model;
 
-namespace IntelliAIService.Infrastructure.Services;
+namespace OrderService.Infrastructure.Services;
 
 public class VehicleAllocationService
 {
@@ -46,11 +46,12 @@ public class VehicleAllocationService
         }
     }
 
-    public async Task<VehicleAllocationResponse> CreateAsync(VehicleAllocationRequest request)
+    public async Task<VehicleAllocationResponse> CreateAsync(VehicleAllocationRequest request, Guid dealerId)
     {
         try
         {
             var entity = _mapper.Map<VehicleAllocation>(request);
+            entity.DealerId = dealerId;
 
             var created = await _repository.CreateAsync(entity);
 

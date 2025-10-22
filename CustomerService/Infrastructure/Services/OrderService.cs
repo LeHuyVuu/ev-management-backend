@@ -62,6 +62,9 @@ public class OrderService
         if(contract == null)
             throw new KeyNotFoundException("Contract does not exist");
         
+        if(customer.CustomerId != contract.CustomerId)
+            throw new Exception("The customer of the order does not match the customer in the contract.");
+        
         if(request.DeliveryAddress == null)
             throw new KeyNotFoundException("Delivery Address is not null");
         if(request.DeliveryDate == null)

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 
-namespace Application.ExceptionHandler
+namespace BrandService.ExceptionHandler
 {
     public static class MiddlewareExtensions
     {

@@ -1,9 +1,7 @@
-namespace IntelliAIService.DTOs.Requests;
+namespace OrderService.DTOs.Requests;
 
 public class VehicleAllocationRequest
 {
-
-    public Guid DealerId { get; set; }
 
     public Guid VehicleVersionId { get; set; }
 

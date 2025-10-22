@@ -1,4 +1,4 @@
-namespace IntelliAIService.DTOs.Responses;
+namespace OrderService.DTOs.Responses;
 
 public class VehicleAllocationResponse
 {

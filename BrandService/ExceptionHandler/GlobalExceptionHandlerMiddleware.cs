@@ -6,7 +6,7 @@ using System.Text.Json;
 using System.Text.Unicode;
 using BrandService.Models; // nơi chứa ApiResponse<T>
 
-namespace Application.ExceptionHandler
+namespace BrandService.ExceptionHandler
 {
     public class GlobalExceptionHandlerMiddleware
     {

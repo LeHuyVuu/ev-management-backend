@@ -51,7 +51,8 @@ public class ContractController : ControllerBase
     {
         try
         {
-            var isSuccess = await _contractService.CreateContract(request);
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            var isSuccess = await _contractService.CreateContract(dealerId, request);
             return Ok(ApiResponse<bool>.Success(isSuccess));
         }
         catch (NotFoundException ex)

@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using IntelliAIService.DTOs.Requests;
-using IntelliAIService.DTOs.Responses;
+using OrderService.DTOs.Requests;
+using OrderService.DTOs.Responses;
 using OrderService.Entities;
 
 namespace OrderService.Extensions.Mapper
@@ -35,6 +35,18 @@ namespace OrderService.Extensions.Mapper
                             : string.Empty));
 
             CreateMap<VehicleTransferOrderRequest, VehicleTransferOrder>();
+            
+            
+            CreateMap<TestDrife, TestDriveResponse>()
+                .ForMember(dest => dest.DealerName, otp => otp.MapFrom(src => src.Dealer.Name))
+                .ForMember(dest => dest.CustomerName, otp => otp.MapFrom(src => src.Customer.Name))
+                .ForMember(dest => dest.StaffUserName, otp => otp.MapFrom(src => src.StaffUser.Name))
+                .ForMember(dest => dest.VehicleName,
+                    opt => opt.MapFrom(src =>
+                        src.VehicleVersion != null
+                            ? $"{src.VehicleVersion.Vehicle.ModelName} ({src.VehicleVersion.VersionName})"
+                            : string.Empty));
+            CreateMap<TestDriveRequest, TestDrife>();
         }
     }
 }

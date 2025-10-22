@@ -1,4 +1,4 @@
-namespace IntelliAIService.DTOs.Requests;
+namespace OrderService.DTOs.Requests;
 
 public class VehicleTransferOrderRequest
 {

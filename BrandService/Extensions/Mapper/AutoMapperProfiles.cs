@@ -1,8 +1,10 @@
 ﻿using AutoMapper;
-using BrandService.DTOs;
-using BrandService.DTOs.Requests.UserDTOs;
-using BrandService.DTOs.Responses.UserDTOs;
+using BrandService.DTOs.Requests.VehicleDTOs;
+using BrandService.DTOs.Requests.InventoryDTOs;
+using BrandService.DTOs.Responses.VehicleDTOs;
+using BrandService.DTOs.Responses.InventoryDTOs;
 using BrandService.Entities;
+using BrandService.DTOs.Responses.DealerDTOs;
 
 namespace BrandService.Extensions.Mapper
 {
@@ -10,12 +12,45 @@ namespace BrandService.Extensions.Mapper
     {
         public AutoMapperProfiles()
         {
+            // VEHICLE
+            CreateMap<Vehicle, VehicleResponse>();
+            CreateMap<Vehicle, VehicleDetailResponse>();
+            CreateMap<VehicleRequest, Vehicle>();
 
-            CreateMap<User, UserResponse>()
-                .ForMember(dest => dest.RoleName, opt => opt.MapFrom(src => src.Role.RoleName));
-            CreateMap<UserLoginRequest, User>();
-            CreateMap<UserRegisterRequest, User>();
-            CreateMap<UserUpdateRequest, User>();  
+            // VEHICLE VERSION
+            CreateMap<VehicleVersionRequest, VehicleVersion>();
+
+            CreateMap<VehicleVersion, BrandVehicleVersionResponse>()
+                .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Vehicle.Brand))
+                .ForMember(dest => dest.ModelName, opt => opt.MapFrom(src => src.Vehicle.ModelName))
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src =>
+                    src.BrandInventory != null ? src.BrandInventory.StockQuantity : 0))
+                .ForMember(dest => dest.TotalStockQuantity, opt => opt.MapFrom(src =>
+                    (src.BrandInventory != null ? src.BrandInventory.StockQuantity : 0)
+                    + (src.Inventories != null ? src.Inventories.Sum(i => i.StockQuantity) : 0)));
+
+            CreateMap<VehicleVersion, DealerVehicleVersionResponse>()
+                .ForMember(dest => dest.Brand, opt => opt.MapFrom(src => src.Vehicle.Brand))
+                .ForMember(dest => dest.ModelName, opt => opt.MapFrom(src => src.Vehicle.ModelName))
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src =>
+                    src.Inventories != null && src.Inventories.Any()
+                        ? src.Inventories.FirstOrDefault().StockQuantity
+                        : 0
+                ));
+
+
+            // INVENTORY
+            CreateMap<UpdateInventoryRequest, Inventory>();
+
+            CreateMap<Inventory, InventoryResponse>()
+                .ForMember(dest => dest.InventoryId, opt => opt.MapFrom(src => src.InventoryId))
+                .ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => src.LastUpdated))
+                .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.StockQuantity))
+                .ForMember(dest => dest.Dealer, opt => opt.MapFrom(src => src.Dealer))
+                .ForMember(dest => dest.VehicleVersion, opt => opt.MapFrom(src => src.VehicleVersion));
+
+            // DEALER
+            CreateMap<Dealer, DealerResponse>();
         }
     }
 }
