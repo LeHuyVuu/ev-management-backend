@@ -134,7 +134,6 @@ namespace BrandService.Infrastructure.Repositories
                 var query =
                     from vv in _context.VehicleVersions
                         .Include(v => v.Vehicle)
-                        .Include(v => v.Inventories)
                     join inv in _context.Inventories
                         on vv.VehicleVersionId equals inv.VehicleVersionId into invGroup
                     from inventory in invGroup
@@ -168,30 +167,36 @@ namespace BrandService.Infrastructure.Repositories
                 }
 
                 if (vehicleId.HasValue && vehicleId.Value != Guid.Empty)
-                {
                     query = query.Where(vv => vv.VehicleId == vehicleId.Value);
-                }
 
                 if (minPrice.HasValue)
-                {
                     query = query.Where(vv => vv.BasePrice >= minPrice.Value);
-                }
                 if (maxPrice.HasValue)
-                {
                     query = query.Where(vv => vv.BasePrice <= maxPrice.Value);
-                }
 
-                query = query
+                var items = await query.AsNoTracking().ToListAsync();
+
+                items = items
                     .OrderByDescending(vv =>
-                        vv.Inventories.FirstOrDefault() != null
-                            ? vv.Inventories.FirstOrDefault().StockQuantity
-                            : 0
-                    )
+                        vv.Inventories.FirstOrDefault()?.StockQuantity ?? 0)
                     .ThenBy(vv => vv.Vehicle.Brand)
                     .ThenBy(vv => vv.Vehicle.ModelName)
-                    .ThenBy(vv => vv.VersionName);
+                    .ThenBy(vv => vv.VersionName)
+                    .ToList();
 
-                return await query.AsNoTracking().ToPagedResultAsync(pageNumber, pageSize);
+                var totalItems = items.Count;
+                var pagedItems = items
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return new PagedResult<VehicleVersion>
+                {
+                    Items = pagedItems,
+                    TotalItems = totalItems,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
             }
             catch (NotFoundException ex)
             {
@@ -199,9 +204,10 @@ namespace BrandService.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error when getting all vehicle versions for dealer: {ex.Message}");
+                throw new Exception($"Error when getting all vehicle versions for dealer");
             }
         }
+
 
 
 
