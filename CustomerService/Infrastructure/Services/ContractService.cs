@@ -182,4 +182,41 @@ public class ContractService
 
         return contractResponses;
     }
+    
+    public async Task<bool> CreateContractByQuotesStatus(Guid dealerId, Guid quoteId, Guid customerId)
+    {
+        if(dealerId == Guid.Empty)
+            throw new KeyNotFoundException("You don't have an dealer Id to access this function.");
+
+        if (quoteId == Guid.Empty)
+            throw new ArgumentException("QuoteId is required and cannot be empty.", nameof(quoteId));
+
+        var quote = await _quoteRepository.GetQuoteByQuoteId(quoteId);
+        if (quote == null)
+            throw new KeyNotFoundException($"No quote found with ID {quoteId}.");
+
+        var contract = new Contract
+        {
+            QuoteId = quoteId,
+            CustomerId = customerId,
+            FileUrl = null,
+            PaymentMethod = "Not selected yet",
+            Status = "draft",
+        };
+        if (contract == null)
+            throw new InvalidOperationException("Failed to map ContractCreateRequest to Contract.");
+
+        if (quote.TotalPrice == null)
+            throw new InvalidOperationException($"Quote with ID {quoteId} does not have a total price.");
+
+        contract.TotalValue = quote.TotalPrice;
+        contract.SignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        contract.DealerId = dealerId;
+
+        var isCreated = await _contractRepository.CreateContract(contract);
+        if (!isCreated)
+            throw new InvalidOperationException("Failed to create the contract in the repository.");
+
+        return true;
+    }
 }

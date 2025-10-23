@@ -23,21 +23,27 @@ public class VehicleAllocationController : ControllerBase
         _logger = logger;
     }
 
-    // ✅ 1️⃣ GET /api/vehicle-allocations?dealerId=xxx&pageNumber=1&pageSize=10
     [HttpGet]
     [Authorize]
     public async Task<IActionResult> GetVehicleAllocations(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
-        var dealerIdClaim = User.FindFirstValue("DealerId");
-
-        if (string.IsNullOrEmpty(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var dealerId))
-        {
-            return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing DealerId in token"));
-        }
         try
         {
+            var roleId = User.FindFirstValue("RoleId");
+            Guid? dealerId = null;
+
+            if (roleId != "1" && roleId != "2")
+            {
+                var dealerIdClaim = User.FindFirstValue("DealerId");
+                if (string.IsNullOrEmpty(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var parsedDealerId))
+                {
+                    return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing DealerId in token"));
+                }
+                dealerId = parsedDealerId;
+            }
+
             var result = await _service.GetVehicleAllocationsAsync(dealerId, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<VehicleAllocationResponse>>.Success(result, "Fetched vehicle allocations successfully"));
         }
@@ -48,6 +54,7 @@ public class VehicleAllocationController : ControllerBase
                 500, "Internal server error", ex.Message));
         }
     }
+
 
     // ✅ 2️⃣ POST /api/vehicle-allocations
     [HttpPost]

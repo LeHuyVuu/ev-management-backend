@@ -87,4 +87,61 @@ public class QuoteController : ControllerBase
             return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
+
+    /// <summary>
+    /// Tạo quote mới
+    /// </summary>
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpPost]
+    [Route("api/quotes")]
+    public async Task<IActionResult> CreateQuote([FromBody] QuoteCreateRequest request)
+    {
+        try
+        {
+            var dealerIdClaim = User.FindFirstValue("DealerId");
+            var userIdClaim = User.FindFirstValue("UserId");
+            if (!Guid.TryParse(dealerIdClaim, out var dealerId) || !Guid.TryParse(userIdClaim, out var userId))
+                return BadRequest(ApiResponse<string>.BadRequest("Missing DealerId or UserId in token"));
+
+            var created = await _quoteService.CreateAsync(request, dealerId, userId);
+            return StatusCode(201, ApiResponse<QuoteDetailResponse>.Success(created));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<string>.BadRequest(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
+    
+    //// <summary>
+    /// Cập nhật quote status, có 4 trạng thái của quote draft, confirmed, expired, cancelled
+    /// </summary>
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpPatch("api/quotes/{quoteId:guid}/status")]
+    public async Task<IActionResult> UpdateQuoteStatus([FromBody]QuoteUpdateStatusRequest request, [FromRoute] Guid quoteId)
+    {
+        try
+        {
+            var dealerIdClaim = User.FindFirstValue("DealerId");
+            if (string.IsNullOrWhiteSpace(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var dealerId))
+                return Unauthorized(ApiResponse<string>.Unauthorized("Missing or invalid DealerId claim."));
+            var result = await _quoteService.UpdateQuoteStatus(request, quoteId, dealerId);
+            return Ok(ApiResponse<bool>.Success(result));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<bool>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
 }

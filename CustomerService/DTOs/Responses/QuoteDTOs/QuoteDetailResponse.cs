@@ -1,5 +1,7 @@
 ﻿namespace CustomerService.DTOs.Responses.QuoteDTOs;
 
+using System.Collections.Generic;
+
 public class QuoteDetailResponse
 {
     public Guid QuoteId {get; set;}
@@ -22,7 +24,8 @@ public class QuoteDetailResponse
     
     public string? Color { get; set; }
     
-    public string? OptionsJson { get; set; }
+    // Return promotions as a list of string IDs (parsed from comma-separated storage)
+    public List<string>? OptionsJson { get; set; }
 
     public decimal Subtotal { get; set; }
 
