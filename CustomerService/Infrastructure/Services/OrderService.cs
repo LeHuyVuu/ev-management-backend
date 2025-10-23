@@ -14,6 +14,7 @@ public class OrderService
     private readonly ContractRepository _contractRepository;
     private readonly DealerRepository _dealerRepository;
     private readonly QuoteRepository _quoteRepository;
+    private readonly InventoryRepository _inventoryRepository;
     private readonly IMapper _mapper;
 
     public OrderService(
@@ -22,6 +23,7 @@ public class OrderService
         ContractRepository contractRepository,
         DealerRepository dealerRepository,
         QuoteRepository quoteRepository,
+        InventoryRepository inventoryRepository,
         IMapper mapper)
     {
         _orderRepository = orderRepository;
@@ -29,6 +31,7 @@ public class OrderService
         _contractRepository = contractRepository;
         _dealerRepository = dealerRepository;
         _quoteRepository = quoteRepository;
+        _inventoryRepository = inventoryRepository;
         _mapper = mapper;
     }
 
@@ -72,8 +75,24 @@ public class OrderService
         
         var order = _mapper.Map<OrderCreateModel>(request);
         order.DealerId = dealerId;
+        
+        var inventory = await _inventoryRepository.GetInventoryByVersionId(contract.Quote.VehicleVersionId);
+        if(inventory == null)
+            throw new KeyNotFoundException("Car in inventory does not exist");
+        
+        int quantity = inventory.StockQuantity;
 
-        return await _orderRepository.CreateOrder(_mapper.Map<Order>(order));
+        if (quantity <= 0)
+            throw new Exception("The vehicle version is out of stock and cannot place an order.");
+        inventory.StockQuantity = quantity - 1;
+        await _inventoryRepository.UpdateInventory(inventory);
+
+        var result = await _orderRepository.CreateOrder(_mapper.Map<Order>(order));
+        if (!result)
+        {
+            throw new Exception("Failed to create order");
+        }
+        return result;
     }
 
     public async Task<OrderDetailResponse> GetOrderDetailByOrderId(Guid orderId)

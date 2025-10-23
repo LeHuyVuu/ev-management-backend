@@ -20,7 +20,7 @@ public class QuoteUpdateRequest
    
    public string Color { get; set; }
 
-    public string? OptionsJson { get; set; }
+    public List<Guid>? PromotionIds { get; set; }
 
     public decimal? DiscountAmt { get; set; }
 

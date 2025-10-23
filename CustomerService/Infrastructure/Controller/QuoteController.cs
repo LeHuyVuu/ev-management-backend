@@ -87,4 +87,36 @@ public class QuoteController : ControllerBase
             return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
+
+    /// <summary>
+    /// Tạo quote mới
+    /// </summary>
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpPost]
+    [Route("api/quotes")]
+    public async Task<IActionResult> CreateQuote([FromBody] QuoteCreateRequest request)
+    {
+        try
+        {
+            var dealerIdClaim = User.FindFirstValue("DealerId");
+            var userIdClaim = User.FindFirstValue("UserId");
+            if (!Guid.TryParse(dealerIdClaim, out var dealerId) || !Guid.TryParse(userIdClaim, out var userId))
+                return BadRequest(ApiResponse<string>.BadRequest("Missing DealerId or UserId in token"));
+
+            var created = await _quoteService.CreateAsync(request, dealerId, userId);
+            return StatusCode(201, ApiResponse<QuoteDetailResponse>.Success(created));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<string>.BadRequest(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
 }
