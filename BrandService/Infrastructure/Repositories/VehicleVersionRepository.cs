@@ -178,7 +178,7 @@ namespace BrandService.Infrastructure.Repositories
 
                 items = items
                     .OrderBy(vv => vv.BasePrice)
-                    .OrderByDescending(vv =>
+                    .ThenByDescending(vv =>
                         vv.Inventories.FirstOrDefault()?.StockQuantity ?? 0)
                     .ThenBy(vv => vv.Vehicle.Brand)
                     .ThenBy(vv => vv.Vehicle.ModelName)
