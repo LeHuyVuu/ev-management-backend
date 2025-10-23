@@ -24,5 +24,5 @@ public class QuoteUpdateRequest
 
     public decimal? DiscountAmt { get; set; }
 
-    public string? Status { get; set; }
+    // public string? Status { get; set; }
 }

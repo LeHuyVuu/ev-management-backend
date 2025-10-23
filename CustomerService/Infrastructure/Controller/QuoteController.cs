@@ -119,4 +119,29 @@ public class QuoteController : ControllerBase
             return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
+    
+    //// <summary>
+    /// Cập nhật quote status, có 4 trạng thái của quote draft, confirmed, expired, cancelled
+    /// </summary>
+    // [Authorize(Roles = "dealer_staff")]
+    [HttpPost("api/quotes/{quoteId:guid}/status")]
+    public async Task<IActionResult> UpdateQuoteStatus([FromBody]QuoteUpdateStatusRequest request, [FromRoute] Guid quoteId)
+    {
+        try
+        {
+            var dealerIdClaim = User.FindFirstValue("DealerId");
+            if (string.IsNullOrWhiteSpace(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var dealerId))
+                return Unauthorized(ApiResponse<string>.Unauthorized("Missing or invalid DealerId claim."));
+            var result = await _quoteService.UpdateQuoteStatus(request, quoteId, dealerId);
+            return Ok(ApiResponse<bool>.Success(result));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<bool>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
 }

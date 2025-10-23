@@ -16,5 +16,5 @@ public class QuoteCreateRequest
     public decimal? DiscountAmt { get; set; }
 
     // default to draft if not provided
-    public string? Status { get; set; }
+    // public string? Status { get; set; }
 }

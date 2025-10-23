@@ -16,8 +16,7 @@ public class QuoteService
     private readonly VehicleRepository _vehicleRepository;
     private readonly CustomerRepository _customerRepository;
     private readonly PromotionRepository _promotionRepository;
-    private readonly DealerRepository _dealerRepository;
-    private readonly UserRepository _userRepository;
+    private readonly ContractService _contractService;
     private readonly IMapper _mapper;
 
     public QuoteService(
@@ -26,18 +25,16 @@ public class QuoteService
         VehicleRepository vehicleRepository,
         CustomerRepository customerRepository,
         PromotionRepository promotionRepository,
-        IMapper mapper,
-        DealerRepository dealerRepository,
-        UserRepository userRepository)
+        ContractService contractService,
+        IMapper mapper)
     {
         _quoteRepository = quoteRepository;
         _vehicleVersionRepository = versionRepository;
         _vehicleRepository = vehicleRepository;
         _customerRepository = customerRepository;
         _promotionRepository = promotionRepository;
+        _contractService = contractService;
         _mapper = mapper;
-        _dealerRepository = dealerRepository;
-        _userRepository = userRepository;
     }
 
     public async Task<QuoteDetailResponse> GetQuoteDetailByQuoteId(Guid quoteId)
@@ -122,11 +119,11 @@ public class QuoteService
 
         var allowedStatuses = new[] { "draft", "confirmed", "expired", "cancelled" };
 
-        if (string.IsNullOrWhiteSpace(request.Status))
-            throw new InvalidOperationException("Status cannot be empty.");
+        //if (string.IsNullOrWhiteSpace(request.Status))
+        //    throw new InvalidOperationException("Status cannot be empty.");
 
-        if (!allowedStatuses.Contains(request.Status.ToLower()))
-            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
+        //if (!allowedStatuses.Contains(request.Status.ToLower()))
+        //    throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
 
         string optionsValue = null;
         if (request.PromotionIds is { Count: > 0 })
@@ -157,7 +154,7 @@ public class QuoteService
         quote.DiscountAmt = discount;
         quote.Subtotal = version.BasePrice;
         quote.TotalPrice = quote.Subtotal - discount;
-        quote.Status = request.Status;
+        quote.Status = quote.Status;
 
         var result = await _quoteRepository.UpdateQuote(quote);
         return result;
@@ -166,10 +163,10 @@ public class QuoteService
     public async Task<QuoteDetailResponse> CreateAsync(QuoteCreateRequest request, Guid dealerId, Guid createdByUser)
     {
         // Validate basic
-        var allowedStatuses = new[] { "draft", "confirmed", "expired", "cancelled" };
-        var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
-        if (!allowedStatuses.Contains(status))
-            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
+        //var allowedStatuses = new[] { "draft", "confirmed", "expired", "cancelled" };
+        //var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
+        //if (!allowedStatuses.Contains(status))
+        //    throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
 
         // Find vehicle by brand + model
         var vehicle = await _vehicleRepository.GetVehicleByBrandAndName(request.Brand.Trim(), request.ModelName.Trim());
@@ -221,7 +218,7 @@ public class QuoteService
             DiscountAmt = discount,
             Subtotal = version.BasePrice,
             TotalPrice = version.BasePrice - discount,
-            Status = status,
+            Status = "draft",
             CreatedByUser = createdByUser
         };
 
@@ -247,6 +244,41 @@ public class QuoteService
             TotalPrice = quote.TotalPrice,
             Status = quote.Status
         };
+    }
+
+    public async Task<bool> UpdateQuoteStatus(QuoteUpdateStatusRequest request, Guid quoteId, Guid dealerId)
+    {
+        var quote = await _quoteRepository.GetQuoteByQuoteId(quoteId);
+        if (quote == null)
+            throw new NotFoundException("Quote not found");
+        
+        if (quote.DealerId != dealerId)
+            throw new UnauthorizedAccessException("Dealer does not own this quote");
+
+        var customer = await _quoteRepository.GetCustomerByQuoteId(quoteId);
+        if (customer == null)
+            throw new NotFoundException("Customer not found");
+        
+        var allowedStatuses = new[] { "draft", "confirmed", "expired", "cancelled" };
+        var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
+        if (!allowedStatuses.Contains(status))
+            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
+
+        if (request.Status == "confirmed")
+        {
+            bool isSuccess = await _contractService.CreateContractByQuotesStatus(dealerId, quoteId, customer.CustomerId);
+            if (isSuccess)
+            {
+                quote.Status = "confirmed";
+                await _quoteRepository.UpdateQuote(quote);
+                return true;
+            }
+        }
+        
+        quote.Status = request.Status;
+        await _quoteRepository.UpdateQuote(quote);
+        
+        return false;
     }
 
     private static List<string>? ParsePromotionIds(string? optionsJson)
