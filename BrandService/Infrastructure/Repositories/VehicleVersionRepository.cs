@@ -177,6 +177,7 @@ namespace BrandService.Infrastructure.Repositories
                 var items = await query.AsNoTracking().ToListAsync();
 
                 items = items
+                    .OrderBy(vv => vv.BasePrice)
                     .OrderByDescending(vv =>
                         vv.Inventories.FirstOrDefault()?.StockQuantity ?? 0)
                     .ThenBy(vv => vv.Vehicle.Brand)
