@@ -124,7 +124,7 @@ public class QuoteController : ControllerBase
     /// Cập nhật quote status, có 4 trạng thái của quote draft, confirmed, expired, cancelled
     /// </summary>
     // [Authorize(Roles = "dealer_staff")]
-    [HttpPost("api/quotes/{quoteId:guid}/status")]
+    [HttpPatch("api/quotes/{quoteId:guid}/status")]
     public async Task<IActionResult> UpdateQuoteStatus([FromBody]QuoteUpdateStatusRequest request, [FromRoute] Guid quoteId)
     {
         try
