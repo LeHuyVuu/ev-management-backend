@@ -120,7 +120,7 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice)
+        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice, List<string>? colors)
         {
             try
             {
@@ -158,12 +158,27 @@ namespace BrandService.Infrastructure.Repositories
                 if (!string.IsNullOrWhiteSpace(searchValue))
                 {
                     var keyword = searchValue.Trim().ToLower();
+
                     query = query.Where(vv =>
-                        vv.Vehicle.Brand.ToLower().Contains(keyword) ||
-                        vv.Vehicle.ModelName.ToLower().Contains(keyword) ||
-                        vv.VersionName.ToLower().Contains(keyword) ||
-                        (vv.Color != null && vv.Color.ToLower().Contains(keyword))
+                        (
+                            (vv.Vehicle.Brand + " " +
+                             vv.Vehicle.ModelName + " " +
+                             vv.VersionName + " " +
+                             (vv.EvType ?? ""))
+                            .ToLower()
+                        ).Contains(keyword)
                     );
+                }
+
+                if (colors != null && colors.Any())
+                {
+                    var colorList = colors
+                        .Select(c => c.Trim().ToLower())
+                        .ToList();
+
+                    query = query.Where(vv =>
+                        vv.Color != null &&
+                        colorList.Contains(vv.Color.ToLower()));
                 }
 
                 if (vehicleId.HasValue && vehicleId.Value != Guid.Empty)

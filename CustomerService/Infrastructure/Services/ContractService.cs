@@ -219,4 +219,41 @@ public class ContractService
 
         return true;
     }
+
+    public async Task<bool> UpdateContractStatus(Guid dealerId, Guid contractId, ContractUpdateStatusRequest request)
+    {
+        if (dealerId == Guid.Empty)
+            throw new KeyNotFoundException("You don't have an dealer Id to access this function.");
+        if (contractId == Guid.Empty)
+            throw new ArgumentException("ContractId is required and cannot be empty.", nameof(contractId));
+        if (request == null)
+            throw new ArgumentNullException(nameof(request), "The contract update request cannot be null.");
+
+        var contract = await _contractRepository.GetContractByContractId(contractId);
+        if (contract == null)
+            throw new NotFoundException("Contract not found!");
+
+        if (contract.DealerId != dealerId)
+            throw new UnauthorizedAccessException("Dealer does not own this contract");
+
+        var allowedStatuses = new[] { "draft", "confirmed", "approved" };
+        var normalizedStatus = request.Status?.Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(normalizedStatus))
+            throw new InvalidOperationException("Status cannot be empty.");
+        if (!allowedStatuses.Contains(normalizedStatus))
+            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, approved.");
+
+        if (string.Equals(contract.Status, normalizedStatus, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (normalizedStatus == "confirmed" && contract.SignedDate == null)
+        {
+            contract.SignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
+        }
+
+        contract.Status = normalizedStatus;
+
+        var updated = await _contractRepository.UpdateContractStatus(contract);
+        return updated;
+    }
 }
