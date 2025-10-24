@@ -256,16 +256,41 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-
-        public async Task<VehicleVersion?> GetVersionByIdAsync(Guid id)
+        public async Task<VehicleVersion?> GetVersionByIdAsync(Guid versionId)
         {
             try
             {
                 var version = await _context.VehicleVersions
                                             .Include(vv => vv.Vehicle)
                                             .Include(vv => vv.Inventories)
+                                            .Include(vv => vv.BrandInventory)
                                             .AsNoTracking()
-                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == id);
+                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == versionId);
+
+                if (version == null)
+                    throw new NotFoundException("Vehicle version not found");
+
+                return version;
+            }
+            catch (NotFoundException ex)
+            {
+                throw new NotFoundException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<VehicleVersion?> GetDealerVersionByVersionIdAsync(Guid versionId, Guid dealerId)
+        {
+            try
+            {
+                var version = await _context.VehicleVersions
+                                            .Include(vv => vv.Vehicle)
+                                            .Include(vv => vv.Inventories.Where(i => i.DealerId == dealerId && i.VehicleVersionId == versionId))
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == versionId);
 
                 if (version == null)
                     throw new NotFoundException("Vehicle version not found");

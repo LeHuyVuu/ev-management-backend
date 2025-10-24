@@ -111,7 +111,13 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetDealerVersion(Guid versionId)
         {
-            var version = await _vehicleVersionService.GetDealerVersionByIdAsync(versionId);
+            var dealerIdClaim = User.FindFirst("DealerId")?.Value;
+
+            if (dealerIdClaim == null)
+                return Unauthorized(ApiResponse<object>.Fail(403, "Dealer information missing in token."));
+
+            var dealerId = Guid.Parse(dealerIdClaim);
+            var version = await _vehicleVersionService.GetDealerVersionByIdAsync(versionId, dealerId);
             return Ok(version);
         }
 
