@@ -16,6 +16,7 @@ public class QuoteService
     private readonly VehicleRepository _vehicleRepository;
     private readonly CustomerRepository _customerRepository;
     private readonly PromotionRepository _promotionRepository;
+    private readonly DealerRepository _dealerRepository;
     private readonly ContractService _contractService;
     private readonly IMapper _mapper;
 
@@ -25,6 +26,7 @@ public class QuoteService
         VehicleRepository vehicleRepository,
         CustomerRepository customerRepository,
         PromotionRepository promotionRepository,
+        DealerRepository dealerRepository,
         ContractService contractService,
         IMapper mapper)
     {
@@ -33,6 +35,7 @@ public class QuoteService
         _vehicleRepository = vehicleRepository;
         _customerRepository = customerRepository;
         _promotionRepository = promotionRepository;
+        _dealerRepository = dealerRepository;
         _contractService = contractService;
         _mapper = mapper;
     }
@@ -55,19 +58,29 @@ public class QuoteService
         if (vehicleVersion == null)
             throw new NotFoundException("Vehicle version not found");
 
+        var dealer =  await _dealerRepository.GetDealerByDealerId(quote.DealerId);
+        if (dealer == null)
+            throw new NotFoundException("Dealer not found");
+
+        // Resolve promotion names instead of IDs
+        var promotionNames = await GetPromotionNamesAsync(quote.OptionsJson);
+
         return new QuoteDetailResponse
         {
             QuoteId = quote.QuoteId,
             DealerId = quote.DealerId,
+            DealerName = dealer.Name,
+            ContactEmail = dealer.ContactEmail,
+            ContactPhone = dealer.ContactPhone,
             CustomerId = customer.CustomerId,
-            VehicleVersionId = vehicleVersion.VehicleVersionId,
             CustomerName = customer.Name ?? "Unknown",
             CustomerPhone = customer.Phone ?? "Unknown",
             Brand = vehicle.Brand ?? "Unknown",
             ModelName = vehicle.ModelName ?? "Unknown",
+            VehicleVersionId = vehicleVersion.VehicleVersionId,
             VersionName = vehicleVersion.VersionName ?? "Unknown",
             Color = vehicleVersion.Color ?? "Unknown",
-            OptionsJson = ParsePromotionIds(quote.OptionsJson),
+            PromotionNames = promotionNames,
             Subtotal = quote.Subtotal,
             DiscountAmt = quote.DiscountAmt,
             TotalPrice = quote.TotalPrice,
@@ -162,12 +175,6 @@ public class QuoteService
 
     public async Task<QuoteDetailResponse> CreateAsync(QuoteCreateRequest request, Guid dealerId, Guid createdByUser)
     {
-        // Validate basic
-        //var allowedStatuses = new[] { "draft", "confirmed", "expired", "cancelled" };
-        //var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
-        //if (!allowedStatuses.Contains(status))
-        //    throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
-
         // Find vehicle by brand + model
         var vehicle = await _vehicleRepository.GetVehicleByBrandAndName(request.Brand.Trim(), request.ModelName.Trim());
         if (vehicle == null)
@@ -225,6 +232,9 @@ public class QuoteService
         // Persist
         await _quoteRepository.AddAsync(quote);
 
+        // Resolve promotion names for response
+        var promotionNames = await GetPromotionNamesAsync(quote.OptionsJson);
+
         // Build detail response
         return new QuoteDetailResponse
         {
@@ -238,7 +248,7 @@ public class QuoteService
             ModelName = request.ModelName,
             VersionName = request.VersionName,
             Color = request.Color,
-            OptionsJson = ParsePromotionIds(quote.OptionsJson),
+            PromotionNames = promotionNames,
             Subtotal = quote.Subtotal,
             DiscountAmt = quote.DiscountAmt,
             TotalPrice = quote.TotalPrice,
@@ -290,5 +300,27 @@ public class QuoteService
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Where(x => x.Length > 0)
             .ToList();
+    }
+
+    private async Task<List<string>?> GetPromotionNamesAsync(string? optionsJson)
+    {
+        var idStrings = ParsePromotionIds(optionsJson);
+        if (idStrings == null || idStrings.Count == 0)
+            return null;
+
+        var ids = new List<Guid>();
+        foreach (var s in idStrings)
+        {
+            if (Guid.TryParse(s, out var g)) ids.Add(g);
+        }
+        if (!ids.Any()) return null;
+
+        var promotions = await _promotionRepository.GetPromotionById(ids);
+        var names = promotions
+            .Select(p => (p as Promotion)?.Name)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .ToList();
+
+        return names.Count > 0 ? names : null;
     }
 }
