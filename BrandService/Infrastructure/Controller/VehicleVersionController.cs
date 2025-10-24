@@ -60,7 +60,7 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerVehicleVersionResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult> GetAllStockByDealerId([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null, [FromQuery] Guid? vehicleId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null)
+        public async Task<ActionResult> GetAllStockByDealerId([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null, [FromQuery] Guid? vehicleId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] string? color = null)
         {
             var dealerIdClaim = User.FindFirst("DealerId")?.Value;
 
@@ -68,7 +68,7 @@ namespace BrandService.Infrastructure.Controller
                 return Unauthorized(ApiResponse<object>.Fail(403, "Dealer information missing in token."));
 
             var dealerId = Guid.Parse(dealerIdClaim);
-            var result = await _vehicleVersionService.GetAllStockByDealerAsync(dealerId, pageNumber, pageSize, searchValue, vehicleId, minPrice, maxPrice);
+            var result = await _vehicleVersionService.GetAllStockByDealerAsync(dealerId, pageNumber, pageSize, searchValue, vehicleId, minPrice, maxPrice, color);
             return Ok(result);
         }
 

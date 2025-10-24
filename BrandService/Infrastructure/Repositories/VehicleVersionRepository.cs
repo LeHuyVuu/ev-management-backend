@@ -120,7 +120,7 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice)
+        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice, string? color)
         {
             try
             {
@@ -164,13 +164,18 @@ namespace BrandService.Infrastructure.Repositories
                             (vv.Vehicle.Brand + " " +
                              vv.Vehicle.ModelName + " " +
                              vv.VersionName + " " +
-                             (vv.Color ?? "") + " " +
                              (vv.EvType ?? ""))
                             .ToLower()
                         ).Contains(keyword)
                     );
                 }
 
+                if (!string.IsNullOrWhiteSpace(color))
+                {
+                    var colorKeyword = color.Trim().ToLower();
+                    query = query.Where(vv =>
+                        vv.Color != null && vv.Color.ToLower().Contains(colorKeyword));
+                }
 
                 if (vehicleId.HasValue && vehicleId.Value != Guid.Empty)
                     query = query.Where(vv => vv.VehicleId == vehicleId.Value);
