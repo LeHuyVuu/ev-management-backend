@@ -120,7 +120,7 @@ public class QuoteController : ControllerBase
         }
     }
     
-    //// <summary>
+    /// <summary>
     /// Cập nhật quote status, có 4 trạng thái của quote draft, confirmed, expired, cancelled
     /// </summary>
     // [Authorize(Roles = "dealer_staff")]
