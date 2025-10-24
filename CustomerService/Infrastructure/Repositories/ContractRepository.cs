@@ -33,4 +33,10 @@ public class ContractRepository
     {
         return await _dbContext.Contracts.Where(c => c.DealerId == dealerId).ToListAsync();
     }
+
+    public async Task<bool> UpdateContractStatus(Contract contract)
+    {
+        _dbContext.Update(contract);
+        return await _dbContext.SaveChangesAsync() > 0;
+    }
 }

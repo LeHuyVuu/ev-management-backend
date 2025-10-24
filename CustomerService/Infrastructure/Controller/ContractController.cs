@@ -98,4 +98,36 @@ public class ContractController : ControllerBase
             return NotFound(ApiResponse<bool>.NotFound(ex.Message));
         }
     }
+
+    /// <summary>
+    /// Cập nhật trạng thái của contract
+    /// </summary>
+    //[Authorize(Roles = "dealer_staff")]
+    [HttpPatch]
+    [Route("api/contracts/{contractId}/status")]
+    public async Task<IActionResult> UpdateContractStatus(Guid contractId, [FromBody] ContractUpdateStatusRequest request)
+    {
+        try
+        {
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            var updated = await _contractService.UpdateContractStatus(dealerId, contractId, request);
+            return Ok(ApiResponse<bool>.Success(updated));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<string>.BadRequest(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<string>.InternalError(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
 }
