@@ -120,7 +120,7 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue)
+        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice)
         {
             try
             {
@@ -134,12 +134,11 @@ namespace BrandService.Infrastructure.Repositories
                 var query =
                     from vv in _context.VehicleVersions
                         .Include(v => v.Vehicle)
-                        .Include(v => v.Inventories)
                     join inv in _context.Inventories
                         on vv.VehicleVersionId equals inv.VehicleVersionId into invGroup
                     from inventory in invGroup
                         .Where(i => i.DealerId == dealerId)
-                        .DefaultIfEmpty() // LEFT JOIN để lấy tất cả vehicle version
+                        .DefaultIfEmpty()
                     select new VehicleVersion
                     {
                         VehicleVersionId = vv.VehicleVersionId,
@@ -151,7 +150,6 @@ namespace BrandService.Infrastructure.Repositories
                         HorsePower = vv.HorsePower,
                         BasePrice = vv.BasePrice,
                         ImageUrl = vv.ImageUrl,
-                        // Giữ danh sách inventories, nhưng chỉ set tồn kho của dealer hiện tại
                         Inventories = inventory != null
                             ? new List<Inventory> { inventory }
                             : new List<Inventory>()
@@ -160,7 +158,6 @@ namespace BrandService.Infrastructure.Repositories
                 if (!string.IsNullOrWhiteSpace(searchValue))
                 {
                     var keyword = searchValue.Trim().ToLower();
-
                     query = query.Where(vv =>
                         vv.Vehicle.Brand.ToLower().Contains(keyword) ||
                         vv.Vehicle.ModelName.ToLower().Contains(keyword) ||
@@ -169,12 +166,38 @@ namespace BrandService.Infrastructure.Repositories
                     );
                 }
 
-                query = query
-                    .OrderBy(vv => vv.Vehicle.Brand)
-                    .ThenBy(vv => vv.Vehicle.ModelName)
-                    .ThenBy(vv => vv.VersionName);
+                if (vehicleId.HasValue && vehicleId.Value != Guid.Empty)
+                    query = query.Where(vv => vv.VehicleId == vehicleId.Value);
 
-                return await query.AsNoTracking().ToPagedResultAsync(pageNumber, pageSize);
+                if (minPrice.HasValue)
+                    query = query.Where(vv => vv.BasePrice >= minPrice.Value);
+                if (maxPrice.HasValue)
+                    query = query.Where(vv => vv.BasePrice <= maxPrice.Value);
+
+                var items = await query.AsNoTracking().ToListAsync();
+
+                items = items
+                    .OrderBy(vv => vv.BasePrice)
+                    .ThenByDescending(vv =>
+                        vv.Inventories.FirstOrDefault()?.StockQuantity ?? 0)
+                    .ThenBy(vv => vv.Vehicle.Brand)
+                    .ThenBy(vv => vv.Vehicle.ModelName)
+                    .ThenBy(vv => vv.VersionName)
+                    .ToList();
+
+                var totalItems = items.Count;
+                var pagedItems = items
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return new PagedResult<VehicleVersion>
+                {
+                    Items = pagedItems,
+                    TotalItems = totalItems,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
             }
             catch (NotFoundException ex)
             {
@@ -182,9 +205,11 @@ namespace BrandService.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error when getting all vehicle versions for dealer: {ex.Message}");
+                throw new Exception($"Error when getting all vehicle versions for dealer");
             }
         }
+
+
 
 
         public async Task<PagedResult<VehicleVersion>> GetPagedByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue)
