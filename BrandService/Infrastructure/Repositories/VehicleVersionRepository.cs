@@ -158,13 +158,19 @@ namespace BrandService.Infrastructure.Repositories
                 if (!string.IsNullOrWhiteSpace(searchValue))
                 {
                     var keyword = searchValue.Trim().ToLower();
+
                     query = query.Where(vv =>
-                        vv.Vehicle.Brand.ToLower().Contains(keyword) ||
-                        vv.Vehicle.ModelName.ToLower().Contains(keyword) ||
-                        vv.VersionName.ToLower().Contains(keyword) ||
-                        (vv.Color != null && vv.Color.ToLower().Contains(keyword))
+                        (
+                            (vv.Vehicle.Brand + " " +
+                             vv.Vehicle.ModelName + " " +
+                             vv.VersionName + " " +
+                             (vv.Color ?? "") + " " +
+                             (vv.EvType ?? ""))
+                            .ToLower()
+                        ).Contains(keyword)
                     );
                 }
+
 
                 if (vehicleId.HasValue && vehicleId.Value != Guid.Empty)
                     query = query.Where(vv => vv.VehicleId == vehicleId.Value);
