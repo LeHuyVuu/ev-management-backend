@@ -120,7 +120,7 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice)
+        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice, string? color)
         {
             try
             {
@@ -158,12 +158,23 @@ namespace BrandService.Infrastructure.Repositories
                 if (!string.IsNullOrWhiteSpace(searchValue))
                 {
                     var keyword = searchValue.Trim().ToLower();
+
                     query = query.Where(vv =>
-                        vv.Vehicle.Brand.ToLower().Contains(keyword) ||
-                        vv.Vehicle.ModelName.ToLower().Contains(keyword) ||
-                        vv.VersionName.ToLower().Contains(keyword) ||
-                        (vv.Color != null && vv.Color.ToLower().Contains(keyword))
+                        (
+                            (vv.Vehicle.Brand + " " +
+                             vv.Vehicle.ModelName + " " +
+                             vv.VersionName + " " +
+                             (vv.EvType ?? ""))
+                            .ToLower()
+                        ).Contains(keyword)
                     );
+                }
+
+                if (!string.IsNullOrWhiteSpace(color))
+                {
+                    var colorKeyword = color.Trim().ToLower();
+                    query = query.Where(vv =>
+                        vv.Color != null && vv.Color.ToLower().Contains(colorKeyword));
                 }
 
                 if (vehicleId.HasValue && vehicleId.Value != Guid.Empty)
@@ -256,16 +267,41 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-
-        public async Task<VehicleVersion?> GetVersionByIdAsync(Guid id)
+        public async Task<VehicleVersion?> GetVersionByIdAsync(Guid versionId)
         {
             try
             {
                 var version = await _context.VehicleVersions
                                             .Include(vv => vv.Vehicle)
                                             .Include(vv => vv.Inventories)
+                                            .Include(vv => vv.BrandInventory)
                                             .AsNoTracking()
-                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == id);
+                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == versionId);
+
+                if (version == null)
+                    throw new NotFoundException("Vehicle version not found");
+
+                return version;
+            }
+            catch (NotFoundException ex)
+            {
+                throw new NotFoundException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<VehicleVersion?> GetDealerVersionByVersionIdAsync(Guid versionId, Guid dealerId)
+        {
+            try
+            {
+                var version = await _context.VehicleVersions
+                                            .Include(vv => vv.Vehicle)
+                                            .Include(vv => vv.Inventories.Where(i => i.DealerId == dealerId && i.VehicleVersionId == versionId))
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == versionId);
 
                 if (version == null)
                     throw new NotFoundException("Vehicle version not found");

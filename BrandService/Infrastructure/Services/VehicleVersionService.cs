@@ -80,9 +80,9 @@ namespace BrandService.Infrastructure.Services
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(version));
         }
 
-        public async Task<ApiResponse<PagedResult<DealerVehicleVersionResponse>>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice)
+        public async Task<ApiResponse<PagedResult<DealerVehicleVersionResponse>>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice, string? color)
         {
-            var pagedVersions = await _vehicleVersionRepo.GetAllStockByDealerAsync(dealerId, pageNumber, pageSize, searchValue, vehicleId, minPrice, maxPrice);
+            var pagedVersions = await _vehicleVersionRepo.GetAllStockByDealerAsync(dealerId, pageNumber, pageSize, searchValue, vehicleId, minPrice, maxPrice, color);
             var mapped = _mapper.Map<IEnumerable<DealerVehicleVersionResponse>>(pagedVersions.Items).ToList();
             var result = new PagedResult<DealerVehicleVersionResponse>
             {
@@ -94,9 +94,9 @@ namespace BrandService.Infrastructure.Services
             return ApiResponse<PagedResult<DealerVehicleVersionResponse>>.Success(result);
         }
 
-        public async Task<ApiResponse<DealerVehicleVersionResponse>> GetDealerVersionByIdAsync(Guid id)
+        public async Task<ApiResponse<DealerVehicleVersionResponse>> GetDealerVersionByIdAsync(Guid versionId, Guid dealerId)
         {
-            var version = await _vehicleVersionRepo.GetVersionByIdAsync(id);
+            var version = await _vehicleVersionRepo.GetDealerVersionByVersionIdAsync(versionId, dealerId);
             return ApiResponse<DealerVehicleVersionResponse>.Success(_mapper.Map<DealerVehicleVersionResponse>(version));
         }
 
