@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
@@ -7,6 +9,7 @@ using OrderService.Model;
 namespace OrderService.Infrastructure.Controller;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class VehicleTransferOrderController : ControllerBase
 {
@@ -24,14 +27,24 @@ public class VehicleTransferOrderController : ControllerBase
     // ✅ 1️⃣ GET /api/vehicle-transfer-orders?fromDealerId=xxx&toDealerId=yyy&pageNumber=1&pageSize=10
     [HttpGet]
     public async Task<IActionResult> GetVehicleTransferOrders(
-        [FromQuery] Guid? fromDealerId,
-        [FromQuery] Guid? toDealerId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10)
     {
         try
-        {
-            var result = await _service.GetVehicleTransferOrdersAsync(fromDealerId, toDealerId, pageNumber, pageSize);
+        {            
+            var roleId = User.FindFirstValue("RoleId");
+            Guid? dealerId = null;
+
+            if (roleId != "1" && roleId != "2")
+            {
+                var dealerIdClaim = User.FindFirstValue("DealerId");
+                if (string.IsNullOrEmpty(dealerIdClaim) || !Guid.TryParse(dealerIdClaim, out var parsedDealerId))
+                {
+                    return Unauthorized(ApiResponse<TestDriveResponse>.Fail(401, "Invalid or missing DealerId in token"));
+                }
+                dealerId = parsedDealerId;
+            }
+            var result = await _service.GetVehicleTransferOrdersAsync(dealerId, pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<VehicleTransferOrderResponse>>.Success(
                 result, "Fetched vehicle transfer orders successfully"));
         }
