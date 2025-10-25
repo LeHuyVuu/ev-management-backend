@@ -6,6 +6,7 @@ using UtilityService.Infrastructure.Repositories;
 using UtilityService.Infrastructure.Services;
 using UtilityService.Messaging;
 using UtilityService.Models;
+using UtilityService.Worker;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,7 +66,7 @@ builder.Services.AddHttpClient("groq", (sp, client) =>
 });
 
 // HostedService (nếu có dùng)
-
+builder.Services.AddHostedService<ForecastAutoRefreshWorker>();
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
