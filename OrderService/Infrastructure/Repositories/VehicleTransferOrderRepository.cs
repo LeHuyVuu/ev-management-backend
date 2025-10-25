@@ -15,8 +15,7 @@ namespace OrderService.Infrastructure.Repositories
             _context = context;
         }
 
-        // ✅ 1️⃣ Lấy danh sách Transfer Orders có phân trang + lọc
-        public async Task<PagedResult<VehicleTransferOrder>> GetVehicleTransferOrders(Guid? fromDealerId, Guid? toDealerId, int pageNumber, int pageSize)
+        public async Task<PagedResult<VehicleTransferOrder>> GetVehicleTransferOrders(Guid? dealerId, int pageNumber, int pageSize)
         {
             try
             {
@@ -24,21 +23,14 @@ namespace OrderService.Infrastructure.Repositories
                     .Include(o => o.FromDealer)
                     .Include(o => o.ToDealer)
                     .Include(o => o.VehicleVersion)
-                        .ThenInclude(vv => vv.Vehicle)
+                    .ThenInclude(vv => vv.Vehicle)
                     .AsNoTracking()
                     .OrderByDescending(o => o.RequestDate)
                     .AsQueryable();
 
-                // Lọc theo FromDealer
-                if (fromDealerId.HasValue && fromDealerId.Value != Guid.Empty)
+                if (dealerId.HasValue && dealerId.Value != Guid.Empty)
                 {
-                    query = query.Where(o => o.FromDealerId == fromDealerId.Value);
-                }
-
-                // Lọc theo ToDealer
-                if (toDealerId.HasValue && toDealerId.Value != Guid.Empty)
-                {
-                    query = query.Where(o => o.ToDealerId == toDealerId.Value);
+                    query = query.Where(o => o.FromDealerId == dealerId.Value || o.ToDealerId == dealerId.Value);
                 }
 
                 return await query.ToPagedResultAsync(pageNumber, pageSize);
@@ -48,6 +40,7 @@ namespace OrderService.Infrastructure.Repositories
                 throw new Exception($"Error retrieving VehicleTransferOrders: {ex.Message}");
             }
         }
+
 
         // ✅ 2️⃣ Tạo mới Transfer Order
         public async Task<VehicleTransferOrder> CreateAsync(VehicleTransferOrder entity)

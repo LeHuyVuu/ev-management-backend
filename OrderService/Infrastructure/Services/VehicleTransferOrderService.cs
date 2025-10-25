@@ -25,11 +25,11 @@ namespace OrderService.Infrastructure.Services
 
         // ✅ 1️⃣ Get paged list of transfer orders
         public async Task<PagedResult<VehicleTransferOrderResponse>> GetVehicleTransferOrdersAsync(
-            Guid? fromDealerId, Guid? toDealerId, int pageNumber, int pageSize)
+            Guid? dealerId, int pageNumber, int pageSize)
         {
             try
             {
-                var pagedOrders = await _repository.GetVehicleTransferOrders(fromDealerId, toDealerId, pageNumber, pageSize);
+                var pagedOrders = await _repository.GetVehicleTransferOrders(dealerId, pageNumber, pageSize);
 
                 var mapped = new PagedResult<VehicleTransferOrderResponse>
                 {
