@@ -16,6 +16,8 @@ using Amazon.S3;
 using FinancialService.Context;
 using FinancialService.Repositories;
 using FinancialService.Services;
+using FinancialService.Infrastructure.Repositories; // added
+using FinancialService.Infrastructure.Services;    // added
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,6 +126,10 @@ builder.Services.AddScoped<DealerDiscountRepository>();
 builder.Services.AddScoped<InventoryReportRepository>();
 builder.Services.AddScoped<InventoryReportService>();
 
+// Register Order services
+builder.Services.AddScoped<OrderRepository>();
+builder.Services.AddScoped<OrderService>();
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // builder.Services.AddScoped<S3StorageService>();
@@ -173,8 +179,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 
-// ✅ THÊM: nếu bạn reverse proxy dưới sub-path (ví dụ: /product-service)
-var pathBase = "/financial-service"; // 🧠 sửa theo sub-path của service bạn
+var pathBase = "/financial-service"; 
 app.UsePathBase(pathBase);
 
 
@@ -182,7 +187,6 @@ app.UseSwagger(c =>
 {
     c.PreSerializeFilters.Add((swaggerDoc, httpReq) =>
     {
-        // Nếu là production thì luôn luôn https://evm.webredirect.org/dealer-service
         if (builder.Environment.IsProduction())
         {
             swaggerDoc.Servers = new List<OpenApiServer>
@@ -192,7 +196,6 @@ app.UseSwagger(c =>
         }
         else
         {
-            // Local thì tự lấy scheme + host (http://localhost:5000/dealer-service)
             swaggerDoc.Servers = new List<OpenApiServer>
             {
                 new OpenApiServer { Url = $"{httpReq.Scheme}://{httpReq.Host.Value}{pathBase}" }

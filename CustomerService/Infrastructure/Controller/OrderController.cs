@@ -129,4 +129,30 @@ public class OrderController : ControllerBase
             return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
+
+    /// <summary>
+    /// Chỉnh sửa địa chỉ, thời gian (và ghi chú nếu có) khi order đang chuẩn bị.
+    /// </summary>
+    [HttpPatch]
+    [Route("api/orders/{orderId}")]
+    public async Task<IActionResult> UpdateOrderLimited(Guid orderId, [FromBody] OrderUpdateRequest request)
+    {
+        try
+        {
+            var ok = await _orderService.UpdateOrderLimitedAsync(orderId, request);
+            return Ok(ApiResponse<bool>.Success(ok));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<string>.BadRequest(ex.Message));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
 }
