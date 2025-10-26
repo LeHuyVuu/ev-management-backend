@@ -168,8 +168,32 @@ public class OrderService
         var order = await _orderRepository.GetOrderByOrderId(orderId);
         if(order == null)
             throw new KeyNotFoundException("Order does not exist");
+        
+        var allowedStatuses = new[] { "Preparing", "Shipped from warehouse", "In Transit", "Arrived", "Out for Delivery", "Completed", "Delivery Failed", "Waiting" };
+        var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
+        if (!allowedStatuses.Contains(status))
+            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
+        
         order.Status = request.Status;
 
         return await _orderRepository.UpdateOrderStatus(order);
+    }
+
+    public async Task<bool> UpdateOrderLimitedAsync(Guid orderId, OrderUpdateRequest request)
+    {
+        var order = await _orderRepository.GetOrderByOrderId(orderId);
+        if (order == null)
+            throw new KeyNotFoundException("Order not found");
+
+        if (!string.Equals(order.Status, "preparing", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Only orders in 'preparing' status can be edited.");
+
+        if (request.DeliveryAddress != null)
+            order.DeliveryAddress = request.DeliveryAddress;
+        if (request.DeliveryDate != null)
+            order.DeliveryDate = request.DeliveryDate;
+        // Note: not persisted unless Order entity has a Note column. You can extend entity later.
+
+        return await _orderRepository.UpdateOrderLimitedAsync(order);
     }
 }
