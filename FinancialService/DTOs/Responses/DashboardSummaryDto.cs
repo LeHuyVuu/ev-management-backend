@@ -5,6 +5,8 @@ public record DashboardSummaryDto(
     decimal RevenueMoMChangePct,
     int CarsSoldThisMonth,
     decimal CarsSoldMoMChangePct,
+    decimal TargetAchievedPct,
+    string TargetBadge,
     decimal CustomerDebtVnd,
     decimal CustomerDebtMoMChangePct
 );

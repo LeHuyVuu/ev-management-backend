@@ -1,8 +1,6 @@
 ﻿using FinancialService.Context;
 using FinancialService.DTOs.Responses;
-using FinancialService.Entities;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace FinancialService.Infrastructure.Repositories
 {
@@ -47,13 +45,10 @@ namespace FinancialService.Infrastructure.Repositories
         // Metrics for a given date range [start, end)
         public async Task<(decimal revenue, int carsSold, decimal customerDebt)> GetMetricsAsync(DateOnly start, DateOnly end, CancellationToken cancellationToken)
         {
-            var baseQuery = _context.orders
+            var completed = _context.orders
                 .AsNoTracking()
-                .Where(o => o.delivery_date != null 
-                            && o.delivery_date >= start 
-                            && o.delivery_date < end);
-
-            var completed = baseQuery.Where(o => CompletedStatuses.Contains(o.status));
+                .Where(o => o.delivery_date != null && o.delivery_date >= start && o.delivery_date < end)
+                .Where(o => CompletedStatuses.Contains(o.status));
 
             var revenue = await completed
                 .Join(_context.contracts.AsNoTracking(), o => o.contract_id, c => c.contract_id, (o, c) => c.total_value)
@@ -67,30 +62,95 @@ namespace FinancialService.Infrastructure.Repositories
             return (revenue, carsSold, customerDebt);
         }
 
-        // Monthly employee sales (sum of contract total_value) for completed/delivered orders
-        public async Task<IEnumerable<EmployeeSalesDto>> GetEmployeeSalesAsync(int year, int month, CancellationToken ct)
+        // Monthly employee sales for a dealer using exact Year/Month filter and simple LINQ
+        public async Task<IEnumerable<EmployeeSalesDto>> GetEmployeeSalesAsync(int year, int month, Guid dealerId, CancellationToken ct)
         {
-            var yearVal = year;
-            var monthVal = month;
+            // Employees (users) belonging to the dealer
+            var employees = _context.users
+                .AsNoTracking()
+                .Where(u => u.dealer_id == dealerId)
+                .Select(u => new { u.user_id, u.name });
 
-            var query = from o in _context.orders.AsNoTracking()
-                        join c in _context.contracts.AsNoTracking() on o.contract_id equals c.contract_id
-                        join q in _context.quotes.AsNoTracking() on c.quote_id equals q.quote_id into qleft
-                        from q in qleft.DefaultIfEmpty()
-                        join u in _context.users.AsNoTracking() on q.created_by_user equals u.user_id into uleft
-                        from u in uleft.DefaultIfEmpty()
-                        where o.delivery_date != null
-                              && o.delivery_date.Value.Year == yearVal
-                              && o.delivery_date.Value.Month == monthVal
-                              && CompletedStatuses.Contains(o.status)
-                        group new { c.total_value } by new { u.user_id, u.name } into g
-                        orderby g.Sum(x => x.total_value) descending
-                        select new EmployeeSalesDto(
-                            g.Key.name,
-                            g.Sum(x => x.total_value)
-                        );
+            // Aggregate monthly sales per employee (by quote.created_by_user)
+            var monthlySales =
+                from o in _context.orders.AsNoTracking()
+                join c in _context.contracts.AsNoTracking() on o.contract_id equals c.contract_id
+                join q in _context.quotes.AsNoTracking() on c.quote_id equals q.quote_id
+                where o.dealer_id == dealerId
+                      && o.delivery_date != null
+                      && o.delivery_date.Value.Year == year
+                      && o.delivery_date.Value.Month == month
+                      && CompletedStatuses.Contains(o.status)
+                group c by q.created_by_user into g
+                select new { UserId = g.Key, Total = g.Sum(x => x.total_value) };
 
-            return await query.ToListAsync(ct);
+            var projected =
+                from u in employees
+                join s in monthlySales on u.user_id equals s.UserId into gj
+                from s in gj.DefaultIfEmpty()
+                select new
+                {
+                    u.name,
+                    Total = (decimal?)(s != null ? s.Total : null) ?? 0m
+                };
+
+            var ordered = projected
+                .OrderByDescending(x => x.Total)
+                .Select(x => new EmployeeSalesDto(
+                    x.name,
+                    x.Total,
+                    0m,
+                    string.Empty
+                ));
+
+            return await ordered.ToListAsync(ct);
+        }
+
+        // Latest monthly dealer target (start_date <= currStart) for a specific dealer
+        public async Task<decimal> GetMonthlyTargetAsync(DateOnly currStart, Guid dealerId, CancellationToken ct)
+        {
+            var monthly = "monthly";
+
+            var target = await _context.dealer_targets
+                .AsNoTracking()
+                .Where(t => t.dealer_id == dealerId && t.period.ToLower() == monthly && t.start_date <= currStart)
+                .OrderByDescending(t => t.start_date)
+                .Select(t => (decimal?)t.target_amount)
+                .FirstOrDefaultAsync(ct) ?? 0m;
+
+            return target;
+        }
+
+        // Monthly revenue for a specific dealer in a given year
+        public async Task<IEnumerable<MonthlyRevenueDto>> GetMonthlyRevenueByYearAsync(int year, Guid dealerId, CancellationToken ct)
+        {
+            var query =
+                from o in _context.orders.AsNoTracking()
+                join c in _context.contracts.AsNoTracking() on o.contract_id equals c.contract_id
+                where o.dealer_id == dealerId
+                      && o.delivery_date != null
+                      && o.delivery_date.Value.Year == year
+                      && CompletedStatuses.Contains(o.status)
+                group c by o.delivery_date!.Value.Month into g
+                select new { Month = g.Key, Revenue = g.Sum(x => x.total_value), Units = g.Count() };
+
+            var rows = await query.ToListAsync(ct);
+            var map = rows.ToDictionary(x => x.Month, x => new MonthlyRevenueDto(x.Month, x.Revenue, x.Units));
+
+            var result = new List<MonthlyRevenueDto>(12);
+            for (int m = 1; m <= 12; m++)
+            {
+                if (map.TryGetValue(m, out var val))
+                {
+                    result.Add(val);
+                }
+                else
+                {
+                    result.Add(new MonthlyRevenueDto(m, 0m, 0));
+                }
+            }
+
+            return result;
         }
     }
 }
