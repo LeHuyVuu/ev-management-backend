@@ -32,8 +32,9 @@ namespace OrderService.Infrastructure.Services
             _repository = repository;
             _mapper = mapper;
             _kafkaProducer = kafkaProducer;
-            _kafkaTopic = kafkaOptions.Value.Topic 
-                          ?? throw new InvalidOperationException("KafkaSettings:Topic missing");
+            _kafkaTopic = kafkaOptions.Value.Topics.TryGetValue("Dealer", out var dealerTopic)
+                ? dealerTopic
+                : throw new InvalidOperationException("KafkaSettings: Dealer topic missing");
         }
 
         public async Task<PagedResult<TestDriveResponse>> GetTestDrivesAsync(Guid? dealerId, int pageNumber, int pageSize)
