@@ -1,9 +1,13 @@
 using AutoMapper;
+using Microsoft.Extensions.Options;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
 using OrderService.Entities;
+using OrderService.Events;
 using OrderService.Infrastructure.Repositories;
+using OrderService.Messaging;
 using OrderService.Model;
+using OrderService.Settings;
 
 namespace OrderService.Infrastructure.Services;
 
@@ -12,15 +16,24 @@ public class VehicleAllocationService
     private readonly ILogger<VehicleAllocationService> _logger;
     private readonly VehicleAllocationRepository _repository;
     private readonly IMapper _mapper;
+    private readonly IKafkaProducer _kafkaProducer;
+    private readonly string _kafkaTopic;
 
     public VehicleAllocationService(
         ILogger<VehicleAllocationService> logger,
         VehicleAllocationRepository repository,
-        IMapper mapper)
+        IMapper mapper,
+        IKafkaProducer kafkaProducer,
+        IOptions<KafkaSettings> kafkaOptions)
     {
         _logger = logger;
         _repository = repository;
         _mapper = mapper;
+        _kafkaProducer = kafkaProducer;
+
+        _kafkaTopic = kafkaOptions.Value.Topics.TryGetValue("Allocation", out var allocationTopic)
+            ? allocationTopic
+            : throw new InvalidOperationException("KafkaSettings: Allocation topic missing");
     }
 
     public async Task<PagedResult<VehicleAllocationResponse>> GetVehicleAllocationsAsync(Guid? dealerId, int pageNumber, int pageSize)
@@ -63,7 +76,6 @@ public class VehicleAllocationService
             throw;
         }
     }
-
     public async Task<VehicleAllocationResponse?> UpdateStatusAsync(Guid id, string status)
     {
         try
@@ -72,11 +84,39 @@ public class VehicleAllocationService
             if (updated == null)
                 return null;
 
-            return _mapper.Map<VehicleAllocationResponse>(updated);
+            var response = _mapper.Map<VehicleAllocationResponse>(updated);
+
+            // ✅ Normalize status
+            var normalized = status.Trim().ToLowerInvariant();
+            var isShipping = normalized == "shipping";
+            var isReceived = normalized == "received";
+
+            if (isShipping || isReceived)
+            {
+                var ev = new AllocationOrderEvent
+                {
+                    DealerId = updated.DealerId,
+                    VehicleVersionId = updated.VehicleVersionId,
+                    Quantity = updated.Quantity,
+                    IsRecived = isReceived
+                };
+
+                // key để Kafka đảm bảo thứ tự theo DealerId
+                var key = updated.DealerId.ToString();
+
+                await _kafkaProducer.PublishAsync(_kafkaTopic, key, ev);
+
+                _logger.LogInformation(
+                    "✅ Published AllocationOrderEvent. AllocationId={Id}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}, Topic={Topic}",
+                    updated.AllocationId, updated.DealerId, updated.VehicleVersionId, updated.Quantity, ev.IsRecived, _kafkaTopic
+                );
+            }
+
+            return response;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating vehicle allocation status");
+            _logger.LogError(ex, "Error updating vehicle allocation status for Id={Id}", id);
             throw;
         }
     }

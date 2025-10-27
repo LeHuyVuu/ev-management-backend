@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using Confluent.Kafka;
-
 using UtilityService.Models;
 using UtilityService.Infrastructure.Services;
 
