@@ -1,5 +1,6 @@
 ﻿using BrandService.DTOs.Responses.ReportDTOs;
 using BrandService.Infrastructure.Services;
+using BrandService.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller
@@ -8,9 +9,9 @@ namespace BrandService.Infrastructure.Controller
     [Route("api/reports")]
     public class ReportsController : ControllerBase
     {
-        private readonly SalesReportService _salesService;
+        private readonly ReportService _salesService;
 
-        public ReportsController(SalesReportService salesService)
+        public ReportsController(ReportService salesService)
         {
             _salesService = salesService;
         }
@@ -19,7 +20,8 @@ namespace BrandService.Infrastructure.Controller
         /// Get sales report by filters (month, quarter, year, region, dealer)
         /// </summary>
         [HttpGet("sales")]
-        [ProducesResponseType(typeof(SalesReportResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<SalesReportResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult<SalesReportResponse>> GetSalesReport(
             [FromQuery] int? month,
             [FromQuery] int? quarter,
@@ -28,7 +30,19 @@ namespace BrandService.Infrastructure.Controller
             [FromQuery] Guid? dealerId)
         {
             var result = await _salesService.GetSalesReportAsync(month, quarter, year, region, dealerId);
-            return Ok(result);
+            return Ok(ApiResponse<SalesReportResponse>.Success(result));
+        }
+
+        /// <summary>
+        /// Get top dealers by sales performance.
+        /// </summary>
+        [HttpGet("top-dealers")]
+        [ProducesResponseType(typeof(ApiResponse<TopDealersReportResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<TopDealersReportResponse>> GetTopDealers()
+        {
+            var result = await _salesService.GetTopDealersAsync();
+            return Ok(ApiResponse<TopDealersReportResponse>.Success(result));
         }
     }
 }

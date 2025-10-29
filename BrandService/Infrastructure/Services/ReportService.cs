@@ -3,11 +3,11 @@ using BrandService.Infrastructure.Repositories;
 
 namespace BrandService.Infrastructure.Services
 {
-    public class SalesReportService
+    public class ReportService
     {
-        private readonly SalesReportRepository _repo;
+        private readonly ReportRepository _repo;
 
-        public SalesReportService(SalesReportRepository repo)
+        public ReportService(ReportRepository repo)
         {
             _repo = repo;
         }
@@ -27,6 +27,15 @@ namespace BrandService.Infrastructure.Services
                     DealerId = dealerId
                 },
                 SalesSummary = data
+            };
+        }
+
+        public async Task<TopDealersReportResponse> GetTopDealersAsync()
+        {
+            var data = await _repo.GetTopDealersAsync();
+            return new TopDealersReportResponse
+            {
+                TopDealers = data
             };
         }
     }
