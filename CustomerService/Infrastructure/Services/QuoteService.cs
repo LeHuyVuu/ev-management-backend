@@ -132,12 +132,6 @@ public class QuoteService
 
         var allowedStatuses = new[] { "draft", "confirmed", "expired", "cancelled" };
 
-        //if (string.IsNullOrWhiteSpace(request.Status))
-        //    throw new InvalidOperationException("Status cannot be empty.");
-
-        //if (!allowedStatuses.Contains(request.Status.ToLower()))
-        //    throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
-
         string optionsValue = null;
         if (request.PromotionIds is { Count: > 0 })
         {
@@ -199,7 +193,6 @@ public class QuoteService
             if (promotions.Count() != request.PromotionIds.Count)
                 throw new KeyNotFoundException("One or more promotions not found.");
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
             foreach (var promoObj in promotions)
             {
                 var promo = promoObj as Promotion;
@@ -207,8 +200,6 @@ public class QuoteService
                     throw new InvalidOperationException("Promotion object is not of type Promotion.");
                 if (!promo.Status.Equals("active", StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException($"Promotion {promo.Name} is not active.");
-                if (today < promo.StartDate || today > promo.EndDate)
-                    throw new InvalidOperationException($"Promotion {promo.Name} is not in valid date range.");
             }
             optionsValue = string.Join(",", request.PromotionIds);
         }
