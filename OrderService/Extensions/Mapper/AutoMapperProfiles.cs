@@ -18,7 +18,7 @@ namespace OrderService.Extensions.Mapper
                     opt => opt.MapFrom(src => src.Dealer.Name))
                 .ForMember(dest => dest.VehicleName, 
                     opt => opt.MapFrom(src => 
-                        $"{src.VehicleVersion.Vehicle.ModelName} ({src.VehicleVersion.VersionName})"));
+                        $"{src.VehicleVersion.Vehicle.ModelName} - {src.VehicleVersion.VersionName} - {src.VehicleVersion.Color} - {src.VehicleVersion.EvType}"));
 
             CreateMap<VehicleAllocationRequest, VehicleAllocation>();
             
@@ -31,7 +31,7 @@ namespace OrderService.Extensions.Mapper
                 .ForMember(dest => dest.VehicleName,
                     opt => opt.MapFrom(src =>
                         src.VehicleVersion != null
-                            ? $"{src.VehicleVersion.Vehicle.ModelName} ({src.VehicleVersion.VersionName})"
+                            ? $"{src.VehicleVersion.Vehicle.ModelName} - {src.VehicleVersion.VersionName} - {src.VehicleVersion.Color} - {src.VehicleVersion.EvType}"
                             : string.Empty));
 
             CreateMap<VehicleTransferOrderRequest, VehicleTransferOrder>();
@@ -44,7 +44,7 @@ namespace OrderService.Extensions.Mapper
                 .ForMember(dest => dest.VehicleName,
                     opt => opt.MapFrom(src =>
                         src.VehicleVersion != null
-                            ? $"{src.VehicleVersion.Vehicle.ModelName} ({src.VehicleVersion.VersionName})"
+                            ? $"{src.VehicleVersion.Vehicle.ModelName} - {src.VehicleVersion.VersionName} - {src.VehicleVersion.Color} - {src.VehicleVersion.EvType}"
                             : string.Empty));
             CreateMap<TestDriveRequest, TestDrife>();
         }
