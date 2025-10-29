@@ -11,52 +11,66 @@ namespace BrandService.Kafka.Messaging
     {
         private readonly ILogger<TransferOrderConsumer> _logger;
         private readonly IOptions<KafkaSettings> _kafkaOptions;
-        private readonly InventoryService _inventoryService;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
-            PropertyNameCaseInsensitive = true // camelCase -> PascalCase mapping
+            PropertyNameCaseInsensitive = true
         };
 
         public TransferOrderConsumer(
             ILogger<TransferOrderConsumer> logger,
             IOptions<KafkaSettings> kafkaOptions,
-            InventoryService inventoryService)
+            IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
             _kafkaOptions = kafkaOptions;
-            _inventoryService = inventoryService;
+            _scopeFactory = scopeFactory;
+            
         }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var kafkaCfg = _kafkaOptions.Value;
-            var bootstrap = kafkaCfg.BootstrapServers;
-            var topic = kafkaCfg.Topics.TryGetValue("Transfer", out var t)
-                ? t
-                : throw new InvalidOperationException("KafkaSettings: Transfer topic missing");
-
-            var consumerCfg = new ConsumerConfig
-            {
-                BootstrapServers = bootstrap,
-                GroupId = "brandservice-transfer-consumer",
-                AutoOffsetReset = AutoOffsetReset.Earliest,
-                EnableAutoCommit = false
-            };
-
-            using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg).Build();
-            consumer.Subscribe(topic);
-
-            _logger.LogInformation("🚀 Kafka consumer started. Topic={Topic}, GroupId={GroupId}", topic, consumerCfg.GroupId);
-
+            _logger.LogInformation(" Transfer orrder started.");
+            
             try
             {
+
+                var kafkaCfg = _kafkaOptions?.Value;
+                if (kafkaCfg == null)
+                {
+                    _logger.LogError("KafkaSettings is NULL (not bound from config)");
+                    return;
+                }
+
+                if (kafkaCfg.Topics == null)
+                {
+                    _logger.LogError("KafkaSettings.Topics is NULL!");
+                    return;
+                }
+
+                if (!kafkaCfg.Topics.TryGetValue("Transfer", out var topic))
+                {
+                    _logger.LogError("KafkaSettings does not contain key 'Transfer'");
+                    return;
+                }
+
+
+                var consumerCfg = new ConsumerConfig
+                {
+                    BootstrapServers = kafkaCfg.BootstrapServers,
+                    GroupId = "brandservice-transfer-consumer",
+                    AutoOffsetReset = AutoOffsetReset.Earliest,
+                    EnableAutoCommit = false
+                };
+
+                using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg).Build();
+                consumer.Subscribe(topic);
+
+
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     var cr = consumer.Consume(stoppingToken);
-
-                    _logger.LogInformation("📥 Received message [Topic={Topic}] [Partition={Partition}] [Offset={Offset}]",
-                        cr.Topic, cr.Partition, cr.Offset);
+                    _logger.LogInformation("Received message: {Message}", cr.Message.Value);
 
                     try
                     {
@@ -64,59 +78,61 @@ namespace BrandService.Kafka.Messaging
 
                         if (ev == null)
                         {
-                            _logger.LogWarning("⚠️ Deserialized TransferOrderEvent is null. Raw={Raw}", cr.Message.Value);
-                        }
-                        else
-                        {
-                            await HandleTransferEventAsync(ev);
+                            _logger.LogWarning(" Deserialized event is null. Raw={Raw}", cr.Message.Value);
+                            continue;
                         }
 
+                        _logger.LogInformation("Deserialized event successfully. Calling handler...");
+
+                        using var scope = _scopeFactory.CreateScope();
+                        var inventoryService = scope.ServiceProvider.GetRequiredService<InventoryService>();
+
+                        await HandleTransferEventAsync(ev, inventoryService);
+
                         consumer.Commit(cr);
-                        _logger.LogInformation("✅ Committed offset {Offset}", cr.Offset);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "❌ Error processing message at {TopicPartitionOffset}", cr.TopicPartitionOffset);
+                        _logger.LogError(ex, " Error processing message: {Message}", cr.Message.Value);
                     }
                 }
+
             }
-            catch (OperationCanceledException)
+            catch (Exception ex)
             {
-                _logger.LogInformation("🛑 TransferOrderConsumer stopping...");
-            }
-            finally
-            {
-                consumer.Close();
-                _logger.LogInformation("Kafka consumer closed for topic {Topic}", topic);
+                _logger.LogError(ex, " TransferOrderConsumer failed to start or crashed");
             }
         }
 
-        private async Task HandleTransferEventAsync(TransferOrderEvent ev)
+
+        private async Task HandleTransferEventAsync(TransferOrderEvent ev, InventoryService inventoryService)
         {
+                _logger.LogInformation("Transfer order event");
+            
             try
             {
                 if (ev.DealerId == null || ev.VehicleVersionId == null || ev.Quantity == null)
                 {
-                    _logger.LogWarning("⚠️ Incomplete TransferOrderEvent data: {@Event}", ev);
+                    _logger.LogWarning("Incomplete TransferOrderEvent data: {@Event}", ev);
                     return;
                 }
 
                 var delta = ev.IsRecived ? ev.Quantity.Value : -ev.Quantity.Value;
 
-                await _inventoryService.UpdateDealerStockAsync(
+                await inventoryService.UpdateDealerStockAsync(
                     ev.DealerId.Value,
                     ev.VehicleVersionId.Value,
                     delta
                 );
 
                 _logger.LogInformation(
-                    "🧾 Updated stock for Dealer={DealerId}, VehicleVersion={VehicleVersionId}, Delta={Delta}, IsReceived={IsReceived}",
+                    "Updated stock for Dealer={DealerId}, VehicleVersion={VehicleVersionId}, Delta={Delta}, IsReceived={IsReceived}",
                     ev.DealerId, ev.VehicleVersionId, delta, ev.IsRecived
                 );
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error handling TransferOrderEvent {@Event}", ev);
+                _logger.LogError(ex, "Error handling TransferOrderEvent {@Event}", ev);
             }
         }
     }

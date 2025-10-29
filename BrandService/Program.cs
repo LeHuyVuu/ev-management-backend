@@ -94,8 +94,9 @@ builder.Services.AddScoped<BrandInventoryService>();
 
 
 builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));
-builder.Services.AddHostedService<AllocationOrderConsumer>();
-builder.Services.AddHostedService<TransferOrderConsumer>();
+builder.Services.AddHostedService<MultiTopicOrderConsumer>();
+//builder.Services.AddHostedService<AllocationOrderConsumer>();
+//builder.Services.AddHostedService<TransferOrderConsumer>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);

@@ -3,7 +3,7 @@ using Confluent.Kafka;
 using BrandService.Infrastructure.Services;
 using BrandService.Settings;
 using Microsoft.Extensions.Options;
-using BrandService.Event; // AllocationOrderEvent
+using BrandService.Event;
 
 namespace BrandService.Kafka.Messaging
 {
@@ -11,8 +11,7 @@ namespace BrandService.Kafka.Messaging
     {
         private readonly ILogger<AllocationOrderConsumer> _logger;
         private readonly IOptions<KafkaSettings> _kafkaOptions;
-        private readonly BrandInventoryService _brandInventoryService;
-        private readonly InventoryService _inventoryService; // ✅ để gọi cộng kho
+        private readonly IServiceScopeFactory _scopeFactory; // ✅ Thay vì inject service trực tiếp
 
         private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
         {
@@ -22,23 +21,18 @@ namespace BrandService.Kafka.Messaging
         public AllocationOrderConsumer(
             ILogger<AllocationOrderConsumer> logger,
             IOptions<KafkaSettings> kafkaOptions,
-            BrandInventoryService brandInventoryService,
-            InventoryService inventoryService)
+            IServiceScopeFactory scopeFactory) // ✅ chỉ inject scope factory
         {
             _logger = logger;
             _kafkaOptions = kafkaOptions;
-            _brandInventoryService = brandInventoryService;
-            _inventoryService = inventoryService;
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var kafkaCfg = _kafkaOptions.Value;
             var bootstrap = kafkaCfg.BootstrapServers;
-
-            var topic = kafkaCfg.Topics.TryGetValue("Allocation", out var t)
-                ? t
-                : throw new InvalidOperationException("KafkaSettings: Allocation topic missing");
+            var topic = kafkaCfg.Topics["Allocation"];
 
             var consumerCfg = new ConsumerConfig
             {
@@ -51,7 +45,7 @@ namespace BrandService.Kafka.Messaging
             using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg).Build();
             consumer.Subscribe(topic);
 
-            _logger.LogInformation("🚀 AllocationOrderConsumer started. Topic={Topic}, GroupId={GroupId}", topic, consumerCfg.GroupId);
+            _logger.LogInformation(" AllocationOrderConsumer started. Topic={Topic}", topic);
 
             try
             {
@@ -59,85 +53,56 @@ namespace BrandService.Kafka.Messaging
                 {
                     var cr = consumer.Consume(stoppingToken);
 
-                    _logger.LogInformation("📥 Received message [Topic={Topic}] [Partition={Partition}] [Offset={Offset}]",
-                        cr.Topic, cr.Partition, cr.Offset);
-
                     try
                     {
                         var ev = JsonSerializer.Deserialize<AllocationOrderEvent>(cr.Message.Value, _jsonOpts);
+                        if (ev != null)
+                        {
+                            // ✅ Tạo scope mới để dùng Scoped service
+                            using var scope = _scopeFactory.CreateScope();
+                            var brandInventoryService = scope.ServiceProvider.GetRequiredService<BrandInventoryService>();
+                            var inventoryService = scope.ServiceProvider.GetRequiredService<InventoryService>();
 
-                        if (ev == null)
-                        {
-                            _logger.LogWarning("⚠️ Deserialized AllocationOrderEvent is null. Raw={Raw}", cr.Message.Value);
-                        }
-                        else
-                        {
-                            await HandleAllocationEventAsync(ev);
+                            await HandleEventAsync(ev, brandInventoryService, inventoryService);
                         }
 
                         consumer.Commit(cr);
-                        _logger.LogInformation("✅ Committed offset {Offset}", cr.Offset);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "❌ Error processing message at {TopicPartitionOffset}", cr.TopicPartitionOffset);
+                        _logger.LogError(ex, "Error processing message");
                     }
                 }
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("🛑 AllocationOrderConsumer stopping...");
+                _logger.LogInformation(" Consumer stopping...");
             }
             finally
             {
                 consumer.Close();
-                _logger.LogInformation("Kafka consumer closed for topic {Topic}", topic);
             }
         }
 
-        private async Task HandleAllocationEventAsync(AllocationOrderEvent ev)
+        private async Task HandleEventAsync(
+            AllocationOrderEvent ev,
+            BrandInventoryService brandInventoryService,
+            InventoryService inventoryService)
         {
-            try
+            if (ev.VehicleVersionId == null || ev.Quantity == null)
+                return;
+
+            if (!ev.IsRecived)
             {
-                if (ev.VehicleVersionId == null || ev.Quantity == null)
-                {
-                    _logger.LogWarning("⚠️ Incomplete AllocationOrderEvent data: {@Event}", ev);
-                    return;
-                }
-
-                // 👉 Nếu IsRecived = false => trừ kho Brand
-                if (!ev.IsRecived)
-                {
-                    var delta = -ev.Quantity.Value;
-
-                    await _brandInventoryService.UpdateStockAsync(ev.VehicleVersionId.Value, delta);
-
-                    _logger.LogInformation(
-                        "🏭 Brand stock updated (shipping). VehicleVersion={VehicleVersionId}, Delta={Delta}",
-                        ev.VehicleVersionId, delta
-                    );
-                }
-                else
-                {
-                    // 👉 Nếu IsRecived = true => cộng kho đại lý
-                    if (ev.DealerId != null)
-                    {
-                        await _inventoryService.UpdateDealerStockAsync(ev.DealerId.Value, ev.VehicleVersionId!.Value, ev.Quantity!.Value);
-
-                        _logger.LogInformation(
-                            "🏪 Dealer stock updated (received). DealerId={DealerId}, VehicleVersion={VehicleVersionId}, +{Qty}",
-                            ev.DealerId, ev.VehicleVersionId, ev.Quantity
-                        );
-                    }
-                    else
-                    {
-                        _logger.LogWarning("⚠️ Allocation event missing DealerId on IsRecived=true. {@Event}", ev);
-                    }
-                }
+                // Trừ kho hãng
+                await brandInventoryService.UpdateStockAsync(ev.VehicleVersionId.Value, -ev.Quantity.Value);
+                _logger.LogInformation("🏭 Brand stock -{Qty}", ev.Quantity);
             }
-            catch (Exception ex)
+            else if (ev.DealerId != null)
             {
-                _logger.LogError(ex, "❌ Error handling AllocationOrderEvent {@Event}", ev);
+                // Cộng kho dealer
+                await inventoryService.UpdateDealerStockAsync(ev.DealerId.Value, ev.VehicleVersionId.Value, ev.Quantity.Value);
+                _logger.LogInformation("🏪 Dealer stock +{Qty}", ev.Quantity);
             }
         }
     }
