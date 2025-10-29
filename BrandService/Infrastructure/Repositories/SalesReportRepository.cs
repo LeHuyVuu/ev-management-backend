@@ -19,6 +19,7 @@ namespace BrandService.Infrastructure.Repositories
             try
             {
                 var query = from o in _context.Orders
+                            where o.Status == "completed"
                             join c in _context.Contracts on o.ContractId equals c.ContractId
                             join d in _context.Dealers on o.DealerId equals d.DealerId
                             join q in _context.Quotes on c.QuoteId equals q.QuoteId
@@ -29,7 +30,7 @@ namespace BrandService.Infrastructure.Repositories
                                 o.DeliveryDate,
                                 d.Region,
                                 DealerId = d.DealerId,
-                                ModelName = v.ModelName,
+                                ModelName = v.Brand + " " + v.ModelName + " " + vv.VersionName + " " + vv.Color,
                                 Revenue = c.TotalValue
                             };
 
