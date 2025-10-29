@@ -3,8 +3,11 @@ namespace OrderService.DTOs.Responses;
 public class VehicleTransferOrderResponse
 {
     public Guid VehicleTransferOrderId { get; set; }
+    
+    public Guid? FromDealerId { get; set; }
+    public string FromDealerName { get; set; }   
 
-    public string FromDealerName { get; set; }
+    public Guid? ToDealerId { get; set; }
 
     public string ToDealerName { get; set; }
 

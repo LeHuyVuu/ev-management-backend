@@ -1,9 +1,13 @@
 using AutoMapper;
+using Microsoft.Extensions.Options;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
 using OrderService.Entities;
+using OrderService.Events;
 using OrderService.Infrastructure.Repositories;
+using OrderService.Messaging;
 using OrderService.Model;
+using OrderService.Settings;
 
 namespace OrderService.Infrastructure.Services
 {
@@ -11,19 +15,26 @@ namespace OrderService.Infrastructure.Services
     {
         private readonly ILogger<VehicleTransferOrderService> _logger;
         private readonly VehicleTransferOrderRepository _repository;
-        private readonly IMapper _mapper;
+        private readonly IMapper _mapper;     
+        private readonly IKafkaProducer _kafkaProducer;
+        private readonly string _kafkaTopic;
 
         public VehicleTransferOrderService(
             ILogger<VehicleTransferOrderService> logger,
             VehicleTransferOrderRepository repository,
-            IMapper mapper)
+            IMapper mapper,
+            IKafkaProducer kafkaProducer,                  
+            IOptions<KafkaSettings> kafkaOptions)
         {
             _logger = logger;
             _repository = repository;
             _mapper = mapper;
+            _kafkaProducer = kafkaProducer;
+            _kafkaTopic = kafkaOptions.Value.Topics.TryGetValue("Transfer", out var dealerTopic)
+                ? dealerTopic
+                : throw new InvalidOperationException("KafkaSettings: Dealer topic missing");
         }
 
-        // ✅ 1️⃣ Get paged list of transfer orders
         public async Task<PagedResult<VehicleTransferOrderResponse>> GetVehicleTransferOrdersAsync(
             Guid? dealerId, int pageNumber, int pageSize)
         {
@@ -48,7 +59,6 @@ namespace OrderService.Infrastructure.Services
             }
         }
 
-        // ✅ 2️⃣ Create new transfer order
         public async Task<VehicleTransferOrderResponse> CreateAsync(VehicleTransferOrderRequest request)
         {
             try
@@ -65,23 +75,58 @@ namespace OrderService.Infrastructure.Services
                 throw;
             }
         }
+public async Task<VehicleTransferOrderResponse?> UpdateStatusAsync(Guid id, string status)
+{
+    try
+    {
+        var updated = await _repository.UpdateStatusAsync(id, status);
+        if (updated == null)
+            return null;
 
-        // ✅ 3️⃣ Update status of transfer order
-        public async Task<VehicleTransferOrderResponse?> UpdateStatusAsync(Guid id, string status)
+        var response = _mapper.Map<VehicleTransferOrderResponse>(updated);
+
+        var normalized = status?.Trim().ToLowerInvariant();
+        var isShipping = normalized == "shipping";
+        var isReceived = normalized == "received";
+
+        if (isShipping || isReceived)
         {
-            try
-            {
-                var updated = await _repository.UpdateStatusAsync(id, status);
-                if (updated == null)
-                    return null;
 
-                return _mapper.Map<VehicleTransferOrderResponse>(updated);
-            }
-            catch (Exception ex)
+            var dealerForEvent = isShipping ? updated.FromDealerId : updated.ToDealerId;
+
+            if (dealerForEvent is null)
             {
-                _logger.LogError(ex, "Error updating vehicle transfer order status");
-                throw;
+                _logger.LogWarning("Skip publishing TransferOrderEvent: dealerForEvent is null. Status={Status}, Id={Id}", status, id);
+                return response;
             }
+
+            var evt = new TransferOrderEvent
+            {
+                DealerId = dealerForEvent,
+                VehicleVersionId = updated.VehicleVersionId, 
+                Quantity = updated.Quantity,
+                IsRecived = isReceived 
+            };
+
+            var key = dealerForEvent.Value.ToString();
+
+            await _kafkaProducer.PublishAsync(_kafkaTopic, key, evt);
+
+            _logger.LogInformation(
+                "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}",
+                id, _kafkaTopic, dealerForEvent, updated.VehicleVersionId, updated.Quantity, evt.IsRecived
+            );
         }
+
+        return response;
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error updating vehicle transfer order status. Id={Id}, Status={Status}", id, status);
+        throw;
+    }
+}
+
+
     }
 }

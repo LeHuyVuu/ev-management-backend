@@ -3,8 +3,12 @@ namespace OrderService.DTOs.Responses;
 public class VehicleAllocationResponse
 {
     public Guid AllocationId { get; set; }
+    
+    public Guid DealerId { get; set; }
 
-    public string DealerName { get; set; }
+    public string DealerName { get; set; }       
+
+    public Guid VehicleVersionId { get; set; }
 
     public string VehicleName { get; set; }
 

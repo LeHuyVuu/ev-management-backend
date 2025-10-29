@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using Confluent.Kafka;
-
 using UtilityService.Models;
 using UtilityService.Infrastructure.Services;
 
@@ -37,7 +36,7 @@ public class TestDriveCreatedConsumer : BackgroundService
         };
 
         using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg).Build();
-        var topic = _cfg["KafkaSettings:Topic"];
+        var topic = _cfg["KafkaSettings:Topics:Dealer"];
         consumer.Subscribe(topic);
 
         _logger.LogInformation("Kafka consumer started. Topic={Topic}, GroupId={Group}",

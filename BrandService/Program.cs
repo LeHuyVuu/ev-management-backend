@@ -12,6 +12,8 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using BrandService.ExceptionHandler;
+using BrandService.Kafka.Messaging;
+using BrandService.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,6 +96,12 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<SalesReportRepository>();
 builder.Services.AddScoped<SalesReportService>();
 
+
+
+builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));
+builder.Services.AddHostedService<MultiTopicOrderConsumer>();
+//builder.Services.AddHostedService<AllocationOrderConsumer>();
+//builder.Services.AddHostedService<TransferOrderConsumer>();
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
