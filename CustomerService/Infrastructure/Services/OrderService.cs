@@ -172,7 +172,7 @@ public class OrderService
         var allowedStatuses = new[] { "Preparing", "Shipped from warehouse", "In Transit", "Arrived", "Out for Delivery", "Completed", "Delivery Failed", "Waiting" };
         var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
         if (!allowedStatuses.Contains(status))
-            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, expired, cancelled.");
+            throw new InvalidOperationException("Invalid status value. Only accepted: Preparing, Shipped from warehouse, In Transit, Arrived, Out for Delivery, Completed, Delivery Failed, Waiting");
         
         order.Status = request.Status;
 
