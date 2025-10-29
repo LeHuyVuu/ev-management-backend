@@ -169,10 +169,10 @@ public class OrderService
         if(order == null)
             throw new KeyNotFoundException("Order does not exist");
         
-        var allowedStatuses = new[] { "Preparing", "Shipped from warehouse", "In Transit", "Arrived", "Out for Delivery", "Completed", "Delivery Failed", "Waiting" };
+        var allowedStatuses = new[] { "preparing", "shipped from warehouse", "in transit", "arrived", "out for delivery", "completed", "delivery failed", "waiting" };
         var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
         if (!allowedStatuses.Contains(status))
-            throw new InvalidOperationException("Invalid status value. Only accepted: Preparing, Shipped from warehouse, In Transit, Arrived, Out for Delivery, Completed, Delivery Failed, Waiting");
+            throw new InvalidOperationException("Invalid status value. Only accepted: preparing, shipped from warehouse, in transit, arrived, out for delivery, completed, delivery failed, waiting");
         
         order.Status = request.Status;
 
