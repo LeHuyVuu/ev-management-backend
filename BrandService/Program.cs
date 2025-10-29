@@ -91,6 +91,9 @@ builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<BrandInventoryService>();
 builder.Services.AddScoped<DashboardRepository>();
 builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<SalesReportRepository>();
+builder.Services.AddScoped<SalesReportService>();
+
 
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
