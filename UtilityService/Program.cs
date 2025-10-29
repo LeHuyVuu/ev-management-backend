@@ -2,6 +2,10 @@ using DotNetEnv;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Amazon;
+using Amazon.Extensions.NETCore.Setup;
+using Amazon.S3;
+using CustomerService.Infrastructure.Services;
 using UtilityService.Infrastructure.Repositories;
 using UtilityService.Infrastructure.Services;
 using UtilityService.Messaging;
@@ -20,6 +24,8 @@ var connectionString =
     $"Database={Environment.GetEnvironmentVariable("DB_NAME")};" +
     $"Username={Environment.GetEnvironmentVariable("DB_USER")};" +
     $"Password={Environment.GetEnvironmentVariable("DB_PASS")};";
+
+
 
 builder.Configuration["ConnectionStrings:DefaultConnection"] = connectionString;
 // Repo đọc "Pg" hoặc "DefaultConnection" → map luôn cho chắc
@@ -57,7 +63,18 @@ builder.Services.AddScoped<EmailService>();     // nếu bạn dùng
 builder.Services.AddScoped<EmailRepository>();     // nếu bạn dùng
 builder.Services.AddScoped<ForecastRepository>();
 builder.Services.AddScoped<ForecastService>();
+// ===== AWS S3 Config =====
+builder.Services.AddDefaultAWSOptions(new AWSOptions
+{
+    Region = RegionEndpoint.GetBySystemName(
+        Environment.GetEnvironmentVariable("AWS_REGION") ?? "ap-southeast-2"
+    )
+});
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddScoped<S3StorageService>();
 
+builder.Services.AddAWSService<IAmazonS3>();
+builder.Services.AddScoped<S3StorageService>(); 
 // HttpClient cho Groq
 builder.Services.AddHttpClient("groq", (sp, client) =>
 {

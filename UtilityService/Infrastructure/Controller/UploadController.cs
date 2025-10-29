@@ -1,6 +1,7 @@
-using CustomerService.Models;
+
 using Microsoft.AspNetCore.Mvc;
 using CustomerService.Infrastructure.Services;
+using UtilityService.Models;
 
 namespace CustomerService.Infrastructure.Controller;
 
