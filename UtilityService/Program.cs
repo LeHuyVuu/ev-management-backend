@@ -72,6 +72,7 @@ builder.Services.AddDefaultAWSOptions(new AWSOptions
 });
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddScoped<S3StorageService>();
+builder.Services.AddScoped<VertexAiService>(); // thêm dòng này
 
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddScoped<S3StorageService>(); 
