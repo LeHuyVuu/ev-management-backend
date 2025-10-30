@@ -60,7 +60,7 @@ namespace BrandService.Infrastructure.Services
             var brandInventory = new BrandInventory
             {
                 VehicleVersionId = added.VehicleVersionId,
-                StockQuantity = request.StockQuantity ?? 0
+                StockQuantity = request.StockQuantity
             };
             await _brandInventoryRepo.AddInventoryAsync(brandInventory);
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(added), "Version created");
@@ -71,6 +71,12 @@ namespace BrandService.Infrastructure.Services
             var version = _mapper.Map<VehicleVersion>(request);
             version.VehicleVersionId = vehicleVersionId;
             var updated = await _vehicleVersionRepo.UpdateVersionAsync(version);
+            var brandInventory = await _brandInventoryRepo.GetByVehicleVersionIdAsync(vehicleVersionId);
+            if (brandInventory != null)
+            {
+                brandInventory.StockQuantity = request.StockQuantity;
+                await _brandInventoryRepo.UpdateInventoryAsync(brandInventory);
+            }
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(updated), "Version updated");
         }
 

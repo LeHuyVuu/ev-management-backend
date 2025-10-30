@@ -85,24 +85,31 @@ namespace BrandService.Infrastructure.Repositories
 
                 if (!string.IsNullOrWhiteSpace(searchValue))
                 {
-                    var keyword = searchValue.Trim().ToLower();
+                    var keywords = searchValue
+                        .Trim()
+                        .ToLower()
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                    query = query.Where(vv =>
-                        (
-                            (vv.Vehicle.Brand + " " +
-                             vv.Vehicle.ModelName + " " +
-                             vv.VersionName + " " +
-                             vv.Color + " " +
-                             (vv.EvType ?? ""))
-                            .ToLower()
-                        ).Contains(keyword)
-                    );
+                    foreach (var kw in keywords)
+                    {
+                        var word = kw; // tránh capture lỗi closure trong EF
+                        query = query.Where(vv =>
+                            (
+                                (vv.Vehicle.Brand + " " +
+                                 vv.Vehicle.ModelName + " " +
+                                 vv.VersionName + " " +
+                                 vv.Color + " " +
+                                 (vv.EvType ?? ""))
+                                .ToLower()
+                            ).Contains(word)
+                        );
+                    }
                 }
 
                 var totalItems = await query.CountAsync();
 
                 var items = await query
-                    .OrderByDescending(vv => vv.VehicleVersionId)
+                    .AsNoTracking()
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -158,18 +165,27 @@ namespace BrandService.Infrastructure.Repositories
 
                 if (!string.IsNullOrWhiteSpace(searchValue))
                 {
-                    var keyword = searchValue.Trim().ToLower();
+                    var keywords = searchValue
+                        .Trim()
+                        .ToLower()
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                    query = query.Where(vv =>
-                        (
-                            (vv.Vehicle.Brand + " " +
-                             vv.Vehicle.ModelName + " " +
-                             vv.VersionName + " " +
-                             (vv.EvType ?? ""))
-                            .ToLower()
-                        ).Contains(keyword)
-                    );
+                    foreach (var kw in keywords)
+                    {
+                        var word = kw; // tránh capture lỗi trong EF
+                        query = query.Where(vv =>
+                            (
+                                (vv.Vehicle.Brand + " " +
+                                 vv.Vehicle.ModelName + " " +
+                                 vv.VersionName + " " +
+                                 vv.Color + " " +
+                                 (vv.EvType ?? ""))
+                                .ToLower()
+                            ).Contains(word)
+                        );
+                    }
                 }
+
 
                 if (colors != null && colors.Any())
                 {
