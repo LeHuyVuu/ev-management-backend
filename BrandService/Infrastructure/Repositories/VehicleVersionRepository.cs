@@ -83,25 +83,26 @@ namespace BrandService.Infrastructure.Repositories
                     .Include(vv => vv.Inventories)
                     .AsNoTracking();
 
-                if (!string.IsNullOrEmpty(searchValue))
+                if (!string.IsNullOrWhiteSpace(searchValue))
                 {
                     var keyword = searchValue.Trim().ToLower();
 
                     query = query.Where(vv =>
-                        vv.Vehicle.Brand.ToLower().Contains(keyword) ||
-                        vv.Vehicle.ModelName.ToLower().Contains(keyword) ||
-                        vv.VersionName.ToLower().Contains(keyword) ||
-                        (vv.Color != null && vv.Color.ToLower().Contains(keyword)) ||
-                        (vv.EvType != null && vv.EvType.ToLower().Contains(keyword))
+                        (
+                            (vv.Vehicle.Brand + " " +
+                             vv.Vehicle.ModelName + " " +
+                             vv.VersionName + " " +
+                             vv.Color + " " +
+                             (vv.EvType ?? ""))
+                            .ToLower()
+                        ).Contains(keyword)
                     );
                 }
 
                 var totalItems = await query.CountAsync();
 
                 var items = await query
-                    .OrderBy(vv => vv.Vehicle.Brand)
-                    .ThenBy(vv => vv.Vehicle.ModelName)
-                    .ThenBy(vv => vv.VersionName)
+                    .OrderByDescending(vv => vv.VehicleVersionId)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -192,9 +193,9 @@ namespace BrandService.Infrastructure.Repositories
                 var items = await query.AsNoTracking().ToListAsync();
 
                 items = items
-                    .OrderBy(vv => vv.BasePrice)
-                    .ThenByDescending(vv =>
+                    .OrderByDescending(vv =>
                         vv.Inventories.FirstOrDefault()?.StockQuantity ?? 0)
+                    .ThenBy(vv => vv.BasePrice)
                     .ThenBy(vv => vv.Vehicle.Brand)
                     .ThenBy(vv => vv.Vehicle.ModelName)
                     .ThenBy(vv => vv.VersionName)
