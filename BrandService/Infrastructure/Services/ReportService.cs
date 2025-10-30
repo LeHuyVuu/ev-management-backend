@@ -38,5 +38,10 @@ namespace BrandService.Infrastructure.Services
                 TopDealers = data
             };
         }
+
+        public async Task<List<CurrentInventoryResponse>> GetCurrentDealersInventoryAsync()
+        {
+            return await _repo.GetCurrentDealersInventoryAsync();
+        }
     }
 }

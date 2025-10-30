@@ -42,11 +42,11 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<int> GetTotalDealersAsync()
+        public async Task<int> GetTotalActiveDealersAsync()
         {
             try
             {
-                return await _context.Dealers.CountAsync();
+                return await _context.Dealers.Where(d => d.Status == "active").CountAsync();
             }
             catch (Exception ex)
             {

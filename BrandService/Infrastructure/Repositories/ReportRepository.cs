@@ -170,5 +170,38 @@ namespace BrandService.Infrastructure.Repositories
                 throw new Exception("Error when get top dealers.");
             }
         }
+
+        public async Task<List<CurrentInventoryResponse>> GetCurrentDealersInventoryAsync()
+        {
+            try
+            {
+                return await _context.Inventories
+                .Include(i => i.VehicleVersion)
+                    .ThenInclude(vv => vv.Vehicle)
+                .GroupBy(i => new
+                {
+                    i.VehicleVersionId,
+                    Brand = i.VehicleVersion!.Vehicle!.Brand,
+                    ModelName = i.VehicleVersion!.Vehicle!.ModelName,
+                    VersionName = i.VehicleVersion!.VersionName
+                })
+                .Select(g => new CurrentInventoryResponse
+                {
+                    Model = g.Key.Brand + " " + g.Key.ModelName,
+                    VersionName = g.Key.VersionName,
+                    DealersStock = g.Sum(x => x.StockQuantity),
+                    LastUpdated = g.Max(x => x.LastUpdated)
+                })
+                .OrderByDescending(x => x.LastUpdated)
+                .ThenByDescending(x => x.DealersStock)
+                .ThenBy(x => x.Model)
+                .Take(5)
+                .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error when get current dealers inventory.");
+            }
+        }
     }
 }

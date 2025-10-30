@@ -44,5 +44,18 @@ namespace BrandService.Infrastructure.Controller
             var result = await _salesService.GetTopDealersAsync();
             return Ok(ApiResponse<TopDealersReportResponse>.Success(result));
         }
+
+        /// <summary>
+        /// Get current inventory across all dealers.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("current-inventory")]
+        [ProducesResponseType(typeof(ApiResponse<List<CurrentInventoryResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<CurrentInventoryResponse>>> GetCurrentDealersInventory()
+        {
+            var result = await _salesService.GetCurrentDealersInventoryAsync();
+            return Ok(ApiResponse<List<CurrentInventoryResponse>>.Success(result));
+        }
     }
 }

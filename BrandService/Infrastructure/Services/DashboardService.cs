@@ -16,7 +16,7 @@ namespace BrandService.Infrastructure.Services
         {
             var totalVersions = await _dashboardRepo.GetTotalVehicleVersionsAsync();
             var totalStock = await _dashboardRepo.GetTotalStockQuantityAsync();
-            var totalDealers = await _dashboardRepo.GetTotalDealersAsync();
+            var totalDealers = await _dashboardRepo.GetTotalActiveDealersAsync();
             var pendingTransferOrders = await _dashboardRepo.GetPendingTransferOrdersAsync();
             var pendingAllocationOrders = await _dashboardRepo.GetPendingAllocationsAsync();
 
