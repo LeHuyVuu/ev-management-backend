@@ -89,6 +89,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Utility Service", Version = "v1" });
+    c.AddServer(new OpenApiServer { Url = "/utility-service" }); // thêm dòng này
+
 });
 
 var app = builder.Build();
