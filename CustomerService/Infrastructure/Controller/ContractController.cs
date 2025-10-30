@@ -130,4 +130,36 @@ public class ContractController : ControllerBase
             return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
         }
     }
+    
+    /// <summary>
+    /// Cập nhật file của contract
+    /// </summary>
+    //[Authorize(Roles = "dealer_staff")]
+    [HttpPatch]
+    [Route("api/contracts/{contractId}/file")]
+    public async Task<IActionResult> UpdateContractFile(Guid contractId, [FromBody] ContractUpdateFileRequest request)
+    {
+        try
+        {
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            var updated = await _contractService.UpdateContractFile(dealerId, contractId, request);
+            return Ok(ApiResponse<bool>.Success(updated));
+        }
+        catch (NotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<string>.BadRequest(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<string>.InternalError(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
 }
