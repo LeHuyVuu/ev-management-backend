@@ -256,4 +256,27 @@ public class ContractService
         var updated = await _contractRepository.UpdateContractStatus(contract);
         return updated;
     }
+    
+    public async Task<bool> UpdateContractFile(Guid dealerId, Guid contractId, ContractUpdateFileRequest request)
+    {
+        if (dealerId == Guid.Empty)
+            throw new KeyNotFoundException("You don't have an dealer Id to access this function.");
+        if (contractId == Guid.Empty)
+            throw new ArgumentException("ContractId is required and cannot be empty.", nameof(contractId));
+        if (request == null)
+            throw new ArgumentNullException(nameof(request), "The contract update request cannot be null.");
+
+        var contract = await _contractRepository.GetContractByContractId(contractId);
+        if (contract == null)
+            throw new NotFoundException("Contract not found!");
+
+        if (contract.DealerId != dealerId)
+            throw new UnauthorizedAccessException("Dealer does not own this contract");
+
+        if(request.FileUrl == null)
+            throw new InvalidOperationException("FileUrl is required and cannot be null.");
+        contract.FileUrl = request.FileUrl;
+        var updated = await _contractRepository.UpdateContractStatus(contract);
+        return updated;
+    }
 }
