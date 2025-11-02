@@ -35,51 +35,88 @@ public class ForecastService
         return res;
     }
 
-    // Dự báo cho 1 dealer + 1 phiên bản xe
-    public async Task<List<(DateTime WeekStart, float Forecast)>> ForecastWeekly(Guid dealerId, Guid vehicleVersionId,
-        int horizon)
+    // Dự báo cho 1 dealer + 1 phiên bản xe (có fallback nếu thiếu MKL/thiếu lịch sử)
+    public async Task<List<(DateTime WeekStart, float Forecast)>> ForecastWeekly(
+        Guid dealerId, Guid vehicleVersionId, int horizon)
     {
         var hist = await _repo.GetWeeklyOrders(dealerId, vehicleVersionId);
         if (hist.Count == 0)
             throw new InvalidOperationException("Không có lịch sử orders để dự báo.");
 
         var series = NormalizeWeeklySeries(hist);
-
-        var minWeeks = Math.Max(MinWeeksForTraining, Math.Min(12, horizon + 2));
-        if (series.Count < minWeeks)
-            throw new InvalidOperationException($"Dữ liệu lịch sử quá ngắn (tối thiểu {minWeeks} tuần).");
-
-        var values = series.Select(s => new ModelInput { Value = s.Y }).ToList();
-        var dv = _ml.Data.LoadFromEnumerable(values);
-
-        var windowSize = Math.Max(4, Math.Min(8, values.Count / 4));
-        var pipeline = _ml.Forecasting.ForecastBySsa(
-            outputColumnName: nameof(ForecastOutput.Forecast),
-            inputColumnName: nameof(ModelInput.Value),
-            windowSize: windowSize,
-            seriesLength: values.Count,
-            trainSize: Math.Max(horizon + 4, values.Count - horizon),
-            horizon: horizon);
-
-        var model = pipeline.Fit(dv);
-        var engine = model.CreateTimeSeriesEngine<ModelInput, ForecastOutput>(_ml);
-        var yhat = engine.Predict().Forecast;
-
         var lastWeek = series.Last().WeekStart;
-        var result = new List<(DateTime, float)>();
-        for (int i = 0; i < horizon; i++)
-        {
-            var wk = lastWeek.AddDays(7 * (i + 1));
-            var v = (i < yhat.Length ? yhat[i] : yhat[^1]);
-            result.Add((wk, Math.Max(0f, v)));
-        }
 
-        return result;
+        // Ngưỡng tối thiểu để train SSA
+        var minWeeks = Math.Max(MinWeeksForTraining, Math.Min(12, horizon + 2));
+
+        try
+        {
+            // Nếu lịch sử quá ngắn → fallback (tránh ném lỗi)
+            if (series.Count < minWeeks)
+                return FallbackForecast(series, horizon, lastWeek);
+
+            // ===== ML.NET SSA (giữ nguyên như trước) =====
+            var values = series.Select(s => new ModelInput { Value = s.Y }).ToList();
+            var dv = _ml.Data.LoadFromEnumerable(values);
+
+            var windowSize = Math.Max(4, Math.Min(8, values.Count / 4));
+            var pipeline = _ml.Forecasting.ForecastBySsa(
+                outputColumnName: nameof(ForecastOutput.Forecast),
+                inputColumnName: nameof(ModelInput.Value),
+                windowSize: windowSize,
+                seriesLength: values.Count,
+                trainSize: Math.Max(horizon + 4, values.Count - horizon),
+                horizon: horizon);
+
+            var model = pipeline.Fit(dv);
+            var engine = model.CreateTimeSeriesEngine<ModelInput, ForecastOutput>(_ml);
+            var yhat = engine.Predict().Forecast;
+
+            var result = new List<(DateTime, float)>();
+            for (int i = 0; i < horizon; i++)
+            {
+                var wk = lastWeek.AddDays(7 * (i + 1));
+                var v = (i < yhat.Length ? yhat[i] : yhat[^1]);
+                result.Add((wk, Math.Max(0f, v)));
+            }
+
+            return result;
+        }
+        // Fallback khi thiếu thư viện native (MklImports/libiomp5) hoặc lỗi native tương tự
+        catch (DllNotFoundException)
+        {
+            return FallbackForecast(series, horizon, lastWeek);
+        }
+        catch (TypeInitializationException)
+        {
+            return FallbackForecast(series, horizon, lastWeek);
+        }
+        catch (BadImageFormatException)
+        {
+            return FallbackForecast(series, horizon, lastWeek);
+        }
+    }
+
+    // Fallback: dùng trung bình các tuần gần nhất khi không train được SSA
+    private static List<(DateTime WeekStart, float Forecast)> FallbackForecast(
+        List<(DateTime WeekStart, float Y)> series, int horizon, DateTime lastWeek)
+    {
+        // Lấy trung bình của tối đa 8 tuần cuối (>=1)
+        int k = Math.Min(8, Math.Max(1, series.Count));
+        float avg = series.TakeLast(k).Average(x => x.Y);
+
+        // Nếu toàn 0, dùng giá trị tuần cuối
+        if (avg <= 0f) avg = series.Last().Y;
+
+        var list = new List<(DateTime, float)>();
+        for (int i = 1; i <= horizon; i++)
+            list.Add((lastWeek.AddDays(7 * i), Math.Max(0f, avg)));
+        return list;
     }
 
     // Tổng nhu cầu toàn hệ thống (gộp dealers có lịch sử)
-    public async Task<List<(DateTime WeekStart, double ForecastTotal)>> ForecastWeeklyTotal(Guid vehicleVersionId,
-        int horizon)
+    public async Task<List<(DateTime WeekStart, double ForecastTotal)>> ForecastWeeklyTotal(
+        Guid vehicleVersionId, int horizon)
     {
         var dealers = await _repo.GetDealersForVehicleVersion(vehicleVersionId);
         if (dealers.Count == 0) return new();
@@ -96,7 +133,8 @@ public class ForecastService
                     agg[wk] += y;
                 }
             }
-            catch (Exception ex)            {
+            catch (Exception ex)
+            {
                 Console.Error.WriteLine($"[weekly-total] skip dealer={d}: {ex.Message}");
             }
         }
@@ -105,8 +143,8 @@ public class ForecastService
     }
 
     // Phân bổ theo tỷ lệ nhu cầu dự báo (giữ lại holdback ở brand inventory)
-    public async Task<List<AllocationItem>> AllocateByForecast(Guid vehicleVersionId, int horizonWeeks = 4,
-        double holdbackRatio = 0.10)
+    public async Task<List<AllocationItem>> AllocateByForecast(
+        Guid vehicleVersionId, int horizonWeeks = 4, double holdbackRatio = 0.10)
     {
         var stock = await _repo.GetBrandInventory(vehicleVersionId);
         if (stock <= 0) return new();
@@ -141,7 +179,7 @@ public class ForecastService
             var qty = (int)Math.Floor(share * allocatable);
             sumAlloc += qty;
             items.Add(new AllocationItem
-                { DealerId = n.DealerId, VehicleVersionId = vehicleVersionId, Quantity = qty });
+            { DealerId = n.DealerId, VehicleVersionId = vehicleVersionId, Quantity = qty });
         }
 
         int diff = allocatable - sumAlloc;
