@@ -65,8 +65,8 @@ namespace FinancialService.Infrastructure.Repositories
         // Monthly employee sales for a dealer using exact Year/Month filter and simple LINQ
         public async Task<IEnumerable<EmployeeSalesDto>> GetEmployeeSalesAsync(int year, int month, Guid dealerId, CancellationToken ct)
         {
-            // Aggregate monthly sales per employee (by quote.created_by_user)
-            var monthlySales =
+            // Pull aggregated monthly sales per employee (by quote.created_by_user) from database first
+            var monthlySalesList = await (
                 from o in _context.orders.AsNoTracking()
                 join c in _context.contracts.AsNoTracking() on o.contract_id equals c.contract_id
                 join q in _context.quotes.AsNoTracking() on c.quote_id equals q.quote_id
@@ -76,22 +76,28 @@ namespace FinancialService.Infrastructure.Repositories
                       && o.delivery_date.Value.Month == month
                       && CompletedStatuses.Contains(o.status)
                 group c by q.created_by_user into g
-                select new { UserId = g.Key, Total = g.Sum(x => x.total_value) };
+                select new { UserId = g.Key, Total = g.Sum(x => x.total_value) }
+            ).ToListAsync(ct);
 
-            var query =
-                from u in _context.users.AsNoTracking().Where(u => u.dealer_id == dealerId)
-                join s in monthlySales on u.user_id equals s.UserId into gj
-                from s in gj.DefaultIfEmpty()
-                select new EmployeeSalesDto(
-                    u.name,
-                    (decimal?)(s != null ? s.Total : null) ?? 0m,
-                    0m,
-                    string.Empty
-                );
+            // Load dealer users
+            var users = await _context.users
+                .AsNoTracking()
+                .Where(u => u.dealer_id == dealerId)
+                .Select(u => new { u.user_id, u.name })
+                .ToListAsync(ct);
 
-            var ordered = query.OrderByDescending(x => x.TotalSalesVnd);
+            // Join in-memory to avoid translation issues
+            var result = from u in users
+                         join s in monthlySalesList on u.user_id equals s.UserId into gj
+                         from s in gj.DefaultIfEmpty()
+                         select new EmployeeSalesDto(
+                            u.name,
+                            s != null ? s.Total : 0m,
+                            0m,
+                            string.Empty
+                         );
 
-            return await ordered.ToListAsync(ct);
+            return result.OrderByDescending(x => x.TotalSalesVnd).ToList();
         }
 
         // Latest monthly dealer target (start_date <= currStart) for a specific dealer
