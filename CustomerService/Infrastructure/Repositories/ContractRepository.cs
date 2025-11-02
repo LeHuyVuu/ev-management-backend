@@ -29,6 +29,10 @@ public class ContractRepository
         return await _dbContext.Contracts.FirstOrDefaultAsync(c => c.ContractId == contractId);
     }
 
+    public async Task<Contract> GetContractByContractIncludeQuote(Guid contractId)
+    {
+        return await _dbContext.Contracts.Include(c => c.Quote).FirstOrDefaultAsync(c => c.ContractId == contractId);
+    }
     public async Task<IEnumerable<Contract>> GetAllContractsByDealerId(Guid dealerId)
     {
         return await _dbContext.Contracts.Where(c => c.DealerId == dealerId).ToListAsync();
