@@ -1,4 +1,5 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+RUN apt-get update && apt-get install -y libomp5 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 EXPOSE 8080
 
@@ -7,7 +8,7 @@ WORKDIR /src
 COPY UtilityService.csproj .
 RUN dotnet restore
 COPY . .
-RUN dotnet publish UtilityService.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish UtilityService.csproj -c Release -r linux-x64 --self-contained false -o /app/publish /p:UseAppHost=false /p:PublishTrimmed=false
 
 FROM base AS final
 WORKDIR /app
