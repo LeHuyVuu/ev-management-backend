@@ -9,7 +9,7 @@ WORKDIR /src
 COPY UtilityService.csproj .
 RUN dotnet restore
 COPY . .
-RUN dotnet publish UtilityService.csproj -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish UtilityService.csproj -c Release -r linux-x64 --self-contained false -o /app/publish /p:UseAppHost=false /p:PublishTrimmed=false
 
 FROM base AS final
 WORKDIR /app
