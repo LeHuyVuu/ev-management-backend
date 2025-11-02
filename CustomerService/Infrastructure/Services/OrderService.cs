@@ -61,7 +61,7 @@ public class OrderService
         var customer = await _customerRepository.GetCustomerById(request.CustomerId);
         if(customer == null)
             throw new KeyNotFoundException("Customer does not exist");
-        var contract = await _contractRepository.GetContractByContractId(request.ContractId);
+        var contract = await _contractRepository.GetContractByContractIncludeQuote(request.ContractId);
         if(contract == null)
             throw new KeyNotFoundException("Contract does not exist");
         

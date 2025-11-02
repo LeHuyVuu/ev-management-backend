@@ -62,9 +62,38 @@ namespace FinancialService.Infrastructure.Controller
                 dealerId = parsed;
             }
 
+            // Conservative detection for dealer-staff role: require explicit token
+            Guid? currentUserId = null;
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("role") ?? string.Empty;
+
+            bool isDealerStaff = false;
+            if (!string.IsNullOrEmpty(roleClaim))
+            {
+                // split common separators and check tokens exactly to avoid accidental matches
+                var tokens = roleClaim.Split(new[] { ',', ';', '|', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                                      .Select(t => t.Trim().ToLowerInvariant());
+                isDealerStaff = tokens.Any(t => t == "dealer-staff" || t == "dealer_staff" || t == "dealerstaff");
+            }
+
+            // Also support explicit claim name IsDealerStaff=true
+            var isDealerStaffFlag = User.FindFirstValue("IsDealerStaff");
+            if (!isDealerStaff && !string.IsNullOrEmpty(isDealerStaffFlag) && bool.TryParse(isDealerStaffFlag, out var flagVal) && flagVal)
+            {
+                isDealerStaff = true;
+            }
+
+            if (isDealerStaff)
+            {
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("UserId");
+                if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var parsedUser))
+                {
+                    currentUserId = parsedUser;
+                }
+            }
+
             try
             {
-                var result = await _orderService.GetEmployeeSalesAsync(dealerId, ct);
+                var result = await _orderService.GetEmployeeSalesAsync(dealerId, currentUserId, ct);
                 return Ok(result);
             }
             catch (InvalidOperationException ex)

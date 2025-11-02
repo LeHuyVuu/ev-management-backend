@@ -19,7 +19,7 @@ namespace FinancialService.Infrastructure.Services
             => _orderRepository.GetAllOrdersAsync();
 
         // Always use current month for employee sales
-        public async Task<IEnumerable<EmployeeSalesDto>> GetEmployeeSalesAsync(Guid? dealerId, CancellationToken ct)
+        public async Task<IEnumerable<EmployeeSalesDto>> GetEmployeeSalesAsync(Guid? dealerId, Guid? currentUserId, CancellationToken ct)
         {
             if (!dealerId.HasValue || dealerId.Value == Guid.Empty)
                 throw new InvalidOperationException("DealerId is required in the token.");
@@ -28,28 +28,50 @@ namespace FinancialService.Infrastructure.Services
             var year = now.Year;
             var month = now.Month;
 
-            // Pull raw sales per-employee for dealer in current month
+            // If currentUserId provided and valid, return only that user's sales for current month
+            if (currentUserId.HasValue && currentUserId.Value != Guid.Empty)
+            {
+                var emp = await _orderRepository.GetEmployeeSalesForUserAsync(year, month, dealerId.Value, currentUserId.Value, ct);
+
+                // Dealer monthly target; fallback to config if not present
+                var monthStart = new DateOnly(year, month, 1);
+                var dealerTarget = await _orderRepository.GetMonthlyTargetAsync(monthStart, dealerId.Value, ct);
+                if (dealerTarget <= 0)
+                {
+                    dealerTarget = _configuration.GetValue<decimal?>("Sales:MonthlyTargetVnd") ?? 1_200_000_000m;
+                }
+
+                static string PerfStatus(decimal pct)
+                    => pct >= 120m ? "Xuất sắc"
+                     : pct >= 100m ? "Tốt"
+                     : pct >= 90m  ? "Đang tiến triển"
+                     : "Cần cải thiện";
+
+                var ratioPct = dealerTarget <= 0 ? 0 : (emp.TotalSalesVnd / dealerTarget) * 100m;
+                return new List<EmployeeSalesDto> { new EmployeeSalesDto(emp.EmployeeName, emp.TotalSalesVnd, dealerTarget, PerfStatus(ratioPct)) };
+            }
+
+            // Fallback: original behavior - all employees
             var raw = await _orderRepository.GetEmployeeSalesAsync(year, month, dealerId.Value, ct);
 
             // Get dealer monthly target; fallback to config if not present
-            var monthStart = new DateOnly(year, month, 1);
-            var dealerTarget = await _orderRepository.GetMonthlyTargetAsync(monthStart, dealerId.Value, ct);
-            if (dealerTarget <= 0)
+            var monthStartAll = new DateOnly(year, month, 1);
+            var dealerTargetAll = await _orderRepository.GetMonthlyTargetAsync(monthStartAll, dealerId.Value, ct);
+            if (dealerTargetAll <= 0)
             {
-                dealerTarget = _configuration.GetValue<decimal?>("Sales:MonthlyTargetVnd") ?? 1_200_000_000m;
+                dealerTargetAll = _configuration.GetValue<decimal?>("Sales:MonthlyTargetVnd") ?? 1_200_000_000m;
             }
 
-            static string PerfStatus(decimal pct)
+            static string PerfStatusAll(decimal pct)
                 => pct >= 120m ? "Xuất sắc"
                  : pct >= 100m ? "Tốt"
                  : pct >= 90m  ? "Đang tiến triển"
                  : "Cần cải thiện";
 
-            // TargetAchievedPct: return raw monthly target (no calculation). Status still based on ratio for context.
             return raw.Select(e =>
             {
-                var ratioPct = dealerTarget <= 0 ? 0 : (e.TotalSalesVnd / dealerTarget) * 100m;
-                return new EmployeeSalesDto(e.EmployeeName, e.TotalSalesVnd, dealerTarget, PerfStatus(ratioPct));
+                var ratioPct = dealerTargetAll <= 0 ? 0 : (e.TotalSalesVnd / dealerTargetAll) * 100m;
+                return new EmployeeSalesDto(e.EmployeeName, e.TotalSalesVnd, dealerTargetAll, PerfStatusAll(ratioPct));
             }).ToList();
         }
 
