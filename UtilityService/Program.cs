@@ -58,6 +58,8 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
 
 // Repo + Service (KHÔNG dùng interface)
 builder.Services.AddScoped<EmailService>();     // nếu bạn dùng
