@@ -114,7 +114,7 @@ namespace OrderService.Infrastructure.Services
                     DriveDate: request.DriveDate,
                     TimeSlot: request.TimeSlot ?? "",
                     ConfirmSms: request.ConfirmSms,
-                    Email: "trungthe2",
+                    Email: response.Email,
                     ConfirmEmail: request.ConfirmEmail,
                     Status: request.Status ?? "",
                     OccurredAtUtc: DateTime.UtcNow
