@@ -6,7 +6,7 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY UtilityService.csproj .
-RUN dotnet restore
+RUN dotnet restore --runtime linux-x64           
 COPY . .
 RUN dotnet publish UtilityService.csproj -c Release -r linux-x64 --self-contained false -o /app/publish /p:UseAppHost=false /p:PublishTrimmed=false
 
