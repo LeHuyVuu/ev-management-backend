@@ -5,6 +5,7 @@ using DealerService.DTOs.Responses.DealerTargetDTOs;
 using DealerService.Infrastructure.Services;
 using DealerService.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.Design;
 
 namespace DealerService.Infrastructure.Controller
 {
@@ -33,6 +34,15 @@ namespace DealerService.Infrastructure.Controller
         {
             var dealers = await _dealerService.GetPagedAsync(pageNumber, pageSize);
             return Ok(ApiResponse<PagedResult<DealerResponse>>.Success(dealers));
+        }
+
+        [HttpGet("active-dealers")]
+        [ProducesResponseType(typeof(ApiResponse<List<DealerResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetAllActiveDealers()
+        {
+            var dealers = await _dealerService.GetAllActiveDealersAsync();
+            return Ok(ApiResponse<List<DealerResponse>>.Success(dealers));
         }
 
         /// <summary>

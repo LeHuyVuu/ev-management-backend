@@ -40,16 +40,17 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
-                var existingVersion = await _context.VehicleVersions
+                var existingVersion = await _context.VehicleVersions.Include(v => v.Vehicle)
                     .FirstOrDefaultAsync(v => v.VehicleVersionId == version.VehicleVersionId);
                 if (existingVersion == null)
                     throw new NotFoundException("Vehicle version not found");
-                if (DoesVersionExist(version.VehicleId, version.VersionName, version.Color) &&
-                    (existingVersion.VersionName.ToLower() != version.VersionName.ToLower() ||
-                     existingVersion.Color.ToLower() != version.Color.ToLower()))
+
+                if (DoesVersionExist(existingVersion.VehicleId, version.VersionName, version.Color, existingVersion.VehicleVersionId))
                 {
+
                     throw new BadRequestException("Another vehicle version with the same name and color already exists for this vehicle.");
                 }
+
                 existingVersion.VersionName = version.VersionName;
                 existingVersion.Color = version.Color;
                 existingVersion.EvType = version.EvType;
@@ -364,14 +365,17 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public bool DoesVersionExist(Guid vehicleId, string versionName, string color)
+        public bool DoesVersionExist(Guid vehicleId, string versionName, string color, Guid? excludeId = null)
         {
             return _context.VehicleVersions
                 .AsNoTracking()
-                .Any(v =>
-                    v.VehicleId == vehicleId &&
-                    v.VersionName.ToLower() == versionName.ToLower() &&
-                    v.Color.ToLower() == color.ToLower());
+                .Any(vv =>
+                    vv.VehicleId == vehicleId &&
+                    vv.VersionName.ToLower() == versionName.ToLower() &&
+                    ((vv.Color == null && color == null) ||
+                     (vv.Color != null && color != null && vv.Color.ToLower() == color.ToLower())) &&
+                    (!excludeId.HasValue || vv.VehicleVersionId != excludeId)
+                );
         }
     }
 }
