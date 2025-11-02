@@ -8,7 +8,6 @@
         <NoWarn>$(NoWarn);1591</NoWarn>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>UtilityService</RootNamespace>
-        <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
         <PublishTrimmed>false</PublishTrimmed>
     </PropertyGroup>
 
