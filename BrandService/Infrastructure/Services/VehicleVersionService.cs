@@ -4,7 +4,6 @@ using BrandService.DTOs.Responses.VehicleDTOs;
 using BrandService.Entities;
 using BrandService.Infrastructure.Repositories;
 using BrandService.Model;
-using BrandService.Models;
 using Elastic.Clients.Elasticsearch;
 
 namespace BrandService.Infrastructure.Services

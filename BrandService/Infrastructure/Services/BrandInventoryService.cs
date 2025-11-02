@@ -1,6 +1,5 @@
 ﻿using BrandService.Entities;
 using BrandService.Infrastructure.Repositories;
-using BrandService.Models;
 
 namespace BrandService.Infrastructure.Services
 {

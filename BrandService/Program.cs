@@ -11,9 +11,12 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using BrandService;
 using BrandService.ExceptionHandler;
 using BrandService.Kafka.Messaging;
-using BrandService.Settings;
+using BrandService.Kafka.Messaging.Consumer;
+using BrandService.Kafka.Messaging.Producer;
+using BrandService.Kafka.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -92,7 +95,7 @@ builder.Services.AddScoped<VehicleVersionService>();
 builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<BrandInventoryService>();
 
-
+builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));
 builder.Services.AddHostedService<MultiTopicOrderConsumer>();
 //builder.Services.AddHostedService<AllocationOrderConsumer>();

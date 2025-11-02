@@ -1,5 +1,6 @@
 ﻿using PayPalCheckoutSdk.Core;
 
+namespace BrandService.Utilities;
 
 public class PayPalClient
 {

@@ -3,11 +3,11 @@ using Microsoft.Extensions.Options;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
 using OrderService.Entities;
-using OrderService.Events;
 using OrderService.Infrastructure.Repositories;
-using OrderService.Messaging;
+using OrderService.Kafka.Events;
+using OrderService.Kafka.Messaging.Producer;
+using OrderService.Kafka.Settings;
 using OrderService.Model;
-using OrderService.Settings;
 
 namespace OrderService.Infrastructure.Services;
 
@@ -101,7 +101,6 @@ public class VehicleAllocationService
                     IsRecived = isReceived
                 };
 
-                // key để Kafka đảm bảo thứ tự theo DealerId
                 var key = updated.DealerId.ToString();
 
                 await _kafkaProducer.PublishAsync(_kafkaTopic, key, ev);

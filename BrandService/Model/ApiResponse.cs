@@ -1,4 +1,4 @@
-namespace BrandService.Models;
+namespace BrandService.Model;
 
 public record ApiResponse<T>(
     int Status,

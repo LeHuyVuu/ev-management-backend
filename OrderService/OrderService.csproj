@@ -40,4 +40,9 @@
       </Content>
     </ItemGroup>
 
+
+    <ItemGroup>
+      <Folder Include="Kafka\" />
+    </ItemGroup>
+
 </Project>

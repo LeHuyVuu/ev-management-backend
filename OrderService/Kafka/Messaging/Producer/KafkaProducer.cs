@@ -1,9 +1,9 @@
-﻿using Confluent.Kafka;
+﻿using System.Text.Json;
+using Confluent.Kafka;
 using Microsoft.Extensions.Options;
-using OrderService.Settings;
-using System.Text.Json;
+using OrderService.Kafka.Settings;
 
-namespace OrderService.Messaging;
+namespace OrderService.Kafka.Messaging.Producer;
 
 public class KafkaProducer : IKafkaProducer
 {

@@ -4,7 +4,9 @@ using Microsoft.Extensions.Logging;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
-using BrandService.Models; // nơi chứa ApiResponse<T>
+using BrandService.Model;
+
+// nơi chứa ApiResponse<T>
 
 namespace BrandService.ExceptionHandler
 {

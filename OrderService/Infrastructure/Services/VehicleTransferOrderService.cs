@@ -3,11 +3,11 @@ using Microsoft.Extensions.Options;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
 using OrderService.Entities;
-using OrderService.Events;
 using OrderService.Infrastructure.Repositories;
-using OrderService.Messaging;
+using OrderService.Kafka.Events;
+using OrderService.Kafka.Messaging.Producer;
+using OrderService.Kafka.Settings;
 using OrderService.Model;
-using OrderService.Settings;
 
 namespace OrderService.Infrastructure.Services
 {
@@ -75,58 +75,56 @@ namespace OrderService.Infrastructure.Services
                 throw;
             }
         }
-public async Task<VehicleTransferOrderResponse?> UpdateStatusAsync(Guid id, string status)
-{
-    try
-    {
-        var updated = await _repository.UpdateStatusAsync(id, status);
-        if (updated == null)
-            return null;
-
-        var response = _mapper.Map<VehicleTransferOrderResponse>(updated);
-
-        var normalized = status?.Trim().ToLowerInvariant();
-        var isShipping = normalized == "shipping";
-        var isReceived = normalized == "received";
-
-        if (isShipping || isReceived)
+        public async Task<VehicleTransferOrderResponse?> UpdateStatusAsync(Guid id, string status)
         {
-
-            var dealerForEvent = isShipping ? updated.FromDealerId : updated.ToDealerId;
-
-            if (dealerForEvent is null)
+            try
             {
-                _logger.LogWarning("Skip publishing TransferOrderEvent: dealerForEvent is null. Status={Status}, Id={Id}", status, id);
+                var updated = await _repository.UpdateStatusAsync(id, status);
+                if (updated == null)
+                    return null;
+
+                var response = _mapper.Map<VehicleTransferOrderResponse>(updated);
+
+                var normalized = status?.Trim().ToLowerInvariant();
+                var isShipping = normalized == "shipping";
+                var isReceived = normalized == "received";
+
+                if (isShipping || isReceived)
+                {
+
+                    var dealerForEvent = isShipping ? updated.FromDealerId : updated.ToDealerId;
+
+                    if (dealerForEvent is null)
+                    {
+                        _logger.LogWarning("Skip publishing TransferOrderEvent: dealerForEvent is null. Status={Status}, Id={Id}", status, id);
+                        return response;
+                    }
+
+                    var evt = new TransferOrderEvent
+                    {
+                        DealerId = dealerForEvent,
+                        VehicleVersionId = updated.VehicleVersionId, 
+                        Quantity = updated.Quantity,
+                        IsRecived = isReceived 
+                    };
+
+                    var key = dealerForEvent.Value.ToString();
+
+                    await _kafkaProducer.PublishAsync(_kafkaTopic, key, evt);
+
+                    _logger.LogInformation(
+                        "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}",
+                        id, _kafkaTopic, dealerForEvent, updated.VehicleVersionId, updated.Quantity, evt.IsRecived
+                    );
+                }
+
                 return response;
             }
-
-            var evt = new TransferOrderEvent
+            catch (Exception ex)
             {
-                DealerId = dealerForEvent,
-                VehicleVersionId = updated.VehicleVersionId, 
-                Quantity = updated.Quantity,
-                IsRecived = isReceived 
-            };
-
-            var key = dealerForEvent.Value.ToString();
-
-            await _kafkaProducer.PublishAsync(_kafkaTopic, key, evt);
-
-            _logger.LogInformation(
-                "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}",
-                id, _kafkaTopic, dealerForEvent, updated.VehicleVersionId, updated.Quantity, evt.IsRecived
-            );
+                _logger.LogError(ex, "Error updating vehicle transfer order status. Id={Id}, Status={Status}", id, status);
+                throw;
+            }
         }
-
-        return response;
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error updating vehicle transfer order status. Id={Id}, Status={Status}", id, status);
-        throw;
-    }
-}
-
-
     }
 }

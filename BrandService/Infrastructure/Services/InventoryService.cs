@@ -3,7 +3,6 @@ using BrandService.DTOs.Requests.InventoryDTOs;
 using BrandService.DTOs.Responses.InventoryDTOs;
 using BrandService.Infrastructure.Repositories;
 using BrandService.Model;
-using BrandService.Models;
 
 namespace BrandService.Infrastructure.Services
 {

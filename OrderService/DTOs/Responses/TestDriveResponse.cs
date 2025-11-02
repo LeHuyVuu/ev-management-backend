@@ -17,6 +17,8 @@ public class TestDriveResponse
     public string TimeSlot { get; set; } = null!;
 
     public bool ConfirmSms { get; set; }
+    
+    public string Email { get; set; } = null!;
 
     public bool ConfirmEmail { get; set; }
 

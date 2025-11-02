@@ -1,4 +1,6 @@
-﻿public static class PasswordHelper
+﻿namespace BrandService.Utilities;
+
+public static class PasswordHelper
 {
     /// <summary>
     /// Hash một mật khẩu sử dụng BCrypt với salt tự động

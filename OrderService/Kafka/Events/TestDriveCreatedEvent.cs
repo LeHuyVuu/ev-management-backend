@@ -1,4 +1,4 @@
-﻿namespace OrderService.Events;
+﻿namespace OrderService.Kafka.Events;
 
 public record TestDriveCreatedEvent(
     Guid TestDriveId,
@@ -8,6 +8,7 @@ public record TestDriveCreatedEvent(
     DateTime DriveDate,
     string TimeSlot,
     bool ConfirmSms,
+    string Email,
     bool ConfirmEmail,
     string Status,
     DateTime OccurredAtUtc

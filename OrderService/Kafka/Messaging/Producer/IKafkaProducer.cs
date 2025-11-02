@@ -1,4 +1,4 @@
-﻿namespace OrderService.Messaging;
+﻿namespace OrderService.Kafka.Messaging.Producer;
 
 
 public interface IKafkaProducer

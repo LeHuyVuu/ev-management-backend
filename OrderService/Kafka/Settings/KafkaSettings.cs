@@ -1,4 +1,4 @@
-﻿namespace OrderService.Settings;
+﻿namespace OrderService.Kafka.Settings;
 
 public class KafkaSettings
 {
