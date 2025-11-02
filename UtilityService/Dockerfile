@@ -12,13 +12,12 @@ COPY . .
 RUN dotnet publish UtilityService.csproj -c Release -r linux-x64 --self-contained false \
     -o /app/publish /p:UseAppHost=false /p:PublishTrimmed=false
 
-# ---- COPY MKL .so vào output publish (ăn chắc) ----
 RUN set -eux; \
     mkdir -p /app/publish/runtimes/linux-x64/native; \
-    cp -v /root/.nuget/packages/microsoft.ml.mkl.components/*/runtimes/linux-x64/native/* \
-          /app/publish/runtimes/linux-x64/native/ || true; \
-    echo "== verify native in publish =="; \
-    ls -la /app/publish/runtimes/linux-x64/native
+    find /root/.nuget/packages/microsoft.ml.mkl.components -type f \( -name "MklImports.so" -o -name "libiomp5.so" \) \
+      -exec cp -v {} /app/publish/runtimes/linux-x64/native/ \; || true; \
+    echo "=== Verify native copied ==="; \
+    ls -la /app/publish/runtimes/linux-x64/native || true
 
 FROM base AS final
 WORKDIR /app
