@@ -7,12 +7,12 @@ public class ForecastRepository
 {
     private readonly string _cs;
     public ForecastRepository(IConfiguration cfg)
-    {
-        _cs = cfg.GetConnectionString("Pg") 
-              ?? cfg.GetConnectionString("PG") 
-              ?? cfg.GetConnectionString("DefaultConnection") 
-              ?? throw new InvalidOperationException("Connection string not found for Pg/PG/DefaultConnection");
-    }
+{
+    _cs = cfg.GetConnectionString("Pg") 
+       ?? cfg.GetConnectionString("PG") 
+       ?? cfg.GetConnectionString("DefaultConnection") 
+       ?? throw new InvalidOperationException("Connection string not found for Pg/PG/DefaultConnection");
+}
 
 
     // Lấy chuỗi orders theo tuần (đã fill tuần trống), tuần bắt đầu Thứ Hai.

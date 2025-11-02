@@ -96,9 +96,8 @@ public class ForecastService
                     agg[wk] += y;
                 }
             }
-            catch
-            {
-                // dealer thiếu dữ liệu/too short → bỏ qua
+            catch (Exception ex)            {
+                Console.Error.WriteLine($"[weekly-total] skip dealer={d}: {ex.Message}");
             }
         }
 
