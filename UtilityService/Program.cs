@@ -6,6 +6,7 @@ using Amazon;
 using Amazon.Extensions.NETCore.Setup;
 using Amazon.S3;
 using CustomerService.Infrastructure.Services;
+using Microsoft.ML;
 using UtilityService.Infrastructure.Repositories;
 using UtilityService.Infrastructure.Services;
 using UtilityService.Messaging;
@@ -85,6 +86,9 @@ builder.Services.AddHttpClient("groq", (sp, client) =>
 
 // HostedService (nếu có dùng)
 builder.Services.AddHostedService<ForecastAutoRefreshWorker>();
+
+builder.Services.AddSingleton(new MLContext(seed: 42));
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

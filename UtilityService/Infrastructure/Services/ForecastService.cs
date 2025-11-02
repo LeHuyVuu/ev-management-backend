@@ -1,216 +1,269 @@
-﻿using System.Net.Http.Headers;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.ML.Transforms.TimeSeries;
 using UtilityService.Infrastructure.Repositories;
-using UtilityService.Models;
 
 namespace UtilityService.Infrastructure.Services;
 
 public class ForecastService
 {
-    private readonly IHttpClientFactory _http;
+    private readonly MLContext _ml;
     private readonly ForecastRepository _repo;
-    private readonly IConfiguration _cfg;
 
-    // Bạn có thể cấu hình BaseAddress cho named client "groq" là:
-    // https://api.groq.com/openai/v1/
-    // Khi đó, ENDPOINT dưới đây chỉ cần là "chat/completions".
-    private const string ENDPOINT = "chat/completions";
+    // Cho phép test nhanh khi lịch sử ngắn
+    private const int MinWeeksForTraining = 4; // Dev/demo: 4; Prod nên >= 12
 
-    private static readonly JsonSerializerOptions JsonOpts = new()
+    public ForecastService(MLContext ml, ForecastRepository repo)
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        WriteIndented = false
-    };
-
-    public ForecastService(IHttpClientFactory http, ForecastRepository repo, IConfiguration cfg)
-    {
-        _http = http;
+        _ml = ml;
         _repo = repo;
-        _cfg = cfg;
     }
 
-    // ============================================================
-    // 1️⃣ SEARCH FORECAST (DỮ LIỆU CƠ SỞ)
-    // ============================================================
-    public async Task<PagedResult<ForecastRow>> SearchAsync(ForecastQuery q, CancellationToken ct)
+    // Chuẩn hóa chuỗi tuần (hàm dự phòng; hiện đã fill tuần ở SQL)
+    private static List<(DateTime WeekStart, float Y)> NormalizeWeeklySeries(List<(DateTime WeekStart, int Orders)> raw)
     {
-        var (rows, total) = await _repo.GetForecastAsync(q, ct);
-        return new PagedResult<ForecastRow>
-        {
-            Total = total,
-            Page = q.Page,
-            PageSize = q.PageSize,
-            Rows = rows
-        };
+        var res = new List<(DateTime, float)>();
+        if (raw.Count == 0) return res;
+
+        var start = raw.First().WeekStart;
+        var end = raw.Last().WeekStart;
+        var dict = raw.ToDictionary(x => x.WeekStart, x => (float)x.Orders);
+
+        for (var w = start; w <= end; w = w.AddDays(7))
+            res.Add((w, dict.TryGetValue(w, out var v) ? v : 0f));
+
+        return res;
     }
 
-    // ============================================================
-    // 2️⃣ ASK AI (LLM PHÂN TÍCH / GỢI Ý – HỘI THOẠI TỰ NHIÊN)
-    // ============================================================
-    public async Task<string> AskAsync(string question, IReadOnlyList<ForecastRow>? rows, CancellationToken ct)
+    // Dự báo cho 1 dealer + 1 phiên bản xe
+    public async Task<List<(DateTime WeekStart, float Forecast)>> ForecastWeekly(Guid dealerId, Guid vehicleVersionId,
+        int horizon)
     {
-        if (string.IsNullOrWhiteSpace(question))
-            throw new ArgumentException("Question is required.", nameof(question));
+        var hist = await _repo.GetWeeklyOrders(dealerId, vehicleVersionId);
+        if (hist.Count == 0)
+            throw new InvalidOperationException("Không có lịch sử orders để dự báo.");
 
-        // --- Lấy API key ---
-        var apiKey = Environment.GetEnvironmentVariable("GROQ_API_KEY") ?? _cfg["Groq:ApiKey"];
-        if (string.IsNullOrWhiteSpace(apiKey))
-            throw new InvalidOperationException(
-                "❌ Missing GROQ_API_KEY. Set environment variable or configuration key Groq:ApiKey.");
+        var series = NormalizeWeeklySeries(hist);
 
-        // --- Chuẩn bị dữ liệu gửi ---
-        var sampleRows = (rows ?? Array.Empty<ForecastRow>()).Take(100).ToList();
+        var minWeeks = Math.Max(MinWeeksForTraining, Math.Min(12, horizon + 2));
+        if (series.Count < minWeeks)
+            throw new InvalidOperationException($"Dữ liệu lịch sử quá ngắn (tối thiểu {minWeeks} tuần).");
 
-        // Hướng dẫn hội thoại được bọc trong system prompt
-        var systemPrompt = BuildSystemPrompt();
+        var values = series.Select(s => new ModelInput { Value = s.Y }).ToList();
+        var dv = _ml.Data.LoadFromEnumerable(values);
 
-        // Nhắc nhở ngắn để model luôn giữ phong cách chat tự nhiên, hỏi lại khi mơ hồ
-        var userEnvelope = new
+        var windowSize = Math.Max(4, Math.Min(8, values.Count / 4));
+        var pipeline = _ml.Forecasting.ForecastBySsa(
+            outputColumnName: nameof(ForecastOutput.Forecast),
+            inputColumnName: nameof(ModelInput.Value),
+            windowSize: windowSize,
+            seriesLength: values.Count,
+            trainSize: Math.Max(horizon + 4, values.Count - horizon),
+            horizon: horizon);
+
+        var model = pipeline.Fit(dv);
+        var engine = model.CreateTimeSeriesEngine<ModelInput, ForecastOutput>(_ml);
+        var yhat = engine.Predict().Forecast;
+
+        var lastWeek = series.Last().WeekStart;
+        var result = new List<(DateTime, float)>();
+        for (int i = 0; i < horizon; i++)
         {
-            instruction = "Trả lời tự nhiên như chat. Nếu chưa rõ, hỏi lại 1–3 câu ngắn rồi dừng.",
-            question,
-            sample = sampleRows
-        };
+            var wk = lastWeek.AddDays(7 * (i + 1));
+            var v = (i < yhat.Length ? yhat[i] : yhat[^1]);
+            result.Add((wk, Math.Max(0f, v)));
+        }
 
-        // --- Payload OpenAI-compatible ---
-        var body = new
+        return result;
+    }
+
+    // Tổng nhu cầu toàn hệ thống (gộp dealers có lịch sử)
+    public async Task<List<(DateTime WeekStart, double ForecastTotal)>> ForecastWeeklyTotal(Guid vehicleVersionId,
+        int horizon)
+    {
+        var dealers = await _repo.GetDealersForVehicleVersion(vehicleVersionId);
+        if (dealers.Count == 0) return new();
+
+        var agg = new Dictionary<DateTime, double>();
+        foreach (var d in dealers)
         {
-            model = "llama-3.3-70b-versatile",
-            messages = new object[]
+            try
             {
-                new { role = "system", content = systemPrompt },
-                new { role = "user", content = JsonSerializer.Serialize(userEnvelope, JsonOpts) }
-            },
-            // Nâng nhẹ temperature cho giọng tự nhiên, tăng max_tokens để đủ chỗ cho insight
-            temperature = 0.35,
-            max_tokens = 1200
-        };
-
-        var json = JsonSerializer.Serialize(body, JsonOpts);
-
-        // --- HttpClient ---
-        var client = _http.CreateClient("groq");
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-        client.DefaultRequestHeaders.Accept.Clear();
-        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-        using var req = new HttpRequestMessage(HttpMethod.Post, ENDPOINT)
-        {
-            Content = new StringContent(json, Encoding.UTF8, "application/json")
-        };
-
-        using var res = await client.SendAsync(req, ct).ConfigureAwait(false);
-        var resBody = await res.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-
-        if (!res.IsSuccessStatusCode)
-        {
-            // Trả về thông tin lỗi rõ ràng để dễ debug cấu hình/endpoint
-            throw new HttpRequestException($"Groq HTTP {(int)res.StatusCode} {res.StatusCode}: {resBody}");
+                var fc = await ForecastWeekly(d, vehicleVersionId, horizon);
+                foreach (var (wk, y) in fc)
+                {
+                    if (!agg.ContainsKey(wk)) agg[wk] = 0;
+                    agg[wk] += y;
+                }
+            }
+            catch
+            {
+                // dealer thiếu dữ liệu/too short → bỏ qua
+            }
         }
 
-        // --- Parse kết quả ---
-        try
-        {
-            using var doc = JsonDocument.Parse(resBody);
-            if (!doc.RootElement.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
-                return "⚠️ Không có câu trả lời từ mô hình.";
+        return agg.OrderBy(x => x.Key).Select(x => (x.Key, x.Value)).ToList();
+    }
 
-            var msg = choices[0].GetProperty("message");
-            var content = msg.GetProperty("content").GetString();
-            return (content ?? string.Empty).Trim();
-        }
-        catch (Exception ex)
+    // Phân bổ theo tỷ lệ nhu cầu dự báo (giữ lại holdback ở brand inventory)
+    public async Task<List<AllocationItem>> AllocateByForecast(Guid vehicleVersionId, int horizonWeeks = 4,
+        double holdbackRatio = 0.10)
+    {
+        var stock = await _repo.GetBrandInventory(vehicleVersionId);
+        if (stock <= 0) return new();
+
+        var dealers = await _repo.GetDealersForVehicleVersion(vehicleVersionId);
+        if (dealers.Count == 0) return new();
+
+        var need = new List<(Guid DealerId, double Need)>();
+        foreach (var d in dealers)
         {
-            // Nếu response đổi schema hoặc JSON lỗi, ném nguyên body để dễ xác định
-            throw new InvalidOperationException($"❌ Lỗi parse JSON từ Groq: {ex.Message}\nRaw: {resBody}");
+            try
+            {
+                var fc = await ForecastWeekly(d, vehicleVersionId, horizonWeeks);
+                need.Add((d, fc.Sum(x => (double)x.Forecast)));
+            }
+            catch
+            {
+                need.Add((d, 0));
+            }
+        }
+
+        var totalNeed = need.Sum(x => x.Need);
+        var allocatable = (int)Math.Floor(stock * (1 - holdbackRatio));
+
+        var items = new List<AllocationItem>();
+        if (allocatable <= 0 || totalNeed <= 0) return items;
+
+        int sumAlloc = 0;
+        foreach (var n in need)
+        {
+            var share = n.Need <= 0 ? 0 : n.Need / totalNeed;
+            var qty = (int)Math.Floor(share * allocatable);
+            sumAlloc += qty;
+            items.Add(new AllocationItem
+                { DealerId = n.DealerId, VehicleVersionId = vehicleVersionId, Quantity = qty });
+        }
+
+        int diff = allocatable - sumAlloc;
+        for (int i = 0; i < items.Count && diff > 0; i++, diff--)
+            items[i].Quantity++;
+
+        return items;
+    }
+
+    // ===== Models nội bộ =====
+    public class ModelInput { public float Value { get; set; } }
+    public class ForecastOutput { [VectorType] public float[] Forecast { get; set; } = Array.Empty<float>(); }
+    public class AllocationItem { public Guid DealerId { get; set; } public Guid VehicleVersionId { get; set; } public int Quantity { get; set; } }
+
+    public class MlDebugPayload
+    {
+        public Guid DealerId { get; set; }
+        public string DealerName { get; set; } = "";
+        public Guid VehicleVersionId { get; set; }
+        public string VehicleLabel { get; set; } = "";
+        public int Horizon { get; set; }
+        public int RequiredWeeks { get; set; }
+        public int SeriesLength { get; set; }
+        public int WindowSize { get; set; }
+        public int TrainSize { get; set; }
+        public string LastHistoryWeek { get; set; } = "";
+        public List<TimePoint> InputSeries { get; set; } = new();
+        public List<string> FutureWeeks { get; set; } = new();
+
+        public class TimePoint
+        {
+            public string WeekStart { get; set; } = "";
+            public int Orders { get; set; }
         }
     }
 
-    // ============================================================
-    // 3️⃣ SYSTEM PROMPT – “TRỢ LÝ DỮ LIỆU EVM” (HỘI THOẠI TỰ NHIÊN + HỎI LẠI KHI MƠ HỒ)
-    // ============================================================
-private static string BuildSystemPrompt()
-{
-    return @"
-Bạn là Trợ lý Dữ liệu EVM cho hệ thống phân tích nhu cầu và dự báo bán hàng xe điện.
+    public class MlDebugPagedResult
+    {
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPairs { get; set; }
+        public string GeneratedAt { get; set; } = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+        public List<MlDebugPayload> Data { get; set; } = new();
+    }
 
-MỤC TIÊU
-- Trả lời ngắn gọn, tự nhiên, thân thiện; hơi dí dỏm vừa phải.
-- Mặc định tiếng Việt; nếu người dùng hỏi tiếng Anh thì trả lời tiếng Anh.
-- Không dùng ký tự * hoặc markdown đậm/nhạt.
-- Luôn mở đầu bằng một câu kết luận cực ngắn (≤ 18 từ) nếu và chỉ nếu người dùng đang yêu cầu phân tích.
+    // Lấy payload debug cho 1 cặp
+    public async Task<MlDebugPayload> GetMlDebugAsync(Guid dealerId, Guid vehicleVersionId, int horizon)
+    {
+        var requiredWeeks = Math.Max(MinWeeksForTraining, Math.Min(12, horizon + 2));
+        var hist = await _repo.GetWeeklyOrders(dealerId, vehicleVersionId, requiredWeeks);
+        if (hist.Count == 0)
+            throw new InvalidOperationException("Không có lịch sử orders để debug.");
 
-PHÂN LOẠI INTENT (tự động)
-- greeting: lời chào/xã giao (“hello”, “hi”, “chào”, “alo”, “yo”…). → Chỉ chào lại tự nhiên, KHÔNG phân tích.
-- capability_query: hỏi “bạn/ai làm được gì”, “mày giúp gì được”, “how can you help”. → Trả lời ngắn gọn danh mục năng lực + ví dụ câu hỏi gợi ý, KHÔNG phân tích.
-- thanks/ack: “cảm ơn”, “ok”, “ừ”, “yep”… → Đáp ngắn gọn; không phân tích.
-- clarify_needed: câu mơ hồ (“xem tình hình tuần này đi”). → Hỏi lại tối đa 1–3 câu ngắn, rồi dừng.
-- analysis/actionable: có dữ liệu hoặc yêu cầu rõ. → Phân tích theo cấu trúc dưới.
-- smalltalk: chuyện phiếm ngắn. → Trả lời tự nhiên, không lôi dữ liệu vào.
+        var series = hist.Select(s => (s.WeekStart, Y: (float)s.Orders)).ToList();
+        var valuesCount = series.Count;
+        var windowSize = Math.Max(4, Math.Min(8, valuesCount / 4));
+        var trainSize = Math.Max(horizon + 4, valuesCount - horizon);
 
-ỨNG XỬ MẪU
-- greeting → “Chào bạn! Mình ở đây, bạn muốn xem dự báo gì hôm nay?”
-- capability_query → “Mình có thể: 1) tóm tắt 4 tuần gần nhất, 2) so sánh dealer/version, 3) bắt top tăng/giảm, 4) đánh giá tác động promo/discount, 5) xuất JSON chart/table. Bạn muốn bắt đầu với nội dung nào?”
-- thanks/ack → “Rất vui được giúp bạn! Cần gì cứ gọi mình nha.”
-- clarify_needed → Hỏi 1–3 câu ngắn:
-  - Xem theo dealer nào hay tất cả?
-  - Tuần gần nhất hay 4 tuần gần nhất?
-  - So sánh theo version hay theo dealer?
+        var lastWeek = series.Last().WeekStart;
+        var futureWeeks = new List<string>();
+        for (int i = 0; i < horizon; i++)
+            futureWeeks.Add(lastWeek.AddDays(7 * (i + 1)).ToString("yyyy-MM-dd"));
 
-DỮ LIỆU ĐẦU VÀO
-- instruction, question, sample (tối đa 100 ForecastRow: dealer_name, version_name, week_start, baseline_ema, discount_rate_active, has_promo, forecast_units).
+        var meta = await _repo.GetDealerVehicleMetaAsync(dealerId, vehicleVersionId);
 
-TỰ CHỦ DỮ LIỆU
-- Nếu sample < 2 tuần: giả định hệ thống đã tự mở rộng phạm vi gần đây.
-- Không nói “dữ liệu không đủ”. Thay vào đó nêu: “Đã tự mở rộng phạm vi dữ liệu gần đây để phân tích”, rồi phân tích ở mức thận trọng.
-- Không phát minh số ngoài sample. Khi dữ liệu mỏng, dùng ngôn ngữ định tính (“tăng nhẹ”, “ổn định”, “chưa rõ xu hướng”).
+        return new MlDebugPayload
+        {
+            DealerId = dealerId,
+            DealerName = meta.DealerName,
+            VehicleVersionId = vehicleVersionId,
+            VehicleLabel = meta.VehicleLabel,
+            Horizon = horizon,
+            RequiredWeeks = requiredWeeks,
+            SeriesLength = valuesCount,
+            WindowSize = windowSize,
+            TrainSize = trainSize,
+            LastHistoryWeek = lastWeek.ToString("yyyy-MM-dd"),
+            InputSeries = series.Select(x => new MlDebugPayload.TimePoint
+            {
+                WeekStart = x.WeekStart.ToString("yyyy-MM-dd"),
+                Orders = (int)x.Y
+            }).ToList(),
+            FutureWeeks = futureWeeks
+        };
+    }
 
-QUY TẮC PHÂN TÍCH
-- So sánh theo tuần (week_start). % thay đổi = (tuần_này - tuần_trước)/tuần_trước*100.
-- Liên hệ discount_rate_active/has_promo với forecast_units.
-- Bắt nhóm tăng mạnh/giảm rõ theo dealer_name/version_name.
-- Cảnh báo nếu giảm ≥ 2 tuần liên tiếp.
-- Nếu discount gần như không đổi mà forecast_units tăng mạnh → nhu cầu thật.
-- Giới hạn kết luận trong phạm vi sample; nêu rõ thiếu gì.
+    // Lấy tất cả cặp (dealer, vehicleVersion) có lịch sử theo trang + search
+    public async Task<MlDebugPagedResult> GetAllMlDebugPagedAsync(
+        int page, int pageSize, int horizon, string? search, Guid? dealerId, Guid? vehicleVersionId)
+    {
+        var pairsPaged = await _repo.GetAllDealerVehiclePairsPagedAsync(
+            search: search,
+            dealerId: dealerId,
+            vehicleVersionId: vehicleVersionId,
+            page: page,
+            pageSize: pageSize
+        );
 
-MẶC ĐỊNH KHI THIẾU CHỈ ĐỊNH
-- Phạm vi: 4 tuần gần nhất trong sample.
-- So sánh theo version_name trong từng dealer_name nếu có.
-- Ngưỡng biến động đáng chú ý: ±10% WoW.
-- Top K: 5.
+        var result = new MlDebugPagedResult
+        {
+            Page = page,
+            PageSize = pageSize,
+            TotalPairs = pairsPaged.Total,
+            Data = new List<MlDebugPayload>()
+        };
 
-CẤU TRÚC KHI PHÂN TÍCH (analysis/actionable)
-0) Kết luận một dòng (≤18 từ, chỉ dùng khi intent là phân tích).
-1) Tóm tắt nhanh (1–2 câu).
-2) Insight chính (3–6 dòng).
-3) Khuyến nghị hành động (2–5 dòng, có ngưỡng/điều kiện).
-4) Hạn chế/cần thêm (dữ liệu thiếu, giả định).
-5) Nếu người dùng yêu cầu chart/table: JSON chuẩn ở cuối.
+        foreach (var p in pairsPaged.Items)
+        {
+            try
+            {
+                var payload = await GetMlDebugAsync(p.DealerId, p.VehicleVersionId, horizon);
+                if (!string.IsNullOrEmpty(p.DealerName)) payload.DealerName = p.DealerName;
+                if (!string.IsNullOrEmpty(p.VehicleLabel)) payload.VehicleLabel = p.VehicleLabel;
+                result.Data.Add(payload);
+            }
+            catch
+            {
+                // bỏ qua cặp không đủ dữ liệu
+            }
+        }
 
-JSON CHUẨN (khi được yêu cầu)
-Chart:
-{
-  ""chart_type"": ""line"" | ""bar"",
-  ""x"": [""2025-09-29"", ""2025-10-06""],
-  ""series"": [{ ""name"": ""Dealer/Version/All"", ""data"": [123,141] }],
-  ""meta"": { ""granularity"": ""week"", ""dimension"": ""dealer_name|version_name|all"", ""notes"": ""Ngưỡng/giả định được dùng."" }
-}
-Table:
-{
-  ""columns"": [""dealer_name"", ""version_name"", ""week_start"", ""forecast_units"", ""discount_rate_active"", ""has_promo""],
-  ""rows"": [[ ""A"", ""Standard"", ""2025-10-06"", 141, 0.05, true ]]
-}
-
-KIỂM TRA TRƯỚC KHI GỬI
-- Có chọn đúng intent không? greeting/capability/clarify/smalltalk thì không phân tích.
-- Không dùng ký tự * hoặc markdown?
-- Không bịa số liệu? Câu ngắn, không lặp?
-- Nếu phân tích: đã mở đầu bằng kết luận ≤ 18 từ?
-";
-}
-
-
+        return result;
+    }
 }

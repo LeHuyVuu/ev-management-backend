@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using UtilityService.Infrastructure.Services;
-using UtilityService.Models;
 
-namespace UtilityService.Controllers;
+namespace UtilityService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,37 +14,96 @@ public class ForecastController : ControllerBase
         _svc = svc;
     }
 
-    [HttpGet("search")]
-    public async Task<ActionResult<PagedResult<ForecastRow>>> Search(
-        [FromQuery] Guid? dealerId,
-        [FromQuery] Guid? vehicleVersionId,
-        [FromQuery] DateTime? fromWeek,
-        [FromQuery] DateTime? toWeek,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
+    // GET /api/forecast/weekly?dealerId=...&vehicleVersionId=...&horizon=8
+    [HttpGet("weekly")]
+    public async Task<IActionResult> Weekly(
+        [FromQuery] Guid dealerId,
+        [FromQuery] Guid vehicleVersionId,
+        [FromQuery] int horizon = 8)
     {
-        var q = new ForecastQuery
+        try
         {
-            DealerId = dealerId,
-            VehicleVersionId = vehicleVersionId,
-            FromWeek = fromWeek,
-            ToWeek = toWeek,
-            Page = page,
-            PageSize = pageSize
-        };
-
-        var result = await _svc.SearchAsync(q, ct);
-        return Ok(result);
+            var fc = await _svc.ForecastWeekly(dealerId, vehicleVersionId, horizon);
+            var res = fc.Select(x => new { week_start = x.WeekStart.ToString("yyyy-MM-dd"), demand = Math.Round(x.Forecast) });
+            return Ok(res);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
-    [HttpPost("ask")]
-    public async Task<ActionResult<object>> Ask([FromBody] AskRequestDto req, CancellationToken ct)
+    // GET /api/forecast/weekly-total?vehicleVersionId=...&horizon=8
+    [HttpGet("weekly-total")]
+    public async Task<IActionResult> WeeklyTotal(
+        [FromQuery] Guid vehicleVersionId,
+        [FromQuery] int horizon = 8)
     {
-        if (req == null || string.IsNullOrWhiteSpace(req.Question))
-            return BadRequest("question is required");
+        try
+        {
+            var res = await _svc.ForecastWeeklyTotal(vehicleVersionId, horizon);
+            var shaped = res.Select(x => new { week_start = x.WeekStart.ToString("yyyy-MM-dd"), demand = Math.Round(x.ForecastTotal) });
+            return Ok(shaped);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
 
-        var answer = await _svc.AskAsync(req.Question, req.Forecast, ct);
-        return Ok(new { answer });
+    // GET /api/forecast/allocate?vehicleVersionId=...&horizon=4&holdback=0.1
+    [HttpGet("allocate")]
+    public async Task<IActionResult> Allocate(
+        [FromQuery] Guid vehicleVersionId,
+        [FromQuery] int horizon = 4,
+        [FromQuery] double holdback = 0.10)
+    {
+        try
+        {
+            var plan = await _svc.AllocateByForecast(vehicleVersionId, horizon, holdback);
+            var shaped = plan.Select(p => new
+            {
+                dealer_id = p.DealerId,
+                vehicle_version_id = p.VehicleVersionId,
+                quantity = p.Quantity
+            });
+            return Ok(shaped);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    // GET /api/forecast/debug-all?page=1&pageSize=20&horizon=8&search=&dealerId=&vehicleVersionId=
+    [HttpGet("debug-all")]
+    public async Task<IActionResult> DebugAll(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] int horizon = 8,
+        [FromQuery] string? search = null,
+        [FromQuery] Guid? dealerId = null,
+        [FromQuery] Guid? vehicleVersionId = null)
+    {
+        try
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0 || pageSize > 200) pageSize = 20;
+
+            var res = await _svc.GetAllMlDebugPagedAsync(
+                page: page,
+                pageSize: pageSize,
+                horizon: horizon,
+                search: search,
+                dealerId: dealerId,
+                vehicleVersionId: vehicleVersionId
+            );
+
+            return Ok(res);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }
