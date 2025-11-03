@@ -166,22 +166,28 @@ public class ContractController : ControllerBase
         }
     }
     
-    /// <summary>
-    /// Lấy danh sách hợp đồng chưa confirmed theo CustomerId.
-    /// </summary>
-    //[Authorize(Roles = "dealer_staff")]
-    [HttpGet]
-    [Route("/customers/{customerId}/contracts/InConfirmed")]
-    public async Task<IActionResult> GetAllInConfirmedContractsByCustomerId(Guid customerId)
+    [Authorize]
+    [HttpPatch]
+    [Route("api/contracts/{contractId}")]
+    public async Task<IActionResult> UpdateContract(Guid contractId, [FromBody] ContractUpdateRequest request)
     {
         try
         {
-            var contracts = await _contractService.GetAllInConfirmedContractsByCustomerId(customerId);
-            return Ok(ApiResponse<IEnumerable<ContractCustomerResponse>>.Success(contracts));
+            Guid dealerId = Guid.Parse(User.FindFirstValue("DealerId"));
+            var updated = await _contractService.UpdateContract(dealerId, contractId, request);
+            return Ok(ApiResponse<bool>.Success(updated));
         }
-        catch (KeyNotFoundException ex)
+        catch (NotFoundException ex)
         {
             return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<string>.BadRequest(ex.Message));
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return StatusCode(403, ApiResponse<string>.InternalError(ex.Message));
         }
         catch (Exception ex)
         {

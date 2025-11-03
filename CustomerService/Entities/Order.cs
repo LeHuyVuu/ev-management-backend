@@ -1,4 +1,7 @@
-﻿namespace CustomerService.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace CustomerService.Entities;
 
 public partial class Order
 {

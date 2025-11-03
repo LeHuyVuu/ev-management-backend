@@ -48,4 +48,10 @@ public class ContractRepository
     {
         return await _dbContext.Contracts.Where(c => c.CustomerId == customerId && c.Status != "confirmed").ToListAsync();
     }
+    
+    public async Task<bool> UpdateContract(Contract contract)
+    {
+        _dbContext.Update(contract);
+        return await _dbContext.SaveChangesAsync() > 0;
+    }
 }

@@ -27,6 +27,8 @@ public class ContractDetailResponse
     public decimal TotalValue { get; set; }
 
     public string PaymentMethod { get; set; } = null!;
+    
+    public decimal ProgressPercent {  get; set; }
 
     public string Status { get; set; } = null!;
 

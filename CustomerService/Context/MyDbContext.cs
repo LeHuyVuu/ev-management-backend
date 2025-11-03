@@ -32,6 +32,8 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<DealerTarget> DealerTargets { get; set; }
 
+    public virtual DbSet<DemandWeek> DemandWeeks { get; set; }
+
     public virtual DbSet<Inventory> Inventories { get; set; }
 
     public virtual DbSet<ManufacturerDebt> ManufacturerDebts { get; set; }
@@ -46,9 +48,15 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
+    public virtual DbSet<SimpleForecast> SimpleForecasts { get; set; }
+
+    public virtual DbSet<SimpleForecastsState> SimpleForecastsStates { get; set; }
+
     public virtual DbSet<TestDrife> TestDrives { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<VDemandHist> VDemandHists { get; set; }
 
     public virtual DbSet<Vehicle> Vehicles { get; set; }
 
@@ -60,8 +68,14 @@ public partial class MyDbContext : DbContext
 
     public virtual DbSet<WholesalePrice> WholesalePrices { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseNpgsql("Host=34.69.56.62;Port=5443;Database=EVMDatabase;Username=evm_user;Password=lehuyvu-db-ggcloud;SSL Mode=Disable; ");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("evm", "pgcrypto");
+
         modelBuilder.Entity<BrandInventory>(entity =>
         {
             entity.HasKey(e => e.VehicleVersionId).HasName("brand_inventory_pkey");
@@ -75,7 +89,6 @@ public partial class MyDbContext : DbContext
 
             entity.HasOne(d => d.VehicleVersion).WithOne(p => p.BrandInventory)
                 .HasForeignKey<BrandInventory>(d => d.VehicleVersionId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("brand_inventory_vehicle_version_id_fkey");
         });
 
@@ -88,6 +101,10 @@ public partial class MyDbContext : DbContext
             entity.Property(e => e.ContractId)
                 .HasDefaultValueSql("gen_random_uuid()")
                 .HasColumnName("contract_id");
+            entity.Property(e => e.AmountPaid)
+                .HasPrecision(18, 2)
+                .HasDefaultValueSql("0")
+                .HasColumnName("amount_paid");
             entity.Property(e => e.CustomerId).HasColumnName("customer_id");
             entity.Property(e => e.DealerId).HasColumnName("dealer_id");
             entity.Property(e => e.FileUrl).HasColumnName("file_url");
@@ -289,6 +306,18 @@ public partial class MyDbContext : DbContext
                 .HasForeignKey(d => d.DealerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("dealer_targets_dealer_id_fkey");
+        });
+
+        modelBuilder.Entity<DemandWeek>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("demand_week", "evm_ai");
+
+            entity.Property(e => e.DealerId).HasColumnName("dealer_id");
+            entity.Property(e => e.VehicleVersionId).HasColumnName("vehicle_version_id");
+            entity.Property(e => e.WeekStart).HasColumnName("week_start");
+            entity.Property(e => e.YContractsWeek).HasColumnName("y_contracts_week");
         });
 
         modelBuilder.Entity<Inventory>(entity =>
@@ -512,6 +541,70 @@ public partial class MyDbContext : DbContext
                     });
         });
 
+        modelBuilder.Entity<SimpleForecast>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("simple_forecasts", "evm");
+
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.Dt).HasColumnName("dt");
+            entity.Property(e => e.P50)
+                .HasPrecision(18, 2)
+                .HasColumnName("p50");
+            entity.Property(e => e.P90)
+                .HasPrecision(18, 2)
+                .HasColumnName("p90");
+            entity.Property(e => e.Region)
+                .HasMaxLength(100)
+                .HasColumnName("region");
+            entity.Property(e => e.VehicleVersionId).HasColumnName("vehicle_version_id");
+        });
+
+        modelBuilder.Entity<SimpleForecastsState>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("simple_forecasts_state_pkey");
+
+            entity.ToTable("simple_forecasts_state", "evm");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValue((short)1)
+                .HasColumnName("id");
+            entity.Property(e => e.ContractsCnt)
+                .HasDefaultValue(0L)
+                .HasColumnName("contracts_cnt");
+            entity.Property(e => e.ContractsSig)
+                .HasDefaultValue(0L)
+                .HasColumnName("contracts_sig");
+            entity.Property(e => e.DiscountsCnt)
+                .HasDefaultValue(0L)
+                .HasColumnName("discounts_cnt");
+            entity.Property(e => e.DiscountsSig)
+                .HasDefaultValue(0L)
+                .HasColumnName("discounts_sig");
+            entity.Property(e => e.InventoryCnt)
+                .HasDefaultValue(0L)
+                .HasColumnName("inventory_cnt");
+            entity.Property(e => e.InventorySig)
+                .HasDefaultValue(0L)
+                .HasColumnName("inventory_sig");
+            entity.Property(e => e.LastRefreshed)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("last_refreshed");
+            entity.Property(e => e.PromotionsCnt)
+                .HasDefaultValue(0L)
+                .HasColumnName("promotions_cnt");
+            entity.Property(e => e.PromotionsSig)
+                .HasDefaultValue(0L)
+                .HasColumnName("promotions_sig");
+            entity.Property(e => e.QuotesCnt)
+                .HasDefaultValue(0L)
+                .HasColumnName("quotes_cnt");
+            entity.Property(e => e.QuotesSig)
+                .HasDefaultValue(0L)
+                .HasColumnName("quotes_sig");
+        });
+
         modelBuilder.Entity<TestDrife>(entity =>
         {
             entity.HasKey(e => e.TestDriveId).HasName("test_drives_pkey");
@@ -599,6 +692,20 @@ public partial class MyDbContext : DbContext
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("users_role_id_fkey");
+        });
+
+        modelBuilder.Entity<VDemandHist>(entity =>
+        {
+            entity
+                .HasNoKey()
+                .ToView("v_demand_hist", "evm");
+
+            entity.Property(e => e.DemandUnits).HasColumnName("demand_units");
+            entity.Property(e => e.Dt).HasColumnName("dt");
+            entity.Property(e => e.Region)
+                .HasMaxLength(100)
+                .HasColumnName("region");
+            entity.Property(e => e.VehicleVersionId).HasColumnName("vehicle_version_id");
         });
 
         modelBuilder.Entity<Vehicle>(entity =>

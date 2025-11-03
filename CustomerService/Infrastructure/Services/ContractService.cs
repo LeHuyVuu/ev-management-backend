@@ -3,6 +3,7 @@ using AutoMapper;
 using CustomerService.DTOs.Requests.ContractDTOs;
 using CustomerService.DTOs.Responses.ContractDTOs;
 using CustomerService.Entities;
+using CustomerService.Extensions.Helper;
 using CustomerService.Infrastructure.Repositories;
 
 namespace CustomerService.Infrastructure.Services;
@@ -128,6 +129,8 @@ public class ContractService
         var dealer = await _dealerRepository.GetDealerByDealerId(quote.DealerId);
         if (dealer == null)
             throw new NotFoundException($"Dealer not found");
+        
+        var progress = ProgressPercent.Get(contract.TotalValue, contract.AmountPaid ?? 0);
 
         var contractResponse = new ContractDetailResponse()
         {
@@ -144,6 +147,7 @@ public class ContractService
             FileUrl = contract.FileUrl ?? "Contract don't have file",
             TotalValue = contract.TotalValue,
             PaymentMethod = contract.PaymentMethod,
+            ProgressPercent = progress,
             Status = contract.Status,
             SignedDate = contract.SignedDate ?? DateOnly.MinValue
         };
@@ -318,5 +322,117 @@ public class ContractService
         }
 
         return contractResponses;
+    }
+
+    public async Task<bool> UpdateContract(Guid dealerId, Guid contractId, ContractUpdateRequest request)
+    {
+        var contract = await _contractRepository.GetContractByContractId(contractId);
+        if (contract == null)
+            throw new NotFoundException("Contract not found!");
+
+        if (contract.DealerId != dealerId)
+            throw new InvalidOperationException("Your dealer is not authorized to process this contract.");
+
+        var reqMethod = (request.PaymentMethod ?? "").Trim().ToLowerInvariant();
+        if (reqMethod is not ("installment" or "bank_transfer" or "cash"))
+            throw new InvalidOperationException("Unsupported payment method.");
+
+        var current = (contract.PaymentMethod ?? "").Trim();
+
+        decimal total = contract.TotalValue;
+        decimal oldPaid = contract.AmountPaid ?? 0m;
+        decimal newPaid = request.NewAmountPaid;
+
+        // --- Case 1: Chưa chọn method (mặc định) ---
+        if (string.Equals(current, "Not selected yet", StringComparison.OrdinalIgnoreCase))
+        {
+            if (reqMethod == "installment")
+            {
+                if (request.Months <= 0 || request.Pct <= 0 || request.Pct > 100)
+                    throw new InvalidOperationException("Invalid months/pct for installment.");
+
+                contract.PaymentMethod = InstallmentCodec.Build(v: 1, months: request.Months, pct: request.Pct);
+
+                var per = Math.Round(total * request.Pct / 100m, 0, MidpointRounding.AwayFromZero);
+                if (newPaid == 0m)
+                {
+                    contract.AmountPaid = 0m;
+                }
+                else
+                {
+                    var minNeed = Math.Min(per, total);
+                    var maxNeed = total;
+                    if (newPaid < minNeed || newPaid > maxNeed)
+                        throw new InvalidOperationException(
+                            $"First installment must be at least {minNeed:N0} VND and at most {maxNeed:N0} VND.");
+                    contract.AmountPaid = newPaid;
+                }
+
+                return await _contractRepository.UpdateContract(contract);
+            }
+            else
+            {
+                if (newPaid < 0m || newPaid > total)
+                    throw new InvalidOperationException("Invalid amount.");
+
+                contract.PaymentMethod = reqMethod; // "cash" | "bank_transfer"
+                contract.AmountPaid = newPaid;
+
+                return await _contractRepository.UpdateContract(contract);
+            }
+        }
+
+        // --- Case 2: Đang ở installment ---
+        if (current.StartsWith("installment?", StringComparison.OrdinalIgnoreCase))
+        {
+            if (reqMethod != "installment")
+                throw new InvalidOperationException("Cannot change method from installment to another.");
+
+            var (_, _, pct) = InstallmentCodec.Parse(current);
+            var per = Math.Round(total * pct / 100m, 0, MidpointRounding.AwayFromZero);
+
+            if (newPaid < oldPaid)
+                throw new InvalidOperationException("New amount cannot be less than current amount.");
+            if (newPaid > total)
+                throw new InvalidOperationException("New amount exceeds total price.");
+
+            var remainingBefore = Math.Max(total - oldPaid, 0m);
+            if (remainingBefore == 0m)
+                throw new InvalidOperationException("Contract is already settled.");
+
+            var minNeed = Math.Min(per, remainingBefore);
+            var delta = newPaid - oldPaid;
+
+            // Cho phép trả >= tối thiểu và <= phần còn lại (tất toán sớm ok)
+            if (delta < minNeed || delta > remainingBefore)
+                throw new InvalidOperationException(
+                    $"This installment must be at least {minNeed:N0} VND and at most {remainingBefore:N0} VND.");
+
+            contract.AmountPaid = newPaid;
+
+            return await _contractRepository.UpdateContract(contract);
+        }
+
+        // --- Case 3: Đang ở bank_transfer/cash ---
+        if (string.Equals(current, "bank_transfer", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(current, "cash", StringComparison.OrdinalIgnoreCase))
+        {
+            if (reqMethod == "installment")
+                throw new InvalidOperationException("Cannot switch to installment once a direct method is selected.");
+
+            if (!string.Equals(current, reqMethod, StringComparison.OrdinalIgnoreCase))
+                contract.PaymentMethod = reqMethod; // đổi cash <-> bank_transfer nếu khác
+
+            if (newPaid < oldPaid)
+                throw new InvalidOperationException("New amount cannot be less than current amount.");
+            if (newPaid > total)
+                throw new InvalidOperationException("New amount exceeds total price.");
+
+            contract.AmountPaid = newPaid;
+
+            return await _contractRepository.UpdateContract(contract);
+        }
+
+        throw new InvalidOperationException("This contract has finalized the payment method.");
     }
 }
