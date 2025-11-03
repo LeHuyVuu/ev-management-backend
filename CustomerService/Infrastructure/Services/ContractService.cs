@@ -325,18 +325,18 @@ public class ContractService
         return contractResponses;
     }
 
-    public async Task<bool> UpdateContract(Guid dealerId, Guid contractId, ContractUpdateRequest request)
+   public async Task<bool> UpdateContract(Guid dealerId, Guid contractId, ContractUpdateRequest request)
     {
         var contract = await _contractRepository.GetContractByContractId(contractId);
         if (contract == null)
-            throw new NotFoundException("Contract not found!");
+            throw new NotFoundException("Không tìm thấy hợp đồng!");
 
         if (contract.DealerId != dealerId)
-            throw new InvalidOperationException("Your dealer is not authorized to process this contract.");
+            throw new InvalidOperationException("Đại lý của bạn không có quyền xử lý hợp đồng này.");
 
         var reqMethod = (request.PaymentMethod ?? "").Trim().ToLowerInvariant();
         if (reqMethod is not ("installment" or "bank_transfer" or "cash"))
-            throw new InvalidOperationException("Unsupported payment method.");
+            throw new InvalidOperationException("Phương thức thanh toán không được hỗ trợ.");
 
         var current = (contract.PaymentMethod ?? "").Trim();
 
@@ -350,7 +350,7 @@ public class ContractService
             if (reqMethod == "installment")
             {
                 if (request.Months <= 0 || request.Pct <= 0 || request.Pct > 100)
-                    throw new InvalidOperationException("Invalid months/pct for installment.");
+                    throw new InvalidOperationException("Số tháng hoặc phần trăm trả góp không hợp lệ.");
 
                 contract.PaymentMethod = InstallmentCodec.Build(v: 1, months: request.Months, pct: request.Pct);
 
@@ -365,7 +365,7 @@ public class ContractService
                     var maxNeed = total;
                     if (newPaid < minNeed || newPaid > maxNeed)
                         throw new InvalidOperationException(
-                            $"First installment must be at least {minNeed:N0} VND and at most {maxNeed:N0} VND.");
+                            $"Khoản thanh toán đầu tiên phải ít nhất {minNeed:N0} VND và tối đa {maxNeed:N0} VND.");
                     contract.AmountPaid = newPaid;
                 }
 
@@ -374,7 +374,7 @@ public class ContractService
             else
             {
                 if (newPaid < 0m || newPaid > total)
-                    throw new InvalidOperationException("Invalid amount.");
+                    throw new InvalidOperationException("Số tiền thanh toán không hợp lệ.");
 
                 contract.PaymentMethod = reqMethod; // "cash" | "bank_transfer"
                 contract.AmountPaid = newPaid;
@@ -387,19 +387,19 @@ public class ContractService
         if (current.StartsWith("installment?", StringComparison.OrdinalIgnoreCase))
         {
             if (reqMethod != "installment")
-                throw new InvalidOperationException("Cannot change method from installment to another.");
+                throw new InvalidOperationException("Không thể đổi phương thức từ trả góp sang hình thức khác.");
 
             var (_, _, pct) = InstallmentCodec.Parse(current);
             var per = Math.Round(total * pct / 100m, 0, MidpointRounding.AwayFromZero);
 
             if (newPaid < oldPaid)
-                throw new InvalidOperationException("New amount cannot be less than current amount.");
+                throw new InvalidOperationException("Số tiền mới không được nhỏ hơn số tiền hiện tại.");
             if (newPaid > total)
-                throw new InvalidOperationException("New amount exceeds total price.");
+                throw new InvalidOperationException("Số tiền mới vượt quá tổng giá trị hợp đồng.");
 
             var remainingBefore = Math.Max(total - oldPaid, 0m);
             if (remainingBefore == 0m)
-                throw new InvalidOperationException("Contract is already settled.");
+                throw new InvalidOperationException("Hợp đồng này đã được thanh toán đầy đủ.");
 
             var minNeed = Math.Min(per, remainingBefore);
             var delta = newPaid - oldPaid;
@@ -407,7 +407,7 @@ public class ContractService
             // Cho phép trả >= tối thiểu và <= phần còn lại (tất toán sớm ok)
             if (delta < minNeed || delta > remainingBefore)
                 throw new InvalidOperationException(
-                    $"This installment must be at least {minNeed:N0} VND and at most {remainingBefore:N0} VND.");
+                    $"Kỳ trả góp này phải ít nhất {minNeed:N0} VND và tối đa {remainingBefore:N0} VND.");
 
             contract.AmountPaid = newPaid;
 
@@ -419,21 +419,21 @@ public class ContractService
             string.Equals(current, "cash", StringComparison.OrdinalIgnoreCase))
         {
             if (reqMethod == "installment")
-                throw new InvalidOperationException("Cannot switch to installment once a direct method is selected.");
+                throw new InvalidOperationException("Không thể chuyển sang trả góp sau khi đã chọn hình thức thanh toán trực tiếp.");
 
             if (!string.Equals(current, reqMethod, StringComparison.OrdinalIgnoreCase))
                 contract.PaymentMethod = reqMethod; // đổi cash <-> bank_transfer nếu khác
 
             if (newPaid < oldPaid)
-                throw new InvalidOperationException("New amount cannot be less than current amount.");
+                throw new InvalidOperationException("Số tiền mới không được nhỏ hơn số tiền hiện tại.");
             if (newPaid > total)
-                throw new InvalidOperationException("New amount exceeds total price.");
+                throw new InvalidOperationException("Số tiền mới vượt quá tổng giá trị hợp đồng.");
 
             contract.AmountPaid = newPaid;
 
             return await _contractRepository.UpdateContract(contract);
         }
 
-        throw new InvalidOperationException("This contract has finalized the payment method.");
+        throw new InvalidOperationException("Hợp đồng này đã hoàn tất và không thể thay đổi phương thức thanh toán.");
     }
 }
