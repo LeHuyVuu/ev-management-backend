@@ -148,6 +148,7 @@ public class ContractService
             TotalValue = contract.TotalValue,
             PaymentMethod = contract.PaymentMethod,
             ProgressPercent = progress,
+            AmountPaid = contract.AmountPaid ?? 0m,
             Status = contract.Status,
             SignedDate = contract.SignedDate ?? DateOnly.MinValue
         };
