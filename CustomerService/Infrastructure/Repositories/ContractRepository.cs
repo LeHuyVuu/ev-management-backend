@@ -43,4 +43,9 @@ public class ContractRepository
         _dbContext.Update(contract);
         return await _dbContext.SaveChangesAsync() > 0;
     }
+    
+    public async Task<IEnumerable<Contract>> GetAllInConfirmedContractsByCustomerId(Guid customerId)
+    {
+        return await _dbContext.Contracts.Where(c => c.CustomerId == customerId && c.Status != "confirmed").ToListAsync();
+    }
 }

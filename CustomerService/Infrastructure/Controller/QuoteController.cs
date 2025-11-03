@@ -21,7 +21,7 @@ public class QuoteController : ControllerBase
     /// <summary>
     /// Lấy ra thông tin chi tiết của 1 Quote theo quoteId
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpGet]
     [Route("api/quotes/{id}")]
     public async Task<IActionResult> GetQuoteDetailByQuoteId(Guid id)
@@ -44,7 +44,7 @@ public class QuoteController : ControllerBase
     /// <summary>
     /// Lấy ra các Quotes mà Dealer đảm nhận, theo dealerId
     /// </summary>
-    // [Authorize(Roles = "evm_staff")]
+    [Authorize]
     [HttpGet]
     [Route("api/quotes/dealers")]
     public async Task<IActionResult> GetQuotesByDealerId()
@@ -68,7 +68,7 @@ public class QuoteController : ControllerBase
     /// <summary>
     /// Cập nhật lại thông tin của 1 quote thông qua quoteId
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpPut]
     [Route("api/quotes/{quoteId}")]
     public async Task<IActionResult> UpdateQuoteByQuoteId(Guid quoteId, [FromBody]QuoteUpdateRequest request)
@@ -91,7 +91,7 @@ public class QuoteController : ControllerBase
     /// <summary>
     /// Tạo quote mới
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpPost]
     [Route("api/quotes")]
     public async Task<IActionResult> CreateQuote([FromBody] QuoteCreateRequest request)
@@ -123,7 +123,7 @@ public class QuoteController : ControllerBase
     /// <summary>
     /// Cập nhật quote status, có 4 trạng thái của quote draft, confirmed, expired, cancelled
     /// </summary>
-    // [Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpPatch("api/quotes/{quoteId:guid}/status")]
     public async Task<IActionResult> UpdateQuoteStatus([FromBody]QuoteUpdateStatusRequest request, [FromRoute] Guid quoteId)
     {

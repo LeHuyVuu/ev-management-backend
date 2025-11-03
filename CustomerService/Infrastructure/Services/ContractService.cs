@@ -245,6 +245,9 @@ public class ContractService
 
         if (string.Equals(contract.Status, normalizedStatus, StringComparison.OrdinalIgnoreCase))
             return true;
+        
+        if (contract.Status == "approved")
+            throw new InvalidOperationException("Cannot change status of an approved contract.");
 
         if (normalizedStatus == "confirmed" && contract.SignedDate == null)
         {
@@ -278,5 +281,42 @@ public class ContractService
         contract.FileUrl = request.FileUrl;
         var updated = await _contractRepository.UpdateContractStatus(contract);
         return updated;
+    }
+    
+    public async Task<IEnumerable<ContractCustomerResponse>> GetAllInConfirmedContractsByCustomerId(Guid customerId)
+    {
+        if (customerId == Guid.Empty)
+            throw new ArgumentException("CustomerId không hợp lệ (Guid.Empty)");
+
+        bool isExist = await _customerRepository.CustomerExists(customerId);
+        if (!isExist)
+            throw new KeyNotFoundException($"Customer với ID [{customerId}] không tồn tại.");
+
+        var contracts = await _contractRepository.GetAllInConfirmedContractsByCustomerId(customerId);
+        if (contracts == null || !contracts.Any())
+            return Enumerable.Empty<ContractCustomerResponse>();
+
+        var contractResponses = _mapper.Map<IEnumerable<ContractCustomerResponse>>(contracts);
+
+        foreach (var contract in contractResponses)
+        {
+            if (contract == null)
+                continue;
+
+            var quote = await _quoteRepository.GetQuoteByContractId(contract.ContractId);
+            if (quote == null)
+                continue;
+
+            var vehicle = await _quoteRepository.GetVehicleByQuoteId(quote.QuoteId);
+            var vehicleVersion = await _quoteRepository.GetVehicleVersionByQuoteId(quote.QuoteId);
+            var user = await _userRepository.GetUserStaffByDealerId(quote.DealerId);
+
+            contract.StaffContract = user?.Name ?? "No assigned staff";
+            contract.Brand = vehicle?.Brand ?? "Unknown";
+            contract.VehicleName = vehicle?.ModelName ?? "Unknown";
+            contract.VersionName = vehicleVersion?.VersionName ?? "No version information";
+        }
+
+        return contractResponses;
     }
 }

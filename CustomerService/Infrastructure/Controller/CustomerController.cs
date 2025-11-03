@@ -23,7 +23,7 @@ public class CustomerController : ControllerBase
     /// <summary>
     /// Lấy danh sách khách hàng dựa theo dealer đang đăng nhập
     /// </summary>
-    //[Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpGet]
     [Route("api/customers")]
     public async Task<IActionResult> GetCustomersByDealerId()
@@ -47,7 +47,7 @@ public class CustomerController : ControllerBase
     /// <summary>
     /// Lấy chi tiết khách hàng (profile) theo CustomerId.
     /// </summary>
-    //[Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpGet]
     [Route("api/customers/{customerId}")]
     public async Task<IActionResult> GetCustomerDetail(Guid customerId)
@@ -97,7 +97,7 @@ public class CustomerController : ControllerBase
     /// <summary>
     /// Cập nhật profile của khách hàng.
     /// </summary>
-    //[Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpPut]
     [Route("api/customers")]
     public async Task<IActionResult> UpdateCustomer(CustomerUpdateRequest request)

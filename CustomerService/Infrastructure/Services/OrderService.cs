@@ -87,6 +87,14 @@ public class OrderService
         inventory.StockQuantity = quantity - 1;
         await _inventoryRepository.UpdateInventory(inventory);
 
+        if(contract.Status != "confirmed"){
+            contract.Status = "confirmed";
+            await _contractRepository.UpdateContractStatus(contract);
+        }
+        if(contract.Status == "confirmed"){
+            throw new InvalidOperationException("Contract has already been confirmed.");
+        }
+
         var result = await _orderRepository.CreateOrder(_mapper.Map<Order>(order));
         if (!result)
         {
@@ -173,7 +181,33 @@ public class OrderService
         var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
         if (!allowedStatuses.Contains(status))
             throw new InvalidOperationException("Invalid status value. Only accepted: preparing, shipped from warehouse, in transit, arrived, out for delivery, completed, delivery failed, waiting");
-        
+
+
+        if (string.Equals(request.Status, "delivery failed", StringComparison.OrdinalIgnoreCase)
+                 && string.Equals(order.Status, "delivery failed", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("You cannot update an order that has failed delivery.");
+        }
+
+        if (string.Equals(request.Status, "delivery failed", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(order.Status, "delivery failed", StringComparison.OrdinalIgnoreCase))
+        {
+            var contract = await _contractRepository.GetContractByContractIncludeQuote(order.ContractId);
+            if (contract == null)
+                throw new KeyNotFoundException("Contract does not exist");
+            var inventory = await _inventoryRepository.GetInventoryByVersionId(contract.Quote.VehicleVersionId);
+            if (inventory == null)
+                throw new KeyNotFoundException("Car in inventory does not exist");
+
+            int quantity = inventory.StockQuantity;
+
+            inventory.StockQuantity = quantity + 1;
+            await _inventoryRepository.UpdateInventory(inventory);
+
+            contract.Status = "draft";
+            await _contractRepository.UpdateContractStatus(contract);
+        }
+
         order.Status = request.Status;
 
         return await _orderRepository.UpdateOrderStatus(order);
