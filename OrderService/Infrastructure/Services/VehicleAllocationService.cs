@@ -80,12 +80,10 @@ public class VehicleAllocationService
     {
         try
         {
-            // TODO gỡ cái này đi
-            var updated = await _repository.UpdateStatusAsync(id, status);
-            if (updated == null)
-                return null;
+            var entity = await _repository.GetByIdAsync(id);
 
-            var response = _mapper.Map<VehicleAllocationResponse>(updated);
+
+            var response = _mapper.Map<VehicleAllocationResponse>(entity);
 
             // Normalize status
             var normalized = status.Trim().ToLowerInvariant();
@@ -96,20 +94,20 @@ public class VehicleAllocationService
             {
                 var ev = new AllocationOrderEvent
                 {
-                    DealerId = updated.DealerId,
-                    VehicleVersionId = updated.VehicleVersionId,
+                    DealerId = entity.DealerId,
+                    VehicleVersionId = entity.VehicleVersionId,
                     Status = status,
-                    Quantity = updated.Quantity,
+                    Quantity = entity.Quantity,
                     IsRecived = isReceived
                 };
 
-                var key = updated.DealerId.ToString();
+                var key = entity.DealerId.ToString();
 
                 await _kafkaProducer.PublishAsync(_kafkaTopic, key, ev);
 
                 _logger.LogInformation(
                     "Published AllocationOrderEvent. AllocationId={Id}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}, Topic={Topic}",
-                    updated.AllocationId, updated.DealerId, updated.VehicleVersionId, updated.Quantity, ev.IsRecived, _kafkaTopic
+                    entity.AllocationId, entity.DealerId, entity.VehicleVersionId, entity.Quantity, ev.IsRecived, _kafkaTopic
                 );
             }
 

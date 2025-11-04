@@ -79,12 +79,9 @@ namespace OrderService.Infrastructure.Services
         {
             try
             {
-                // TODO gỡ cái này đi
-                var updated = await _repository.UpdateStatusAsync(id, status);
-                if (updated == null)
-                    return null;
+                var entity = await _repository.GetByIdAsync(id);
 
-                var response = _mapper.Map<VehicleTransferOrderResponse>(updated);
+                var response = _mapper.Map<VehicleTransferOrderResponse>(entity);
 
                 var normalized = status?.Trim().ToLowerInvariant();
                 var isShipping = normalized == "shipping";
@@ -93,7 +90,7 @@ namespace OrderService.Infrastructure.Services
                 if (isShipping || isReceived)
                 {
 
-                    var dealerForEvent = isShipping ? updated.FromDealerId : updated.ToDealerId;
+                    var dealerForEvent = isShipping ? entity.FromDealerId : entity.ToDealerId;
 
                     if (dealerForEvent is null)
                     {
@@ -104,8 +101,8 @@ namespace OrderService.Infrastructure.Services
                     var evt = new TransferOrderEvent
                     {
                         DealerId = dealerForEvent,
-                        VehicleVersionId = updated.VehicleVersionId, 
-                        Quantity = updated.Quantity,
+                        VehicleVersionId = entity.VehicleVersionId, 
+                        Quantity = entity.Quantity,
                         Status = status,
                         IsRecived = isReceived 
                     };
@@ -116,7 +113,7 @@ namespace OrderService.Infrastructure.Services
 
                     _logger.LogInformation(
                         "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}",
-                        id, _kafkaTopic, dealerForEvent, updated.VehicleVersionId, updated.Quantity, evt.IsRecived
+                        id, _kafkaTopic, dealerForEvent, entity.VehicleVersionId, entity.Quantity, evt.IsRecived
                     );
                 }
 
