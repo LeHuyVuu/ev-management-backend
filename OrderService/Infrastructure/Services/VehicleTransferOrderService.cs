@@ -79,6 +79,7 @@ namespace OrderService.Infrastructure.Services
         {
             try
             {
+                // TODO gỡ cái này đi
                 var updated = await _repository.UpdateStatusAsync(id, status);
                 if (updated == null)
                     return null;
@@ -105,6 +106,7 @@ namespace OrderService.Infrastructure.Services
                         DealerId = dealerForEvent,
                         VehicleVersionId = updated.VehicleVersionId, 
                         Quantity = updated.Quantity,
+                        Status = status,
                         IsRecived = isReceived 
                     };
 

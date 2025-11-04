@@ -80,13 +80,14 @@ public class VehicleAllocationService
     {
         try
         {
+            // TODO gỡ cái này đi
             var updated = await _repository.UpdateStatusAsync(id, status);
             if (updated == null)
                 return null;
 
             var response = _mapper.Map<VehicleAllocationResponse>(updated);
 
-            // ✅ Normalize status
+            // Normalize status
             var normalized = status.Trim().ToLowerInvariant();
             var isShipping = normalized == "shipping";
             var isReceived = normalized == "received";
@@ -97,6 +98,7 @@ public class VehicleAllocationService
                 {
                     DealerId = updated.DealerId,
                     VehicleVersionId = updated.VehicleVersionId,
+                    Status = status,
                     Quantity = updated.Quantity,
                     IsRecived = isReceived
                 };
@@ -106,7 +108,7 @@ public class VehicleAllocationService
                 await _kafkaProducer.PublishAsync(_kafkaTopic, key, ev);
 
                 _logger.LogInformation(
-                    "✅ Published AllocationOrderEvent. AllocationId={Id}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}, Topic={Topic}",
+                    "Published AllocationOrderEvent. AllocationId={Id}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}, Topic={Topic}",
                     updated.AllocationId, updated.DealerId, updated.VehicleVersionId, updated.Quantity, ev.IsRecived, _kafkaTopic
                 );
             }

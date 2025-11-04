@@ -39,7 +39,7 @@ namespace BrandService.Kafka.Messaging.Consumer
             using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg).Build();
             consumer.Subscribe(topics);
 
-            _logger.LogInformation("✅ Subscribed to topics: {Topics}", string.Join(", ", topics));
+            _logger.LogInformation("Subscribed to topics: {Topics}", string.Join(", ", topics));
 
             try
             {

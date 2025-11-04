@@ -71,6 +71,7 @@ namespace BrandService.Kafka.Handler
                 OrderId = ev.OrderId,
                 OrderType = "allocation",
                 DealerId = ev.DealerId,
+                Status = ev.Status,
                 IsApproved = success,
                 Reason = reason
             };

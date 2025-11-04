@@ -42,7 +42,7 @@ namespace OrderService.Infrastructure.Repositories
         }
 
 
-        // ✅ 2️⃣ Tạo mới Transfer Order
+        //Tạo mới Transfer Order
         public async Task<VehicleTransferOrder> CreateAsync(VehicleTransferOrder entity)
         {
             try
@@ -77,7 +77,7 @@ namespace OrderService.Infrastructure.Repositories
             }
         }
 
-        // ✅ 3️⃣ Cập nhật trạng thái Transfer Order
+        // Cập nhật trạng thái Transfer Order
         public async Task<VehicleTransferOrder?> UpdateStatusAsync(Guid id, string status)
         {
             try
