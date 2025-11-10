@@ -76,47 +76,50 @@ public class VehicleAllocationService
             throw;
         }
     }
+
     public async Task<VehicleAllocationResponse?> UpdateStatusAsync(Guid id, string status)
     {
         try
         {
             var entity = await _repository.GetByIdAsync(id);
-
+            if (entity == null)
+            {
+                _logger.LogWarning("Allocation not found. Id={Id}", id);
+                return null;
+            }
 
             var response = _mapper.Map<VehicleAllocationResponse>(entity);
 
-            // Normalize status
-            var normalized = status.Trim().ToLowerInvariant();
-            var isShipping = normalized == "shipping";
-            var isReceived = normalized == "received";
+            var normalized = status?.Trim().ToLowerInvariant();
 
-            if (isShipping || isReceived)
+            if (entity.DealerId == Guid.Empty)
             {
-                var ev = new AllocationOrderEvent
-                {
-                    OrderId = id,
-                    DealerId = entity.DealerId,
-                    VehicleVersionId = entity.VehicleVersionId,
-                    Status = status,
-                    Quantity = entity.Quantity,
-                    IsRecived = isReceived
-                };
-
-                var key = entity.DealerId.ToString();
-
-                await _kafkaProducer.PublishAsync(_kafkaTopic, key, ev);
-
-                _logger.LogInformation(
-                    "Published AllocationOrderEvent. AllocationId={Id}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}, Topic={Topic}",
-                    entity.AllocationId, entity.DealerId, entity.VehicleVersionId, entity.Quantity, ev.IsRecived, _kafkaTopic
-                );
+                _logger.LogWarning("Skip publishing AllocationOrderEvent: DealerId is empty. Id={Id}, Status={Status}", id, normalized);
+                return response;
             }
+
+            var ev = new AllocationOrderEvent
+            {
+                OrderId = id,
+                DealerId = entity.DealerId,
+                VehicleVersionId = entity.VehicleVersionId,
+                Quantity = entity.Quantity,
+                Status = normalized        
+            };
+
+            var key = entity.DealerId.ToString();
+            await _kafkaProducer.PublishAsync(_kafkaTopic, key, ev);
+
+            _logger.LogInformation(
+                "Published AllocationOrderEvent. AllocationId={AllocationId}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, Status={Status}, Topic={Topic}",
+                entity.AllocationId, entity.DealerId, entity.VehicleVersionId, entity.Quantity, ev.Status, _kafkaTopic
+            );
 
             return response;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating vehicle allocation status for Id={Id}", id);
+            _logger.LogError(ex, "Error updating vehicle allocation status. Id={Id}, Status={Status}", id, status);
             throw;
         }
     }

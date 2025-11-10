@@ -26,6 +26,7 @@ namespace BrandService.Kafka.Handler
         public async Task HandleAsync(string messageValue, CancellationToken ct)
         {
             _logger.LogInformation("Execute transfer order event");
+
             var ev = JsonSerializer.Deserialize<TransferOrderEvent>(messageValue,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -43,37 +44,53 @@ namespace BrandService.Kafka.Handler
             try
             {
                 if (ev.DealerId == null || ev.VehicleVersionId == null || ev.Quantity == null)
-                    throw new ArgumentException("Missing required fields in TransferOrderEvent.");
-
-                int delta = 0;
-                var status = ev.Status?.Trim().ToLowerInvariant();
-
-                switch (status)
                 {
-                    case "shipping":
-                        delta = -ev.Quantity.Value;
-                        _logger.LogInformation("Status=shipping → Decrease stock {Delta} for DealerId={DealerId}",
-                            delta, ev.DealerId);
-                        break;
-
-                    case "received":
-                        delta = ev.Quantity.Value;
-                        _logger.LogInformation("Status=received → Increase stock {Delta} for DealerId={DealerId}",
-                            delta, ev.DealerId);
-                        break;
-
-                    default:
-                        _logger.LogInformation("Status={Status} → Unchange stock", ev.Status);
-                        break;
+                    success = false;
+                    reason = "Missing required fields: DealerId/VehicleVersionId/Quantity.";
                 }
-
-                if (delta != 0)
+                else
                 {
-                    await _inventoryService.UpdateDealerStockAsync(
-                        ev.DealerId.Value,
-                        ev.VehicleVersionId.Value,
-                        delta
-                    );
+                    var status = ev.Status?.Trim().ToLowerInvariant();
+                    int delta = 0;
+
+                    switch (status)
+                    {
+                        case "shipping":
+                            delta = -ev.Quantity.Value;
+                            _logger.LogInformation(
+                                "Status=shipping → Decrease dealer stock by {AbsDelta} for DealerId={DealerId}",
+                                Math.Abs(delta), ev.DealerId);
+                            break;
+
+                        case "received":
+                            delta = ev.Quantity.Value;
+                            _logger.LogInformation(
+                                "Status=received → Increase dealer stock by {Delta} for DealerId={DealerId}",
+                                delta, ev.DealerId);
+                            break;
+
+                        default:
+                            _logger.LogInformation("Status={Status} → No stock change", ev.Status);
+                            break;
+                    }
+
+                    if (delta != 0)
+                    {
+                        var updated = await _inventoryService.UpdateDealerStockAsync(
+                            ev.DealerId.Value,
+                            ev.VehicleVersionId.Value,
+                            delta
+                        );
+
+                        if (!updated)
+                        {
+                            success = false;
+                            reason = "Failed to update dealer stock (not found or insufficient stock).";
+                            _logger.LogWarning(
+                                "Update dealer stock failed. DealerId={DealerId}, VersionId={VersionId}, Delta={Delta}",
+                                ev.DealerId, ev.VehicleVersionId, delta);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -94,9 +111,9 @@ namespace BrandService.Kafka.Handler
             };
 
             await _producer.PublishAsync("confirm-topic", ev.DealerId?.ToString() ?? "unknown", confirm, ct);
-            _logger.LogInformation("Sent ConfirmOrderEvent for Transfer {OrderId}, Success={Success}", ev.OrderId,
-                success);
+            _logger.LogInformation(
+                "Sent ConfirmOrderEvent for Transfer {OrderId}, Success={Success}",
+                ev.OrderId, success);
         }
-
     }
 }

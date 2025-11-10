@@ -75,38 +75,45 @@ namespace OrderService.Infrastructure.Services
                 throw;
             }
         }
+
         public async Task<VehicleTransferOrderResponse?> UpdateStatusAsync(Guid id, string status)
         {
             try
             {
                 var entity = await _repository.GetByIdAsync(id);
+                if (entity == null)
+                {
+                    _logger.LogWarning("Transfer order not found. Id={Id}", id);
+                    return null;
+                }
 
                 var response = _mapper.Map<VehicleTransferOrderResponse>(entity);
 
-                Guid? dealerForEvent = entity.FromDealerId ;
                 var normalized = status?.Trim().ToLowerInvariant();
                 var isShipping = normalized == "shipping";
                 var isReceived = normalized == "received";
 
-                if (isShipping || isReceived)
-                {
-                    dealerForEvent = isShipping ? entity.FromDealerId : entity.ToDealerId;
+                Guid? dealerForEvent = isShipping
+                    ? entity.FromDealerId
+                    : isReceived
+                        ? entity.ToDealerId
+                        : (entity.FromDealerId ?? entity.ToDealerId); 
 
-                    if (dealerForEvent is null)
-                    {
-                        _logger.LogWarning("Skip publishing TransferOrderEvent: dealerForEvent is null. Status={Status}, Id={Id}", status, id);
-                        return response;
-                    }
+                if (dealerForEvent is null)
+                {
+                    _logger.LogWarning(
+                        "Publishing TransferOrderEvent without dealer is not allowed. Missing both FromDealerId and ToDealerId. Id={Id}, Status={Status}",
+                        id, status);
+                    return response; 
                 }
 
                 var evt = new TransferOrderEvent
                 {
                     OrderId = id,
-                    DealerId = dealerForEvent,
-                    VehicleVersionId = entity.VehicleVersionId, 
+                    DealerId = dealerForEvent, 
+                    VehicleVersionId = entity.VehicleVersionId,
                     Quantity = entity.Quantity,
-                    Status = status,
-                    IsRecived = isReceived 
+                    Status = normalized
                 };
 
                 var key = dealerForEvent.Value.ToString();
@@ -114,14 +121,16 @@ namespace OrderService.Infrastructure.Services
                 await _kafkaProducer.PublishAsync(_kafkaTopic, key, evt);
 
                 _logger.LogInformation(
-                    "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}",
-                    id, _kafkaTopic, dealerForEvent, entity.VehicleVersionId, entity.Quantity, evt.IsRecived
+                    "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, Status={EvtStatus}",
+                    id, _kafkaTopic, dealerForEvent, entity.VehicleVersionId, entity.Quantity, evt.Status
                 );
+
                 return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating vehicle transfer order status. Id={Id}, Status={Status}", id, status);
+                _logger.LogError(ex, "Error updating vehicle transfer order status. Id={Id}, Status={Status}", id,
+                    status);
                 throw;
             }
         }

@@ -156,41 +156,27 @@ namespace BrandService.Infrastructure.Repositories
                 throw new Exception(ex.Message);
             }
         }
-
-        public async Task<Inventory> UpdateDealerStockAsync(Guid dealerId, Guid versionId, int deltaQuantity)
+        public async Task<bool> UpdateDealerStockAsync(Guid dealerId, Guid versionId, int deltaQuantity)
         {
-            try
-            {
-                var existing = await _context.Inventories
-                    .FirstOrDefaultAsync(i => i.DealerId == dealerId && i.VehicleVersionId == versionId);
-                if (existing == null)
-                {
-                    throw new NotFoundException("Inventory not found");
-                }
-                var newStock = existing.StockQuantity + deltaQuantity;
-                if (newStock < 0)
-                {
-                    throw new BadRequestException("Cannot decrease stock by more than the current available quantity");
-                }
-                existing.StockQuantity = newStock;
-                existing.LastUpdated = DateOnly.FromDateTime(DateTime.UtcNow);
-                _context.Inventories.Update(existing);
-                await _context.SaveChangesAsync();
-                return existing;
-            }
-            catch (NotFoundException ex)
-            {
-                throw new NotFoundException(ex.Message);
-            }
-            catch (BadRequestException ex)
-            {
-                throw new BadRequestException(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            var inventory = await _context.Inventories
+                .FirstOrDefaultAsync(i => i.DealerId == dealerId && i.VehicleVersionId == versionId);
+
+            if (inventory == null)
+                return false;
+
+            var newStock = inventory.StockQuantity + deltaQuantity;
+            if (newStock < 0)
+                return false;
+
+            inventory.StockQuantity = newStock;
+            inventory.LastUpdated = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            _context.Inventories.Update(inventory);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
+
 
         public async Task<bool> DoesDealerHasVehicleVersion(Guid versionId, Guid dealerId)
         {
