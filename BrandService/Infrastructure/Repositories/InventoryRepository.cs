@@ -157,27 +157,52 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<Inventory> UpdateStockAsync(Guid id, int stockQuantity)
+        public async Task<Inventory> UpdateDealerStockAsync(Guid dealerId, Guid versionId, int deltaQuantity)
         {
             try
             {
-                var inventory = await _context.Inventories.FindAsync(id);
-                if (inventory == null)
+                var existing = await _context.Inventories
+                    .FirstOrDefaultAsync(i => i.DealerId == dealerId && i.VehicleVersionId == versionId);
+                if (existing == null)
+                {
                     throw new NotFoundException("Inventory not found");
-
-                inventory.StockQuantity = stockQuantity;
-                inventory.LastUpdated = DateOnly.FromDateTime(DateTime.UtcNow);
+                }
+                var newStock = existing.StockQuantity + deltaQuantity;
+                if (newStock < 0)
+                {
+                    throw new BadRequestException("Cannot decrease stock by more than the current available quantity");
+                }
+                existing.StockQuantity = newStock;
+                existing.LastUpdated = DateOnly.FromDateTime(DateTime.UtcNow);
+                _context.Inventories.Update(existing);
                 await _context.SaveChangesAsync();
-
-                return inventory;
+                return existing;
             }
             catch (NotFoundException ex)
             {
                 throw new NotFoundException(ex.Message);
             }
+            catch (BadRequestException ex)
+            {
+                throw new BadRequestException(ex.Message);
+            }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<bool> DoesDealerHasVehicleVersion(Guid versionId, Guid dealerId)
+        {
+            try
+            {
+                return await _context.Inventories
+                    .AsNoTracking()
+                    .AnyAsync(i => i.VehicleVersionId == versionId && i.DealerId == dealerId && i.StockQuantity > 0);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error checking dealer's vehicle version");
             }
         }
     }

@@ -11,7 +11,14 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
+using BrandService;
 using BrandService.ExceptionHandler;
+using BrandService.Kafka.Handler;
+using BrandService.Kafka.Messaging;
+using BrandService.Kafka.Messaging.Consumer;
+using BrandService.Kafka.Messaging.Producer;
+using BrandService.Kafka.Settings;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,6 +97,19 @@ builder.Services.AddScoped<VehicleVersionService>();
 builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<BrandInventoryService>();
 
+builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
+builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));
+builder.Services.AddScoped<IOrderEventHandler, AllocationOrderHandler>();
+builder.Services.AddScoped<IOrderEventHandler, TransferOrderHandler>();
+
+// builder.Services.AddHostedService(sp =>
+//     new MultiTopicOrderConsumer(
+//         sp.GetRequiredService<ILogger<MultiTopicOrderConsumer>>(),
+//         sp.GetRequiredService<IOptions<KafkaSettings>>(),
+//         sp.GetRequiredService<IServiceScopeFactory>()
+//     )
+// );
+builder.Services.AddHostedService<MultiTopicOrderConsumer>();
 // ✅ AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles).Assembly);
 

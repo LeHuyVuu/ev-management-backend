@@ -3,7 +3,6 @@ using BrandService.DTOs.Requests.InventoryDTOs;
 using BrandService.DTOs.Responses.InventoryDTOs;
 using BrandService.Infrastructure.Repositories;
 using BrandService.Model;
-using BrandService.Models;
 
 namespace BrandService.Infrastructure.Services
 {
@@ -53,10 +52,14 @@ namespace BrandService.Infrastructure.Services
             });
         }
 
-        public async Task<ApiResponse<InventoryResponse>> UpdateStockAsync(Guid id, UpdateInventoryRequest req)
+        public Task UpdateDealerStockAsync(Guid dealerId, Guid versionId, int deltaQuantity)
         {
-            var updated = await _repo.UpdateStockAsync(id, req.StockQuantity);
-            return ApiResponse<InventoryResponse>.Success(_mapper.Map<InventoryResponse>(updated), "Stock updated");
+            return _repo.UpdateDealerStockAsync(dealerId, versionId, deltaQuantity);
+        }
+
+        public async Task<bool> DoesDealerHasVehicleVersion(Guid versionId, Guid dealerId)
+        {
+            return await _repo.DoesDealerHasVehicleVersion(versionId, dealerId);
         }
     }
 }

@@ -92,4 +92,13 @@ public class VehicleAllocationRepository
 
         return allocation;
     }
+
+    public async Task<VehicleAllocation?> GetByIdAsync(Guid id)
+    {
+        return await _context.VehicleAllocations
+            .Include(a => a.Dealer)
+            .Include(a => a.VehicleVersion)
+            .ThenInclude(vv => vv.Vehicle)
+            .FirstOrDefaultAsync(a => a.AllocationId == id);
+    }
 }

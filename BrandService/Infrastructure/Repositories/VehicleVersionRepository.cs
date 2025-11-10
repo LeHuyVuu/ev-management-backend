@@ -133,7 +133,8 @@ namespace BrandService.Infrastructure.Repositories
 
                 var query = _context.VehicleVersions
                     .Include(vv => vv.Vehicle)
-                    .Include(vv => vv.Inventories.Where(i => i.DealerId == dealerId))
+                    .Include(vv => vv.Inventories)
+                    .Where(vv => vv.Inventories.Any(i => i.DealerId == dealerId))
                     .AsNoTracking()
                     .AsQueryable();
 

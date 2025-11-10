@@ -1,6 +1,6 @@
 ﻿using BrandService.Entities;
 using BrandService.Infrastructure.Services;
-using BrandService.Models;
+using BrandService.Model;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller

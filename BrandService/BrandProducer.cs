@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using Confluent.Kafka;
 
-namespace BrandService.Kafka
+namespace BrandService
 {
     public class BrandProducer
     {

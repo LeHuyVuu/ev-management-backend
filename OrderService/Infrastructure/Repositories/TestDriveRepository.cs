@@ -128,4 +128,26 @@ public class TestDriveRepository
             throw new Exception($"Error updating TestDrive status: {ex.Message}", ex);
         }
     }
+
+    public async Task<bool> CheckSlotAvailableAsync(TestDrife request)
+    {
+        
+        bool dealerExists = await _context.Dealers
+            .AnyAsync(d => d.DealerId == request.DealerId);
+
+        if (!dealerExists)
+            return false; 
+
+        bool slotTaken = await _context.TestDrives
+            .AnyAsync(td =>
+                td.DealerId == request.DealerId &&
+                td.DriveDate == request.DriveDate &&
+                td.VehicleVersionId == request.VehicleVersionId &&
+                td.TimeSlot == request.TimeSlot);
+
+        if (slotTaken)
+            return false; 
+
+        return true; 
+    }
 }
