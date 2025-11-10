@@ -21,8 +21,9 @@ namespace BrandService.Infrastructure.Controller
         /// </summary>
         /// <param name="versionId"></param>
         /// <param name="deltaQuantity"></param>
+        /// <param name="deltaQuantity"></param>
         /// <returns></returns>
-        [HttpPatch("{versionId}/update-stock")]
+        /*[HttpPatch("{versionId}/update-stock")]
         [ProducesResponseType(typeof(ApiResponse<BrandInventory>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult> UpdateStock(Guid versionId, [FromQuery] int deltaQuantity)
@@ -30,6 +31,6 @@ namespace BrandService.Infrastructure.Controller
             // deltaQuantity > 0 => tăng, < 0 => giảm
             await _brandInventoryService.UpdateStockAsync(versionId, deltaQuantity);
             return Ok(ApiResponse<object>.Success(null, "Stock updated successfully"));
-        }
+        }*/
     }
 }

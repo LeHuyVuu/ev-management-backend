@@ -62,20 +62,18 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
+        public async Task<bool> UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
 
         {
             var existing = await _context.BrandInventories
                 .FirstOrDefaultAsync(bi => bi.VehicleVersionId == vehicleVersionId);
 
-            // Không có record nào cho vehicleVersionId này
             if (existing == null)
                 return false;
 
             var currentStock = existing.StockQuantity ?? 0;
             var newStock = currentStock + deltaQuantity;
 
-            // Không thể trừ nhiều hơn số lượng hiện có
             if (newStock < 0)
                 return false;
 

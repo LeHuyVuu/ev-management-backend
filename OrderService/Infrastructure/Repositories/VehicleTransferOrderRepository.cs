@@ -42,7 +42,6 @@ namespace OrderService.Infrastructure.Repositories
         }
 
 
-        //Tạo mới Transfer Order
         public async Task<VehicleTransferOrder> CreateAsync(VehicleTransferOrder entity)
         {
             try
@@ -63,7 +62,6 @@ namespace OrderService.Infrastructure.Repositories
                 _context.VehicleTransferOrders.Add(order);
                 await _context.SaveChangesAsync();
 
-                // Load navigation properties
                 await _context.Entry(order).Reference(o => o.FromDealer).LoadAsync();
                 await _context.Entry(order).Reference(o => o.ToDealer).LoadAsync();
                 await _context.Entry(order).Reference(o => o.VehicleVersion).LoadAsync();
@@ -77,7 +75,6 @@ namespace OrderService.Infrastructure.Repositories
             }
         }
 
-        // Cập nhật trạng thái Transfer Order
         public async Task<VehicleTransferOrder?> UpdateStatusAsync(Guid id, string status)
         {
             try
