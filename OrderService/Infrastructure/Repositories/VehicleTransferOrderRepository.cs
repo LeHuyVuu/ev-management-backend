@@ -42,7 +42,7 @@ namespace OrderService.Infrastructure.Repositories
         }
 
 
-        // ✅ 2️⃣ Tạo mới Transfer Order
+        //Tạo mới Transfer Order
         public async Task<VehicleTransferOrder> CreateAsync(VehicleTransferOrder entity)
         {
             try
@@ -77,7 +77,7 @@ namespace OrderService.Infrastructure.Repositories
             }
         }
 
-        // ✅ 3️⃣ Cập nhật trạng thái Transfer Order
+        // Cập nhật trạng thái Transfer Order
         public async Task<VehicleTransferOrder?> UpdateStatusAsync(Guid id, string status)
         {
             try
@@ -102,6 +102,13 @@ namespace OrderService.Infrastructure.Repositories
             {
                 throw new Exception($"Error updating VehicleTransferOrder status: {ex.Message}");
             }
+        }
+        public async Task<VehicleTransferOrder?> GetByIdAsync(Guid id)
+        {
+            return await _context.VehicleTransferOrders
+                .Include(a => a.VehicleVersion)
+                .ThenInclude(vv => vv.Vehicle)
+                .FirstOrDefaultAsync(a => a.VehicleTransferOrderId == id);
         }
     }
 }

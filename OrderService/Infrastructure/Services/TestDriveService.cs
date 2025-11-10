@@ -4,11 +4,11 @@ using Microsoft.Extensions.Options;
 using OrderService.DTOs.Requests;
 using OrderService.DTOs.Responses;
 using OrderService.Entities;
-using OrderService.Events;
 using OrderService.Infrastructure.Repositories;
-using OrderService.Messaging;
+using OrderService.Kafka.Events;
+using OrderService.Kafka.Messaging.Producer;
+using OrderService.Kafka.Settings;
 using OrderService.Model;
-using OrderService.Settings;
 
 namespace OrderService.Infrastructure.Services
 {
@@ -114,6 +114,7 @@ namespace OrderService.Infrastructure.Services
                     DriveDate: request.DriveDate,
                     TimeSlot: request.TimeSlot ?? "",
                     ConfirmSms: request.ConfirmSms,
+                    Email: response.Email,
                     ConfirmEmail: request.ConfirmEmail,
                     Status: request.Status ?? "",
                     OccurredAtUtc: DateTime.UtcNow

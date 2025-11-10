@@ -11,8 +11,8 @@ using OrderService.ExceptionHandler;
 using OrderService.Extensions.Mapper;
 using OrderService.Infrastructure.Repositories;
 using OrderService.Infrastructure.Services;
-using OrderService.Messaging;
-using OrderService.Settings;
+using OrderService.Kafka.Messaging.Producer;
+using OrderService.Kafka.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 

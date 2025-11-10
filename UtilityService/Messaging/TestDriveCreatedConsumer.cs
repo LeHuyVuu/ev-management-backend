@@ -71,7 +71,7 @@ public class TestDriveCreatedConsumer : BackgroundService
                         {
                             var emailDto = new EmailRequestDto()
                             {
-                                ToEmail = "trungthe200427@gmail.com", // TODO lookup thật
+                                ToEmail = ev.Email, 
                                 Subject = $"Xác nhận lịch lái thử #{ev.TestDriveId}",
                                 Content = $"Bạn đã đặt lịch lái thử ngày {ev.DriveDate:dd/MM/yyyy} - {ev.TimeSlot}"
                             };
@@ -111,6 +111,7 @@ public record TestDriveCreatedEvent(
     DateTime DriveDate,
     string TimeSlot,
     bool ConfirmSms,
+    string Email,
     bool ConfirmEmail,
     string Status,
     DateTime OccurredAtUtc

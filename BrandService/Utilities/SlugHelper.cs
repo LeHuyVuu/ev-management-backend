@@ -1,8 +1,8 @@
 ﻿using System.Globalization;
-using System.Text.RegularExpressions;
 using System.Text;
+using System.Text.RegularExpressions;
 
-namespace SWD392_backend.Utilities
+namespace BrandService.Utilities
 {
     public class SlugHelper
     {

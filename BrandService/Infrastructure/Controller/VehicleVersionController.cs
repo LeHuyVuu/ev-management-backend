@@ -2,7 +2,6 @@
 using BrandService.DTOs.Responses.VehicleDTOs;
 using BrandService.Infrastructure.Services;
 using BrandService.Model;
-using BrandService.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller

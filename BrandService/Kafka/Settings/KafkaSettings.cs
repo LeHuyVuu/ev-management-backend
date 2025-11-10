@@ -1,4 +1,4 @@
-﻿namespace BrandService.Settings;
+﻿namespace BrandService.Kafka.Settings;
 
 public class KafkaSettings
 {
