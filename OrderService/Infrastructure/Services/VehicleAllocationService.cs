@@ -94,6 +94,7 @@ public class VehicleAllocationService
             {
                 var ev = new AllocationOrderEvent
                 {
+                    OrderId = id,
                     DealerId = entity.DealerId,
                     VehicleVersionId = entity.VehicleVersionId,
                     Status = status,

@@ -33,11 +33,11 @@ namespace BrandService.Kafka.Handler
 
             if (ev == null)
             {
-                _logger.LogWarning(" AllocationOrderEvent deserialization failed");
+                _logger.LogWarning("AllocationOrderEvent deserialization failed");
                 return;
             }
 
-            _logger.LogInformation("Handling AllocationOrderEvent...");
+            _logger.LogInformation("Handling AllocationOrderEvent: {@Event}", ev);
 
             bool success = true;
             string? reason = null;
@@ -47,23 +47,45 @@ namespace BrandService.Kafka.Handler
                 if (ev.VehicleVersionId == null || ev.Quantity == null)
                     throw new ArgumentException("Missing VehicleVersionId or Quantity.");
 
-                if (!ev.IsRecived)
-                {
-                    await _brandInventoryService.UpdateStockAsync(ev.VehicleVersionId.Value, -ev.Quantity.Value);
-                }
-                else
-                {
-                    if (ev.DealerId == null)
-                        throw new ArgumentException("DealerId required for received allocation.");
+                int delta = 0;
+                var status = ev.Status?.Trim().ToLowerInvariant();
 
-                    await _inventoryService.UpdateDealerStockAsync(ev.DealerId.Value, ev.VehicleVersionId.Value, ev.Quantity.Value);
+                switch (status)
+                {
+                    case "shipping":
+                        delta = -ev.Quantity.Value;
+                        _logger.LogInformation("Status=shipping → Decrease stock {Delta} for Brand",
+                            delta);
+                        break;
+
+                    case "received":
+                        delta = ev.Quantity.Value;
+                        _logger.LogInformation("Status=received → Increase stock {Delta} for DealerId={DealerId}",
+                            delta, ev.DealerId);
+                        break;
+
+                    default:
+                        _logger.LogInformation("Status={Status} → Unchange stock", ev.Status);
+                        break;
+                }
+
+                if (delta > 0)
+                {
+                    await _inventoryService.UpdateDealerStockAsync(
+                        ev.DealerId.Value,
+                        ev.VehicleVersionId.Value,
+                        delta
+                    );
+                } else if (delta < 0)
+                {
+                    await _brandInventoryService.UpdateStockAsync(ev.VehicleVersionId.Value, delta);
                 }
             }
             catch (Exception ex)
             {
                 success = false;
                 reason = ex.Message;
-                _logger.LogError(ex, " Failed to handle AllocationOrderEvent {@Event}", ev);
+                _logger.LogError(ex, "Failed to handle AllocationOrderEvent {@Event}", ev);
             }
 
             var confirm = new ConfirmOrderEvent
@@ -77,7 +99,9 @@ namespace BrandService.Kafka.Handler
             };
 
             await _producer.PublishAsync("confirm-topic", ev.DealerId?.ToString() ?? "unknown", confirm, ct);
-            _logger.LogInformation(" Sent ConfirmOrderEvent for Allocation {OrderId}, Success={Success}", ev.OrderId, success);
+            _logger.LogInformation("Sent ConfirmOrderEvent for Allocation {OrderId}, Success={Success}", ev.OrderId,
+                success);
         }
+
     }
 }

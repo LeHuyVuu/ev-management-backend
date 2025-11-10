@@ -25,16 +25,17 @@ namespace BrandService.Kafka.Handler
 
         public async Task HandleAsync(string messageValue, CancellationToken ct)
         {
+            _logger.LogInformation("Execute transfer order event");
             var ev = JsonSerializer.Deserialize<TransferOrderEvent>(messageValue,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (ev == null)
             {
-                _logger.LogWarning(" TransferOrderEvent deserialization failed");
+                _logger.LogWarning("TransferOrderEvent deserialization failed");
                 return;
             }
 
-            _logger.LogInformation("Handling TransferOrderEvent...");
+            _logger.LogInformation("Handling TransferOrderEvent: {@Event}", ev);
 
             bool success = true;
             string? reason = null;
@@ -44,16 +45,42 @@ namespace BrandService.Kafka.Handler
                 if (ev.DealerId == null || ev.VehicleVersionId == null || ev.Quantity == null)
                     throw new ArgumentException("Missing required fields in TransferOrderEvent.");
 
-                var delta = ev.IsRecived ? ev.Quantity.Value : -ev.Quantity.Value;
-                await _inventoryService.UpdateDealerStockAsync(ev.DealerId.Value, ev.VehicleVersionId.Value, delta);
+                int delta = 0;
+                var status = ev.Status?.Trim().ToLowerInvariant();
 
-                _logger.LogInformation(" Dealer stock updated: {DealerId}, Δ={Delta}", ev.DealerId, delta);
+                switch (status)
+                {
+                    case "shipping":
+                        delta = -ev.Quantity.Value;
+                        _logger.LogInformation("Status=shipping → Decrease stock {Delta} for DealerId={DealerId}",
+                            delta, ev.DealerId);
+                        break;
+
+                    case "received":
+                        delta = ev.Quantity.Value;
+                        _logger.LogInformation("Status=received → Increase stock {Delta} for DealerId={DealerId}",
+                            delta, ev.DealerId);
+                        break;
+
+                    default:
+                        _logger.LogInformation("Status={Status} → Unchange stock", ev.Status);
+                        break;
+                }
+
+                if (delta != 0)
+                {
+                    await _inventoryService.UpdateDealerStockAsync(
+                        ev.DealerId.Value,
+                        ev.VehicleVersionId.Value,
+                        delta
+                    );
+                }
             }
             catch (Exception ex)
             {
                 success = false;
                 reason = ex.Message;
-                _logger.LogError(ex, " Failed to handle TransferOrderEvent {@Event}", ev);
+                _logger.LogError(ex, "Failed to handle TransferOrderEvent {@Event}", ev);
             }
 
             var confirm = new ConfirmOrderEvent
@@ -67,7 +94,9 @@ namespace BrandService.Kafka.Handler
             };
 
             await _producer.PublishAsync("confirm-topic", ev.DealerId?.ToString() ?? "unknown", confirm, ct);
-            _logger.LogInformation(" Sent ConfirmOrderEvent for Transfer {OrderId}, Success={Success}", ev.OrderId, success);
+            _logger.LogInformation("Sent ConfirmOrderEvent for Transfer {OrderId}, Success={Success}", ev.OrderId,
+                success);
         }
+
     }
 }

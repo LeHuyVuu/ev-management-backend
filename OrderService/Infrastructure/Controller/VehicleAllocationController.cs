@@ -56,7 +56,7 @@ public class VehicleAllocationController : ControllerBase
     }
 
 
-    // ✅ 2️⃣ POST /api/vehicle-allocations
+    // POST /api/vehicle-allocations
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> CreateVehicleAllocation([FromBody] VehicleAllocationRequest request)
@@ -83,7 +83,7 @@ public class VehicleAllocationController : ControllerBase
         }
     }
 
-    // ✅ 3️⃣ PUT /api/vehicle-allocations/{id}/status
+    // PUT /api/vehicle-allocations/{id}/status
     [HttpPut("{id}/status")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] string status)
     {

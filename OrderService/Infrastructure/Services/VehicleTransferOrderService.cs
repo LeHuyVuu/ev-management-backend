@@ -100,6 +100,7 @@ namespace OrderService.Infrastructure.Services
 
                     var evt = new TransferOrderEvent
                     {
+                        OrderId = id,
                         DealerId = dealerForEvent,
                         VehicleVersionId = entity.VehicleVersionId, 
                         Quantity = entity.Quantity,
