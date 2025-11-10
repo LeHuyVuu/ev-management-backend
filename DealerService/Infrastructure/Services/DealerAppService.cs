@@ -79,18 +79,33 @@ namespace DealerService.Infrastructure.Services
             dealer = _mapper.Map(dealerRequest, dealer);
             var updated = await _dealerRepo.UpdateAsync(dealer);
             var response = _mapper.Map<DealerResponse>(updated);
-
+            _logger.LogInformation("Dealer {DealerId} updated successfully", updated.DealerId);
             // 🔹 Kiểm tra status khác "active" thì gửi Kafka event
-            if (!string.Equals(dealer.Status, updated.Status, StringComparison.OrdinalIgnoreCase)
-                && !string.Equals(updated.Status, "active", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(updated.Status, "active", StringComparison.OrdinalIgnoreCase))
             {
+                _logger.LogInformation("Dealer {DealerId} status changed to {Status}, publishing Kafka event", updated.DealerId, updated.Status);
                 if (!_settings.Topics.TryGetValue("DealerAccountStatus", out var topic))
                     throw new InvalidOperationException("KafkaSettings.Topics['DealerAccountStatus'] missing.");
 
                 var ev = new DealerAccountStatusEvent
                 {
                     DealerId = updated.DealerId,
-                    Status = updated.Status
+                    Status = "inactive"
+                };
+
+                await _producer.PublishAsync(topic, updated.DealerId.ToString(), ev);
+                _logger.LogInformation("Published DealerAccountStatusEvent for DealerId={DealerId}, Status={Status}", updated.DealerId, updated.Status);
+            }
+            else if (string.Equals(updated.Status, "active", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation("Dealer {DealerId} status changed to {Status}, publishing Kafka event", updated.DealerId, updated.Status);
+                if (!_settings.Topics.TryGetValue("DealerAccountStatus", out var topic))
+                    throw new InvalidOperationException("KafkaSettings.Topics['DealerAccountStatus'] missing.");
+
+                var ev = new DealerAccountStatusEvent
+                {
+                    DealerId = updated.DealerId,
+                    Status = "active"
                 };
 
                 await _producer.PublishAsync(topic, updated.DealerId.ToString(), ev);

@@ -52,6 +52,5 @@ namespace IdentityService.Kafka.Handler
                 _logger.LogError(ex, "Failed to update DealerAccount for DealerId={0}", ev.DealerId);
             }
         }
-
     }
 }

@@ -94,7 +94,7 @@ public class UserRepository
         }
         foreach (var user in users)
         {
-            UpdateStatusUser(user.UserId, status);
+            await UpdateStatusUser(user.UserId, status);
         }
         return true;
     }

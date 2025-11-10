@@ -79,7 +79,7 @@ builder.Services.AddCors(options =>
 });
 
 // ✅ DbContext
-builder.Services.AddDbContextFactory<MyDbContext>(options =>
+builder.Services.AddDbContext<MyDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // ✅ DI Repositories & Services
