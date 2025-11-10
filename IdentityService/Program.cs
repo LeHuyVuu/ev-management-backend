@@ -1,8 +1,13 @@
+using DotNetEnv;
 using IdentityService.Context;
+using IdentityService.ExceptionHandler;
 using IdentityService.Extensions.Mapper;
 using IdentityService.Infrastructure.Repositories;
 using IdentityService.Infrastructure.Services;
-using DotNetEnv;
+using IdentityService.Kafka.Handler;
+using IdentityService.Kafka.Messaging.Consumer;
+using IdentityService.Kafka.Messaging.Producer;
+using IdentityService.Kafka.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -10,7 +15,6 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
-using IdentityService.ExceptionHandler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,7 +79,7 @@ builder.Services.AddCors(options =>
 });
 
 // ✅ DbContext
-builder.Services.AddDbContext<MyDbContext>(options =>
+builder.Services.AddDbContextFactory<MyDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 // ✅ DI Repositories & Services
@@ -122,6 +126,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
+
+// 1) Bind KafkaSettings
+builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));
+
+// 2) Kafka Producer
+builder.Services.AddScoped<IKafkaProducer, KafkaProducer>();
+
+// 4) Handler + Consumer cho DealerAccount
+builder.Services.AddScoped<IDealerAccountEventHandler, DealerAccountHandler>();
+builder.Services.AddHostedService<DealerAccountConsumer>();
+
+// (tuỳ chọn) logging, controllers, swagger...
+builder.Services.AddLogging();
 
 builder.Services.AddAuthorization();
 

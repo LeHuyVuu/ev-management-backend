@@ -129,6 +129,9 @@ public class UserService
     {
         return await _repo.UpdateRole(id, roleId);
     }
-    
-    
+
+    public async Task<bool> UpdateStatusDealerAccount(Guid dealerId, string status)
+    {
+        return await _repo.UpdateStatusDealerAccount(dealerId, status);
+    }
 }

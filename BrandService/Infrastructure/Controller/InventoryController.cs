@@ -65,6 +65,13 @@ namespace BrandService.Infrastructure.Controller
             return Ok(result);
         }
 
+        [HttpGet("dealer-has-vehicle/{dealerId}/{versionId}")]
+        public async Task<ActionResult> DealerHasVehicle(Guid dealerId, Guid versionId)
+        {
+            var hasVehicle = await _inventoryService.DoesDealerHasVehicleVersion(versionId, dealerId);
+            return Ok(ApiResponse<bool>.Success(hasVehicle, "Checked successfully."));
+        }
+
         ///// <summary>
         ///// Update inventory stock quantity.
         ///// </summary>
