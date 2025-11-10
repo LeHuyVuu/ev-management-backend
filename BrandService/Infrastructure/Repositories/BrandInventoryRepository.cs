@@ -31,14 +31,12 @@ namespace BrandService.Infrastructure.Repositories
             var existing = await _context.BrandInventories
                 .FirstOrDefaultAsync(bi => bi.VehicleVersionId == vehicleVersionId);
 
-            // Không có record nào cho vehicleVersionId này
             if (existing == null)
                 return false;
 
             var currentStock = existing.StockQuantity ?? 0;
             var newStock = currentStock + deltaQuantity;
 
-            // Không thể trừ nhiều hơn số lượng hiện có
             if (newStock < 0)
                 return false;
 
