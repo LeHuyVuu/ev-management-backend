@@ -35,7 +35,7 @@ namespace BrandService.Kafka.Messaging.Consumer
                 var consumerCfg = new ConsumerConfig
                 {
                     BootstrapServers = cfg.BootstrapServers,
-                    GroupId = "brandservice-multitopic-consumer-v3",
+                    GroupId = "brandservice-multitopic-consumer",
                     AutoOffsetReset = AutoOffsetReset.Earliest,
                     EnableAutoCommit = false
                 };

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrderService.Infrastructure.Repositories;
-using OrderService.Infrastructure.Services;
 using OrderService.Kafka.Events;
 using OrderService.Kafka.Settings;
 
@@ -14,19 +13,16 @@ namespace OrderService.Kafka.Messaging.Consumer
     {
         private readonly ILogger<ConfirmOrderConsumer> _logger;
         private readonly IOptions<KafkaSettings> _kafkaOptions;
-        private readonly VehicleAllocationRepository _allocationRepository;
-        private readonly VehicleTransferOrderRepository _transferRepository;
+        private readonly IServiceScopeFactory _scopeFactory; 
 
         public ConfirmOrderConsumer(
             ILogger<ConfirmOrderConsumer> logger,
             IOptions<KafkaSettings> kafkaOptions,
-            VehicleAllocationRepository allocationRepository,
-            VehicleTransferOrderRepository transferRepository)
+            IServiceScopeFactory scopeFactory) 
         {
             _logger = logger;
             _kafkaOptions = kafkaOptions;
-            _allocationRepository = allocationRepository;
-            _transferRepository = transferRepository;
+            _scopeFactory = scopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,7 +41,6 @@ namespace OrderService.Kafka.Messaging.Consumer
 
             using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg).Build();
             consumer.Subscribe("confirm-topic");
-
             _logger.LogInformation("Subscribed to topic: confirm-topic");
 
             try
@@ -53,9 +48,7 @@ namespace OrderService.Kafka.Messaging.Consumer
                 while (!stoppingToken.IsCancellationRequested)
                 {
                     var cr = consumer.Consume(stoppingToken);
-
-                    if (cr?.Message?.Value == null)
-                        continue;
+                    if (cr?.Message?.Value == null) continue;
 
                     ConfirmOrderEvent? ev;
                     try
@@ -68,6 +61,7 @@ namespace OrderService.Kafka.Messaging.Consumer
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to deserialize ConfirmOrderEvent: {Payload}", cr.Message.Value);
+                        // TODO: cân nhắc đẩy sang dead-letter-topic thay vì commit
                         consumer.Commit(cr);
                         continue;
                     }
@@ -79,25 +73,21 @@ namespace OrderService.Kafka.Messaging.Consumer
                         continue;
                     }
 
-                    _logger.LogInformation("Processing ConfirmOrderEvent for OrderId={OrderId}, Type={OrderType}, Approved={IsApproved}",
+                    _logger.LogInformation(
+                        "Processing ConfirmOrderEvent for OrderId={OrderId}, Type={OrderType}, Approved={IsApproved}",
                         ev.OrderId, ev.OrderType, ev.IsApproved);
 
                     try
                     {
-                        string newStatus;
+                        using var scope = _scopeFactory.CreateScope();
+                        var allocationRepo = scope.ServiceProvider.GetRequiredService<VehicleAllocationRepository>();
+                        var transferRepo   = scope.ServiceProvider.GetRequiredService<VehicleTransferOrderRepository>();
 
-                        if (!ev.IsApproved)
-                        {
-                            newStatus = "Rejected";
-                        }
-                        else
-                        {
-                            newStatus = ev.Status ?? "Approved";
-                        }
+                        string newStatus = !ev.IsApproved ? "Rejected" : (ev.Status ?? "Approved");
 
                         if (ev.OrderType?.ToLower() == "allocation")
                         {
-                            var result = await _allocationRepository.UpdateStatusAsync(ev.OrderId, newStatus);
+                            var result = await allocationRepo.UpdateStatusAsync(ev.OrderId, newStatus);
                             if (result == null)
                                 _logger.LogWarning("AllocationOrder not found: {OrderId}", ev.OrderId);
                             else
@@ -105,7 +95,7 @@ namespace OrderService.Kafka.Messaging.Consumer
                         }
                         else if (ev.OrderType?.ToLower() == "transfer")
                         {
-                            var result = await _transferRepository.UpdateStatusAsync(ev.OrderId, newStatus);
+                            var result = await transferRepo.UpdateStatusAsync(ev.OrderId, newStatus);
                             if (result == null)
                                 _logger.LogWarning("TransferOrder not found: {OrderId}", ev.OrderId);
                             else
