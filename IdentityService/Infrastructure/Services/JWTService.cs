@@ -30,6 +30,7 @@ namespace IdentityService.Infrastructure.Services
                 new Claim("UserId", user.UserId.ToString() ?? string.Empty),
                 new Claim("RoleId", user.RoleId.ToString() ?? string.Empty),
                 new Claim("RoleName", user.RoleName ?? string.Empty),
+                new Claim(ClaimTypes.Role, user.RoleName ?? string.Empty),
                 new Claim("DealerId", user.DealerId.ToString() ?? string.Empty)
             };
 
