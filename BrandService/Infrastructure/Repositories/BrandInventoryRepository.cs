@@ -62,7 +62,7 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
+        public async Task<bool> UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
 
         {
             var existing = await _context.BrandInventories
