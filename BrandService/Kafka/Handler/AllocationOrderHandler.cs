@@ -44,45 +44,85 @@ namespace BrandService.Kafka.Handler
 
             try
             {
+                // Validate input
                 if (ev.VehicleVersionId == null || ev.Quantity == null)
-                    throw new ArgumentException("Missing VehicleVersionId or Quantity.");
-
-                int delta = 0;
-                var status = ev.Status?.Trim().ToLowerInvariant();
-
-                switch (status)
                 {
-                    case "shipping":
-                        delta = -ev.Quantity.Value;
-                        _logger.LogInformation("Status=shipping → Decrease stock {Delta} for Brand",
-                            delta);
-                        break;
-
-                    case "received":
-                        delta = ev.Quantity.Value;
-                        _logger.LogInformation("Status=received → Increase stock {Delta} for DealerId={DealerId}",
-                            delta, ev.DealerId);
-                        break;
-
-                    default:
-                        _logger.LogInformation("Status={Status} → Unchange stock", ev.Status);
-                        break;
+                    success = false;
+                    reason = "Missing VehicleVersionId or Quantity.";
                 }
+                else
+                {
+                    var status = ev.Status?.Trim().ToLowerInvariant();
+                    int delta = 0;
 
-                if (delta > 0)
-                {
-                    await _inventoryService.UpdateDealerStockAsync(
-                        ev.DealerId.Value,
-                        ev.VehicleVersionId.Value,
-                        delta
-                    );
-                } else if (delta < 0)
-                {
-                    await _brandInventoryService.UpdateStockAsync(ev.VehicleVersionId.Value, delta);
+                    switch (status)
+                    {
+                        case "shipping":
+                            delta = -ev.Quantity.Value; // trừ kho brand
+                            _logger.LogInformation("Status=shipping → Decrease brand stock by {Delta}", -delta);
+                            break;
+
+                        case "received":
+                            delta = ev.Quantity.Value; // cộng kho dealer
+                            _logger.LogInformation(
+                                "Status=received → Increase dealer stock by {Delta} for DealerId={DealerId}",
+                                delta, ev.DealerId);
+                            break;
+
+                        default:
+                            _logger.LogInformation("Status={Status} → No stock change", ev.Status);
+                            break;
+                    }
+
+                    // Thực hiện update theo delta, dùng bool để biết thành/bại
+                    if (delta > 0)
+                    {
+                        // Cộng kho dealer
+                        if (ev.DealerId == null)
+                        {
+                            success = false;
+                            reason = "DealerId is required when increasing dealer stock.";
+                        }
+                        else
+                        {
+                            var updated = await _inventoryService.UpdateDealerStockAsync(
+                                ev.DealerId.Value,
+                                ev.VehicleVersionId.Value,
+                                delta
+                            );
+
+                            if (!updated)
+                            {
+                                success = false;
+                                reason = "Failed to increase dealer stock (not found or invalid state).";
+                                _logger.LogWarning(
+                                    "Increase dealer stock failed. DealerId={DealerId}, VersionId={VersionId}, Delta={Delta}",
+                                    ev.DealerId, ev.VehicleVersionId, delta);
+                            }
+                        }
+                    }
+                    else if (delta < 0)
+                    {
+                        // Trừ kho brand
+                        var updated = await _brandInventoryService.UpdateStockAsync(
+                            ev.VehicleVersionId.Value,
+                            delta
+                        );
+
+                        if (!updated)
+                        {
+                            success = false;
+                            reason = "Failed to decrease brand stock (insufficient stock or not found).";
+                            _logger.LogWarning("Decrease brand stock failed. VersionId={VersionId}, Delta={Delta}",
+                                ev.VehicleVersionId, delta);
+                        }
+                    }
+                    // delta == 0 → không đổi kho, success giữ nguyên
                 }
             }
             catch (Exception ex)
             {
+                // Lỗi ngoài dự kiến (I/O, DB, serialization...) → báo fail
                 success = false;
                 reason = ex.Message;
                 _logger.LogError(ex, "Failed to handle AllocationOrderEvent {@Event}", ev);
@@ -102,6 +142,5 @@ namespace BrandService.Kafka.Handler
             _logger.LogInformation("Sent ConfirmOrderEvent for Allocation {OrderId}, Success={Success}", ev.OrderId,
                 success);
         }
-
     }
 }

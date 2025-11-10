@@ -52,10 +52,11 @@ namespace BrandService.Infrastructure.Services
             });
         }
 
-        public Task UpdateDealerStockAsync(Guid dealerId, Guid versionId, int deltaQuantity)
+        public Task<bool> UpdateDealerStockAsync(Guid dealerId, Guid versionId, int deltaQuantity)
         {
             return _repo.UpdateDealerStockAsync(dealerId, versionId, deltaQuantity);
         }
+
 
         public async Task<bool> DoesDealerHasVehicleVersion(Guid versionId, Guid dealerId)
         {

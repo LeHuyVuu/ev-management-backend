@@ -61,7 +61,6 @@ namespace OrderService.Kafka.Messaging.Consumer
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Failed to deserialize ConfirmOrderEvent: {Payload}", cr.Message.Value);
-                        // TODO: cân nhắc đẩy sang dead-letter-topic thay vì commit
                         consumer.Commit(cr);
                         continue;
                     }
@@ -83,7 +82,7 @@ namespace OrderService.Kafka.Messaging.Consumer
                         var allocationRepo = scope.ServiceProvider.GetRequiredService<VehicleAllocationRepository>();
                         var transferRepo   = scope.ServiceProvider.GetRequiredService<VehicleTransferOrderRepository>();
 
-                        string newStatus = !ev.IsApproved ? "Rejected" : (ev.Status ?? "Approved");
+                        string newStatus = !ev.IsApproved ? "rejected" : (ev.Status ?? "approved");
 
                         if (ev.OrderType?.ToLower() == "allocation")
                         {
