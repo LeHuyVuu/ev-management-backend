@@ -40,16 +40,6 @@ public class VehicleAllocationRepository
         }
     }
 
-    public async Task<VehicleAllocation?> GetByIdAsync(Guid id)
-    {
-        return await _context.VehicleAllocations
-            .Include(a => a.Dealer)
-            .Include(a => a.VehicleVersion)
-            .ThenInclude(vv => vv.Vehicle)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.AllocationId == id);
-    }
-
     public async Task<VehicleAllocation> CreateAsync(VehicleAllocation entity)
     {
         var allocation = new VehicleAllocation
