@@ -83,41 +83,40 @@ namespace OrderService.Infrastructure.Services
 
                 var response = _mapper.Map<VehicleTransferOrderResponse>(entity);
 
+                Guid? dealerForEvent = entity.FromDealerId ;
                 var normalized = status?.Trim().ToLowerInvariant();
                 var isShipping = normalized == "shipping";
                 var isReceived = normalized == "received";
 
                 if (isShipping || isReceived)
                 {
-
-                    var dealerForEvent = isShipping ? entity.FromDealerId : entity.ToDealerId;
+                    dealerForEvent = isShipping ? entity.FromDealerId : entity.ToDealerId;
 
                     if (dealerForEvent is null)
                     {
                         _logger.LogWarning("Skip publishing TransferOrderEvent: dealerForEvent is null. Status={Status}, Id={Id}", status, id);
                         return response;
                     }
-
-                    var evt = new TransferOrderEvent
-                    {
-                        OrderId = id,
-                        DealerId = dealerForEvent,
-                        VehicleVersionId = entity.VehicleVersionId, 
-                        Quantity = entity.Quantity,
-                        Status = status,
-                        IsRecived = isReceived 
-                    };
-
-                    var key = dealerForEvent.Value.ToString();
-
-                    await _kafkaProducer.PublishAsync(_kafkaTopic, key, evt);
-
-                    _logger.LogInformation(
-                        "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}",
-                        id, _kafkaTopic, dealerForEvent, entity.VehicleVersionId, entity.Quantity, evt.IsRecived
-                    );
                 }
 
+                var evt = new TransferOrderEvent
+                {
+                    OrderId = id,
+                    DealerId = dealerForEvent,
+                    VehicleVersionId = entity.VehicleVersionId, 
+                    Quantity = entity.Quantity,
+                    Status = status,
+                    IsRecived = isReceived 
+                };
+
+                var key = dealerForEvent.Value.ToString();
+
+                await _kafkaProducer.PublishAsync(_kafkaTopic, key, evt);
+
+                _logger.LogInformation(
+                    "Published TransferOrderEvent. OrderId={OrderId}, Topic={Topic}, DealerId={DealerId}, VehicleVersionId={VehicleVersionId}, Qty={Qty}, IsReceived={IsReceived}",
+                    id, _kafkaTopic, dealerForEvent, entity.VehicleVersionId, entity.Quantity, evt.IsRecived
+                );
                 return response;
             }
             catch (Exception ex)
