@@ -16,10 +16,20 @@ namespace BrandService.Infrastructure.Controller
             _vehicleService = vehicleService;
         }
 
+        [HttpGet]
+        [ProducesResponseType(typeof(ApiResponse<List<VehicleResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetAll()
+        {
+            var vehicles = await _vehicleService.GetAllAsync();
+            return Ok(vehicles);
+        }
+
+
         /// <summary>
         /// Get a paginated list of vehicles with optional search.
         /// </summary>
-        [HttpGet]
+        [HttpGet("search")]
         [ProducesResponseType(typeof(ApiResponse<PagedResult<VehicleResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null)

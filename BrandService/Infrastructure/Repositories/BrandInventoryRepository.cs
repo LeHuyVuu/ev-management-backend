@@ -13,6 +13,20 @@ namespace BrandService.Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task<BrandInventory?> GetByVehicleVersionIdAsync(Guid vehicleVersionId)
+        {
+            try
+            {
+                return await _context.BrandInventories
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(bi => bi.VehicleVersionId == vehicleVersionId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
         public async Task AddInventoryAsync(BrandInventory inventory)
         {
             try
@@ -26,7 +40,30 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public async Task<bool> UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
+
+        public async Task UpdateInventoryAsync(BrandInventory inventory)
+        {
+            try
+            {
+                if (inventory.StockQuantity < 0)
+                {
+                    throw new BadRequestException("Stock quantity cannot be negative");
+                }
+                _context.BrandInventories.Update(inventory);
+                await _context.SaveChangesAsync();
+            }
+            catch (BadRequestException ex)
+            {
+                throw new BadRequestException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task UpdateStockAsync(Guid vehicleVersionId, int deltaQuantity)
+
         {
             var existing = await _context.BrandInventories
                 .FirstOrDefaultAsync(bi => bi.VehicleVersionId == vehicleVersionId);

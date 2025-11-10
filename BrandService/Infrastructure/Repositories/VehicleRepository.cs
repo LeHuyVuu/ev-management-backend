@@ -16,6 +16,18 @@ namespace BrandService.Infrastructure.Repositories
             _context = context;
         }
 
+        public async Task<List<Vehicle>> GetAllAsync()
+        {
+            try
+            {
+                return await _context.Vehicles.AsNoTracking().ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error fetching all vehicles: {ex.Message}");
+            }
+        }
+
         public async Task<PagedResult<Vehicle>> GetPagedAsync(int pageNumber, int pageSize, string? searchValue)
         {
             try

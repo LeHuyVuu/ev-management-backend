@@ -59,7 +59,7 @@ namespace BrandService.Infrastructure.Services
             var brandInventory = new BrandInventory
             {
                 VehicleVersionId = added.VehicleVersionId,
-                StockQuantity = request.StockQuantity ?? 0
+                StockQuantity = request.StockQuantity
             };
             await _brandInventoryRepo.AddInventoryAsync(brandInventory);
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(added), "Version created");
@@ -70,6 +70,12 @@ namespace BrandService.Infrastructure.Services
             var version = _mapper.Map<VehicleVersion>(request);
             version.VehicleVersionId = vehicleVersionId;
             var updated = await _vehicleVersionRepo.UpdateVersionAsync(version);
+            var brandInventory = await _brandInventoryRepo.GetByVehicleVersionIdAsync(vehicleVersionId);
+            if (brandInventory != null)
+            {
+                brandInventory.StockQuantity = request.StockQuantity;
+                await _brandInventoryRepo.UpdateInventoryAsync(brandInventory);
+            }
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(updated), "Version updated");
         }
 
@@ -79,9 +85,23 @@ namespace BrandService.Infrastructure.Services
             return ApiResponse<BrandVehicleVersionResponse>.Success(_mapper.Map<BrandVehicleVersionResponse>(version));
         }
 
-        public async Task<ApiResponse<DealerVehicleVersionResponse>> GetDealerVersionByIdAsync(Guid id)
+        public async Task<ApiResponse<PagedResult<DealerVehicleVersionResponse>>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice, List<string>? colors)
         {
-            var version = await _vehicleVersionRepo.GetVersionByIdAsync(id);
+            var pagedVersions = await _vehicleVersionRepo.GetAllStockByDealerAsync(dealerId, pageNumber, pageSize, searchValue, vehicleId, minPrice, maxPrice, colors);
+            var mapped = _mapper.Map<IEnumerable<DealerVehicleVersionResponse>>(pagedVersions.Items).ToList();
+            var result = new PagedResult<DealerVehicleVersionResponse>
+            {
+                Items = mapped,
+                TotalItems = pagedVersions.TotalItems,
+                PageNumber = pagedVersions.PageNumber,
+                PageSize = pagedVersions.PageSize,
+            };
+            return ApiResponse<PagedResult<DealerVehicleVersionResponse>>.Success(result);
+        }
+
+        public async Task<ApiResponse<DealerVehicleVersionResponse>> GetDealerVersionByIdAsync(Guid versionId, Guid dealerId)
+        {
+            var version = await _vehicleVersionRepo.GetDealerVersionByVersionIdAsync(versionId, dealerId);
             return ApiResponse<DealerVehicleVersionResponse>.Success(_mapper.Map<DealerVehicleVersionResponse>(version));
         }
 

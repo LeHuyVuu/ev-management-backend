@@ -55,6 +55,22 @@ namespace BrandService.Infrastructure.Controller
             return Ok(result);
         }
 
+        [HttpGet("dealer-stock")]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerVehicleVersionResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetAllStockByDealerId([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null, [FromQuery] Guid? vehicleId = null, [FromQuery] decimal? minPrice = null, [FromQuery] decimal? maxPrice = null, [FromQuery] List<string>? colors = null)
+        {
+            var dealerIdClaim = User.FindFirst("DealerId")?.Value;
+
+            if (dealerIdClaim == null)
+                return Unauthorized(ApiResponse<object>.Fail(403, "Dealer information missing in token."));
+
+            var dealerId = Guid.Parse(dealerIdClaim);
+            var result = await _vehicleVersionService.GetAllStockByDealerAsync(dealerId, pageNumber, pageSize, searchValue, vehicleId, minPrice, maxPrice, colors);
+            return Ok(result);
+        }
+
         /// <summary>
         /// Add a new version for a vehicle.
         /// </summary>
@@ -94,7 +110,13 @@ namespace BrandService.Infrastructure.Controller
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetDealerVersion(Guid versionId)
         {
-            var version = await _vehicleVersionService.GetDealerVersionByIdAsync(versionId);
+            var dealerIdClaim = User.FindFirst("DealerId")?.Value;
+
+            if (dealerIdClaim == null)
+                return Unauthorized(ApiResponse<object>.Fail(403, "Dealer information missing in token."));
+
+            var dealerId = Guid.Parse(dealerIdClaim);
+            var version = await _vehicleVersionService.GetDealerVersionByIdAsync(versionId, dealerId);
             return Ok(version);
         }
 

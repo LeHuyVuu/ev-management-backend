@@ -1,5 +1,6 @@
 using Amazon.S3;
 using Amazon.S3.Model;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerService.Infrastructure.Services;
 
@@ -13,6 +14,7 @@ public class S3StorageService
         _s3Client = s3Client;
         _bucketName = config["AWS:BucketName"]!;
     }
+    [RequestSizeLimit(500 * 1024 * 1024)] // 500MB
 
     public async Task<string> UploadFileAsync(IFormFile file)
     {

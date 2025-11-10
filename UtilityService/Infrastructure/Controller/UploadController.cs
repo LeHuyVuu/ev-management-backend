@@ -1,8 +1,8 @@
-using CustomerService.Models;
-using Microsoft.AspNetCore.Mvc;
 using CustomerService.Infrastructure.Services;
+using Microsoft.AspNetCore.Mvc;
+using UtilityService.Models;
 
-namespace CustomerService.Infrastructure.Controller;
+namespace UtilityService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api/[controller]")]

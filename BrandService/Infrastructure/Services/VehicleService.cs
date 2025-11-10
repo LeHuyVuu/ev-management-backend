@@ -19,6 +19,13 @@ namespace BrandService.Infrastructure.Services
             _mapper = mapper;
         }
 
+        public async Task<ApiResponse<List<VehicleResponse>>> GetAllAsync()
+        {
+            var entities = await _repo.GetAllAsync();
+            var dtos = _mapper.Map<List<VehicleResponse>>(entities);
+            return ApiResponse<List<VehicleResponse>>.Success(dtos);
+        }
+
         public async Task<ApiResponse<PagedResult<VehicleResponse>>> GetPagedAsync(int pageNumber, int pageSize, string? searchValue)
         {
             var pagedVehicles = await _repo.GetPagedAsync(pageNumber, pageSize, searchValue);

@@ -14,6 +14,7 @@ public class OrderService
     private readonly ContractRepository _contractRepository;
     private readonly DealerRepository _dealerRepository;
     private readonly QuoteRepository _quoteRepository;
+    private readonly InventoryRepository _inventoryRepository;
     private readonly IMapper _mapper;
 
     public OrderService(
@@ -22,6 +23,7 @@ public class OrderService
         ContractRepository contractRepository,
         DealerRepository dealerRepository,
         QuoteRepository quoteRepository,
+        InventoryRepository inventoryRepository,
         IMapper mapper)
     {
         _orderRepository = orderRepository;
@@ -29,6 +31,7 @@ public class OrderService
         _contractRepository = contractRepository;
         _dealerRepository = dealerRepository;
         _quoteRepository = quoteRepository;
+        _inventoryRepository = inventoryRepository;
         _mapper = mapper;
     }
 
@@ -58,7 +61,7 @@ public class OrderService
         var customer = await _customerRepository.GetCustomerById(request.CustomerId);
         if(customer == null)
             throw new KeyNotFoundException("Customer does not exist");
-        var contract = await _contractRepository.GetContractByContractId(request.ContractId);
+        var contract = await _contractRepository.GetContractByContractIncludeQuote(request.ContractId);
         if(contract == null)
             throw new KeyNotFoundException("Contract does not exist");
         
@@ -72,8 +75,32 @@ public class OrderService
         
         var order = _mapper.Map<OrderCreateModel>(request);
         order.DealerId = dealerId;
+        
+        var inventory = await _inventoryRepository.GetInventoryByVersionId(contract.Quote.VehicleVersionId);
+        if(inventory == null)
+            throw new KeyNotFoundException("Car in inventory does not exist");
+        
+        int quantity = inventory.StockQuantity;
 
-        return await _orderRepository.CreateOrder(_mapper.Map<Order>(order));
+        if (quantity <= 0)
+            throw new Exception("The vehicle version is out of stock and cannot place an order.");
+        inventory.StockQuantity = quantity - 1;
+        await _inventoryRepository.UpdateInventory(inventory);
+
+        if(contract.Status != "confirmed"){
+            contract.Status = "confirmed";
+            await _contractRepository.UpdateContractStatus(contract);
+        }
+        if(contract.Status == "confirmed"){
+            throw new InvalidOperationException("Contract has already been confirmed.");
+        }
+
+        var result = await _orderRepository.CreateOrder(_mapper.Map<Order>(order));
+        if (!result)
+        {
+            throw new Exception("Failed to create order");
+        }
+        return result;
     }
 
     public async Task<OrderDetailResponse> GetOrderDetailByOrderId(Guid orderId)
@@ -149,8 +176,58 @@ public class OrderService
         var order = await _orderRepository.GetOrderByOrderId(orderId);
         if(order == null)
             throw new KeyNotFoundException("Order does not exist");
+        
+        var allowedStatuses = new[] { "preparing", "shipped from warehouse", "in transit", "arrived", "out for delivery", "completed", "delivery failed", "waiting" };
+        var status = string.IsNullOrWhiteSpace(request.Status) ? "draft" : request.Status.Trim().ToLowerInvariant();
+        if (!allowedStatuses.Contains(status))
+            throw new InvalidOperationException("Invalid status value. Only accepted: preparing, shipped from warehouse, in transit, arrived, out for delivery, completed, delivery failed, waiting");
+
+
+        if (string.Equals(request.Status, "delivery failed", StringComparison.OrdinalIgnoreCase)
+                 && string.Equals(order.Status, "delivery failed", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("You cannot update an order that has failed delivery.");
+        }
+
+        if (string.Equals(request.Status, "delivery failed", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(order.Status, "delivery failed", StringComparison.OrdinalIgnoreCase))
+        {
+            var contract = await _contractRepository.GetContractByContractIncludeQuote(order.ContractId);
+            if (contract == null)
+                throw new KeyNotFoundException("Contract does not exist");
+            var inventory = await _inventoryRepository.GetInventoryByVersionId(contract.Quote.VehicleVersionId);
+            if (inventory == null)
+                throw new KeyNotFoundException("Car in inventory does not exist");
+
+            int quantity = inventory.StockQuantity;
+
+            inventory.StockQuantity = quantity + 1;
+            await _inventoryRepository.UpdateInventory(inventory);
+
+            contract.Status = "draft";
+            await _contractRepository.UpdateContractStatus(contract);
+        }
+
         order.Status = request.Status;
 
         return await _orderRepository.UpdateOrderStatus(order);
+    }
+
+    public async Task<bool> UpdateOrderLimitedAsync(Guid orderId, OrderUpdateRequest request)
+    {
+        var order = await _orderRepository.GetOrderByOrderId(orderId);
+        if (order == null)
+            throw new KeyNotFoundException("Order not found");
+
+        if (!string.Equals(order.Status, "preparing", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Only orders in 'preparing' status can be edited.");
+
+        if (request.DeliveryAddress != null)
+            order.DeliveryAddress = request.DeliveryAddress;
+        if (request.DeliveryDate != null)
+            order.DeliveryDate = request.DeliveryDate;
+        // Note: not persisted unless Order entity has a Note column. You can extend entity later.
+
+        return await _orderRepository.UpdateOrderLimitedAsync(order);
     }
 }

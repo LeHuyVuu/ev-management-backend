@@ -63,4 +63,10 @@ public class QuoteRepository
     {
         return await _dbContext.Quotes.FirstOrDefaultAsync(q => q.Contracts.Any(c => c.ContractId == contractId));
     }
+
+    public async Task AddAsync(Quote quote)
+    {
+        await _dbContext.Quotes.AddAsync(quote);
+        await _dbContext.SaveChangesAsync();
+    }
 }

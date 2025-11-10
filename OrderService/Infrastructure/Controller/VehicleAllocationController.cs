@@ -55,6 +55,29 @@ public class VehicleAllocationController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Lấy ra chi tiết phân bổ xe
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetDetail(Guid id)
+    {
+        try
+        {
+            var detail = await _service.GetDetailAsync(id);
+            if (detail == null)
+                return NotFound(ApiResponse<string>.Fail(404, "Vehicle allocation not found."));
+
+            return Ok(ApiResponse<VehicleAllocationDetailResponse>.Success(detail, "Fetched vehicle allocation detail successfully"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving vehicle allocation detail for {Id}", id);
+            return StatusCode(500, ApiResponse<VehicleAllocationDetailResponse>.Fail(
+                500, "Internal server error", ex.Message));
+        }
+    }
 
     // POST /api/vehicle-allocations
     [HttpPost]

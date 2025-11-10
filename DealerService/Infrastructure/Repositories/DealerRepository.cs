@@ -71,9 +71,11 @@ namespace DealerService.Infrastructure.Repositories
             try
             {
 
-                if (DoesDealerExist(dealer.DealerCode))
+                if (DoesDealerCodeExist(dealer.DealerCode))
                     throw new BadRequestException("Dealer code has already existed.");
 
+                if (DoesDealerNameExist(dealer.Name))
+                    throw new BadRequestException("Dealer name has already existed.");
 
                 _context.Dealers.Add(dealer);
                 await _context.SaveChangesAsync();
@@ -94,8 +96,11 @@ namespace DealerService.Infrastructure.Repositories
             try
             {
 
-                if (DoesDealerExist(dealer.DealerCode, dealer.DealerId))
-                    throw new BadRequestException("Dealer has already exist");
+                if (DoesDealerCodeExist(dealer.DealerCode, dealer.DealerId))
+                    throw new BadRequestException("Dealer code has already exist");
+
+                if (DoesDealerNameExist(dealer.Name, dealer.DealerId))
+                    throw new BadRequestException("Dealer name has already existed.");
 
                 _context.Dealers.Update(dealer);
                 await _context.SaveChangesAsync();
@@ -111,9 +116,14 @@ namespace DealerService.Infrastructure.Repositories
             }
         }
 
-        public bool DoesDealerExist(string dealerCode, Guid? excludeDealerId = null)
+        public bool DoesDealerCodeExist(string dealerCode, Guid? excludeDealerId = null)
         {
             return _context.Dealers.AsNoTracking().Any(d => d.DealerCode == dealerCode && (excludeDealerId == null || d.DealerId != excludeDealerId));
+        }
+
+        public bool DoesDealerNameExist(string dealerName, Guid? excludeDealerId = null)
+        {
+            return _context.Dealers.AsNoTracking().Any(d => d.Name.ToLower() == dealerName.ToLower() && (excludeDealerId == null || d.DealerId != excludeDealerId));
         }
     }
 }

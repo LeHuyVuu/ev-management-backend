@@ -50,4 +50,11 @@ public class OrderRepository
         await _dbContext.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> UpdateOrderLimitedAsync(Order order)
+    {
+        _dbContext.Orders.Update(order);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
 }

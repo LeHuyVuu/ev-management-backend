@@ -96,6 +96,11 @@ builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<VehicleVersionService>();
 builder.Services.AddScoped<InventoryService>();
 builder.Services.AddScoped<BrandInventoryService>();
+builder.Services.AddScoped<DashboardRepository>();
+builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<ReportRepository>();
+builder.Services.AddScoped<ReportService>();
+
 
 builder.Services.AddSingleton<IKafkaProducer, KafkaProducer>();
 builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));

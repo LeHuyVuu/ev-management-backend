@@ -59,6 +59,27 @@ public class VehicleAllocationService
         }
     }
 
+    public async Task<VehicleAllocationDetailResponse?> GetDetailAsync(Guid id)
+    {
+        var allocation = await _repository.GetByIdAsync(id);
+        if (allocation == null) return null;
+
+        return new VehicleAllocationDetailResponse
+        {
+            AllocationId = allocation.AllocationId,
+            DealerId = allocation.DealerId,
+            DealerName = allocation.Dealer?.Name ?? string.Empty,
+            VehicleVersionId = allocation.VehicleVersionId,
+            VehicleName = allocation.VehicleVersion?.Vehicle?.ModelName ?? string.Empty,
+            VersionName = allocation.VehicleVersion?.VersionName ?? string.Empty,
+            Color = allocation.VehicleVersion?.Color,
+            Quantity = allocation.Quantity,
+            RequestDate = allocation.RequestDate,
+            ExpectedDelivery = allocation.ExpectedDelivery,
+            Status = allocation.Status
+        };
+    }
+
     public async Task<VehicleAllocationResponse> CreateAsync(VehicleAllocationRequest request, Guid dealerId)
     {
         try

@@ -29,8 +29,29 @@ public class ContractRepository
         return await _dbContext.Contracts.FirstOrDefaultAsync(c => c.ContractId == contractId);
     }
 
+    public async Task<Contract> GetContractByContractIncludeQuote(Guid contractId)
+    {
+        return await _dbContext.Contracts.Include(c => c.Quote).FirstOrDefaultAsync(c => c.ContractId == contractId);
+    }
     public async Task<IEnumerable<Contract>> GetAllContractsByDealerId(Guid dealerId)
     {
         return await _dbContext.Contracts.Where(c => c.DealerId == dealerId).ToListAsync();
+    }
+
+    public async Task<bool> UpdateContractStatus(Contract contract)
+    {
+        _dbContext.Update(contract);
+        return await _dbContext.SaveChangesAsync() > 0;
+    }
+    
+    public async Task<IEnumerable<Contract>> GetAllInConfirmedContractsByCustomerId(Guid customerId)
+    {
+        return await _dbContext.Contracts.Where(c => c.CustomerId == customerId && c.Status != "confirmed").ToListAsync();
+    }
+    
+    public async Task<bool> UpdateContract(Contract contract)
+    {
+        _dbContext.Update(contract);
+        return await _dbContext.SaveChangesAsync() > 0;
     }
 }
