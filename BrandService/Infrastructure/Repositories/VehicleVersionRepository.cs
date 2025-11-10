@@ -40,16 +40,17 @@ namespace BrandService.Infrastructure.Repositories
         {
             try
             {
-                var existingVersion = await _context.VehicleVersions
+                var existingVersion = await _context.VehicleVersions.Include(v => v.Vehicle)
                     .FirstOrDefaultAsync(v => v.VehicleVersionId == version.VehicleVersionId);
                 if (existingVersion == null)
                     throw new NotFoundException("Vehicle version not found");
-                if (DoesVersionExist(version.VehicleId, version.VersionName, version.Color) &&
-                    (existingVersion.VersionName.ToLower() != version.VersionName.ToLower() ||
-                     existingVersion.Color.ToLower() != version.Color.ToLower()))
+
+                if (DoesVersionExist(existingVersion.VehicleId, version.VersionName, version.Color, existingVersion.VehicleVersionId))
                 {
+
                     throw new BadRequestException("Another vehicle version with the same name and color already exists for this vehicle.");
                 }
+
                 existingVersion.VersionName = version.VersionName;
                 existingVersion.Color = version.Color;
                 existingVersion.EvType = version.EvType;
@@ -83,25 +84,33 @@ namespace BrandService.Infrastructure.Repositories
                     .Include(vv => vv.Inventories)
                     .AsNoTracking();
 
-                if (!string.IsNullOrEmpty(searchValue))
+                if (!string.IsNullOrWhiteSpace(searchValue))
                 {
-                    var keyword = searchValue.Trim().ToLower();
+                    var keywords = searchValue
+                        .Trim()
+                        .ToLower()
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-                    query = query.Where(vv =>
-                        vv.Vehicle.Brand.ToLower().Contains(keyword) ||
-                        vv.Vehicle.ModelName.ToLower().Contains(keyword) ||
-                        vv.VersionName.ToLower().Contains(keyword) ||
-                        (vv.Color != null && vv.Color.ToLower().Contains(keyword)) ||
-                        (vv.EvType != null && vv.EvType.ToLower().Contains(keyword))
-                    );
+                    foreach (var kw in keywords)
+                    {
+                        var word = kw; // tránh capture lỗi closure trong EF
+                        query = query.Where(vv =>
+                            (
+                                (vv.Vehicle.Brand + " " +
+                                 vv.Vehicle.ModelName + " " +
+                                 vv.VersionName + " " +
+                                 vv.Color + " " +
+                                 (vv.EvType ?? ""))
+                                .ToLower()
+                            ).Contains(word)
+                        );
+                    }
                 }
 
                 var totalItems = await query.CountAsync();
 
                 var items = await query
-                    .OrderBy(vv => vv.Vehicle.Brand)
-                    .ThenBy(vv => vv.Vehicle.ModelName)
-                    .ThenBy(vv => vv.VersionName)
+                    .AsNoTracking()
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .ToListAsync();
@@ -119,6 +128,122 @@ namespace BrandService.Infrastructure.Repositories
                 throw new Exception($"Error fetching vehicle versions: {ex.Message}");
             }
         }
+
+        public async Task<PagedResult<VehicleVersion>> GetAllStockByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue, Guid? vehicleId, decimal? minPrice, decimal? maxPrice, List<string>? colors)
+        {
+            try
+            {
+                var dealerExists = await _context.Dealers
+                    .AsNoTracking()
+                    .AnyAsync(d => d.DealerId == dealerId);
+
+                if (!dealerExists)
+                    throw new NotFoundException("Dealer not found");
+
+                var query =
+                    from vv in _context.VehicleVersions
+                        .Include(v => v.Vehicle)
+                    join inv in _context.Inventories
+                        on vv.VehicleVersionId equals inv.VehicleVersionId into invGroup
+                    from inventory in invGroup
+                        .Where(i => i.DealerId == dealerId)
+                        .DefaultIfEmpty()
+                    select new VehicleVersion
+                    {
+                        VehicleVersionId = vv.VehicleVersionId,
+                        VehicleId = vv.VehicleId,
+                        Vehicle = vv.Vehicle,
+                        VersionName = vv.VersionName,
+                        Color = vv.Color,
+                        EvType = vv.EvType,
+                        HorsePower = vv.HorsePower,
+                        BasePrice = vv.BasePrice,
+                        ImageUrl = vv.ImageUrl,
+                        Inventories = inventory != null
+                            ? new List<Inventory> { inventory }
+                            : new List<Inventory>()
+                    };
+
+                if (!string.IsNullOrWhiteSpace(searchValue))
+                {
+                    var keywords = searchValue
+                        .Trim()
+                        .ToLower()
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    foreach (var kw in keywords)
+                    {
+                        var word = kw; // tránh capture lỗi trong EF
+                        query = query.Where(vv =>
+                            (
+                                (vv.Vehicle.Brand + " " +
+                                 vv.Vehicle.ModelName + " " +
+                                 vv.VersionName + " " +
+                                 vv.Color + " " +
+                                 (vv.EvType ?? ""))
+                                .ToLower()
+                            ).Contains(word)
+                        );
+                    }
+                }
+
+
+                if (colors != null && colors.Any())
+                {
+                    var colorList = colors
+                        .Select(c => c.Trim().ToLower())
+                        .ToList();
+
+                    query = query.Where(vv =>
+                        vv.Color != null &&
+                        colorList.Contains(vv.Color.ToLower()));
+                }
+
+                if (vehicleId.HasValue && vehicleId.Value != Guid.Empty)
+                    query = query.Where(vv => vv.VehicleId == vehicleId.Value);
+
+                if (minPrice.HasValue)
+                    query = query.Where(vv => vv.BasePrice >= minPrice.Value);
+                if (maxPrice.HasValue)
+                    query = query.Where(vv => vv.BasePrice <= maxPrice.Value);
+
+                var items = await query.AsNoTracking().ToListAsync();
+
+                items = items
+                    .OrderByDescending(vv =>
+                        vv.Inventories.FirstOrDefault()?.StockQuantity ?? 0)
+                    .ThenBy(vv => vv.BasePrice)
+                    .ThenBy(vv => vv.Vehicle.Brand)
+                    .ThenBy(vv => vv.Vehicle.ModelName)
+                    .ThenBy(vv => vv.VersionName)
+                    .ToList();
+
+                var totalItems = items.Count;
+                var pagedItems = items
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return new PagedResult<VehicleVersion>
+                {
+                    Items = pagedItems,
+                    TotalItems = totalItems,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize
+                };
+            }
+            catch (NotFoundException ex)
+            {
+                throw new NotFoundException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error when getting all vehicle versions for dealer");
+            }
+        }
+
+
+
 
         public async Task<PagedResult<VehicleVersion>> GetPagedByDealerAsync(Guid dealerId, int pageNumber, int pageSize, string? searchValue)
         {
@@ -164,16 +289,41 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-
-        public async Task<VehicleVersion?> GetVersionByIdAsync(Guid id)
+        public async Task<VehicleVersion?> GetVersionByIdAsync(Guid versionId)
         {
             try
             {
                 var version = await _context.VehicleVersions
                                             .Include(vv => vv.Vehicle)
                                             .Include(vv => vv.Inventories)
+                                            .Include(vv => vv.BrandInventory)
                                             .AsNoTracking()
-                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == id);
+                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == versionId);
+
+                if (version == null)
+                    throw new NotFoundException("Vehicle version not found");
+
+                return version;
+            }
+            catch (NotFoundException ex)
+            {
+                throw new NotFoundException(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<VehicleVersion?> GetDealerVersionByVersionIdAsync(Guid versionId, Guid dealerId)
+        {
+            try
+            {
+                var version = await _context.VehicleVersions
+                                            .Include(vv => vv.Vehicle)
+                                            .Include(vv => vv.Inventories.Where(i => i.DealerId == dealerId && i.VehicleVersionId == versionId))
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(v => v.VehicleVersionId == versionId);
 
                 if (version == null)
                     throw new NotFoundException("Vehicle version not found");
@@ -215,14 +365,17 @@ namespace BrandService.Infrastructure.Repositories
             }
         }
 
-        public bool DoesVersionExist(Guid vehicleId, string versionName, string color)
+        public bool DoesVersionExist(Guid vehicleId, string versionName, string color, Guid? excludeId = null)
         {
             return _context.VehicleVersions
                 .AsNoTracking()
-                .Any(v =>
-                    v.VehicleId == vehicleId &&
-                    v.VersionName.ToLower() == versionName.ToLower() &&
-                    v.Color.ToLower() == color.ToLower());
+                .Any(vv =>
+                    vv.VehicleId == vehicleId &&
+                    vv.VersionName.ToLower() == versionName.ToLower() &&
+                    ((vv.Color == null && color == null) ||
+                     (vv.Color != null && color != null && vv.Color.ToLower() == color.ToLower())) &&
+                    (!excludeId.HasValue || vv.VehicleVersionId != excludeId)
+                );
         }
     }
 }

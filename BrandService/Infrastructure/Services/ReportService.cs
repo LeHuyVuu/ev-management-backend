@@ -1,0 +1,47 @@
+﻿using BrandService.DTOs.Responses.ReportDTOs;
+using BrandService.Infrastructure.Repositories;
+
+namespace BrandService.Infrastructure.Services
+{
+    public class ReportService
+    {
+        private readonly ReportRepository _repo;
+
+        public ReportService(ReportRepository repo)
+        {
+            _repo = repo;
+        }
+
+        public async Task<SalesReportResponse> GetSalesReportAsync(int? month, int? quarter, int? year, string? region, Guid? dealerId)
+        {
+            var data = await _repo.GetSalesByModelAndRegionAsync(month, quarter, year, region, dealerId);
+
+            return new SalesReportResponse
+            {
+                Filter = new SalesReportFilter
+                {
+                    Month = month,
+                    Quarter = quarter,
+                    Year = year,
+                    Region = region,
+                    DealerId = dealerId
+                },
+                SalesSummary = data
+            };
+        }
+
+        public async Task<TopDealersReportResponse> GetTopDealersAsync()
+        {
+            var data = await _repo.GetTopDealersAsync();
+            return new TopDealersReportResponse
+            {
+                TopDealers = data
+            };
+        }
+
+        public async Task<List<CurrentInventoryResponse>> GetCurrentDealersInventoryAsync()
+        {
+            return await _repo.GetCurrentDealersInventoryAsync();
+        }
+    }
+}

@@ -20,7 +20,7 @@ public class OrderController : ControllerBase
     /// <summary>
     /// Lấy danh sách Order theo CustomerId
     /// </summary>
-    //[Authorize(Roles = "dealer_staff")]
+    [Authorize]
     [HttpGet]
     [Route("customers/{customerId}/orders")]
     public async Task<IActionResult> GetAllOrdersByCustomerId(Guid customerId)
@@ -43,6 +43,7 @@ public class OrderController : ControllerBase
     /// <summary>
     /// Tạo đơn hàng cho khác hàng
     /// </summary>
+    [Authorize]
     [HttpPost]
     [Route("api/customers/orders")]
     public async Task<IActionResult> CreateOrder([FromBody]OrderCreateRequest request)
@@ -66,6 +67,7 @@ public class OrderController : ControllerBase
     /// <summary>
     /// Lấy OrderDetail bằng OrderId
     /// </summary>
+    [Authorize]
     [HttpGet]
     [Route("api/orders/{orderId}")]
     public async Task<IActionResult> GetOrderDetailByOrderId(Guid orderId)
@@ -88,6 +90,7 @@ public class OrderController : ControllerBase
     /// <summary>
     /// Lấy đơn hàng mà dealer hiện tại đăng nhập đang quản lý
     /// </summary>
+    [Authorize]
     [HttpGet]
     [Route("api/orders")]
     public async Task<IActionResult> GetOrdersByDealerId()
@@ -111,6 +114,7 @@ public class OrderController : ControllerBase
     /// <summary>
     /// Cập nhật trạng thái của đơn hàng
     /// </summary>
+    [Authorize]
     [HttpPatch]
     [Route("api/orders/{orderId}/status")]
     public async Task<IActionResult> UpdateOrderStatus(Guid orderId, [FromBody]OrderUpdateStatusRequest request)
@@ -119,6 +123,33 @@ public class OrderController : ControllerBase
         {
             var orders = await _orderService.UpdateOrderStatus(orderId, request);
             return Ok(ApiResponse<bool>.Success(orders));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ApiResponse<string>.NotFound(ex.Message));
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, ApiResponse<string>.InternalError(ex.Message));
+        }
+    }
+
+    /// <summary>
+    /// Chỉnh sửa địa chỉ, thời gian (và ghi chú nếu có) khi order đang chuẩn bị.
+    /// </summary>
+    [Authorize]
+    [HttpPatch]
+    [Route("api/orders/{orderId}")]
+    public async Task<IActionResult> UpdateOrderLimited(Guid orderId, [FromBody] OrderUpdateRequest request)
+    {
+        try
+        {
+            var ok = await _orderService.UpdateOrderLimitedAsync(orderId, request);
+            return Ok(ApiResponse<bool>.Success(ok));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse<string>.BadRequest(ex.Message));
         }
         catch (KeyNotFoundException ex)
         {

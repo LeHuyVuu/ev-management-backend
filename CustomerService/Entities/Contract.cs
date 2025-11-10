@@ -1,4 +1,7 @@
-﻿namespace CustomerService.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace CustomerService.Entities;
 
 public partial class Contract
 {
@@ -19,6 +22,8 @@ public partial class Contract
     public DateOnly? SignedDate { get; set; }
 
     public string? FileUrl { get; set; }
+
+    public decimal? AmountPaid { get; set; }
 
     public virtual Customer Customer { get; set; } = null!;
 

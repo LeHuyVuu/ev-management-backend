@@ -31,6 +31,12 @@ namespace DealerService.Infrastructure.Services
             };
         }
 
+        public async Task<List<DealerResponse>> GetAllActiveDealersAsync()
+        {
+            var dealers = await _dealerRepo.GetAllActiveDealersAsync();
+            return _mapper.Map<List<DealerResponse>>(dealers);
+        }
+
         public async Task<DealerResponse?> GetByIdAsync(Guid id)
         {
             var dealer = await _dealerRepo.GetByIdAsync(id);

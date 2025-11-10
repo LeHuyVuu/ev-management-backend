@@ -46,7 +46,7 @@ namespace BrandService.Extensions.Mapper
                 .ForMember(dest => dest.InventoryId, opt => opt.MapFrom(src => src.InventoryId))
                 .ForMember(dest => dest.LastUpdated, opt => opt.MapFrom(src => src.LastUpdated))
                 .ForMember(dest => dest.StockQuantity, opt => opt.MapFrom(src => src.StockQuantity))
-                .ForMember(dest => dest.Dealer, opt => opt.MapFrom(src => src.Dealer))
+                //.ForMember(dest => dest.Dealer, opt => opt.MapFrom(src => src.Dealer))
                 .ForMember(dest => dest.VehicleVersion, opt => opt.MapFrom(src => src.VehicleVersion));
 
             // DEALER

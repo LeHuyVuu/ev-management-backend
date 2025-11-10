@@ -35,8 +35,8 @@ public class EmailService
   <div class='container'>
     <h2>{dto.Subject}</h2>
     <div>{dto.Content}</div>
-    <p><a class='button' href='ev-management-frontend.vercel.app
-' target='_blank' rel='noreferrer'>Truy cập hệ thống</a></p>
+    <p><a class='button' href='ev-management-frontend.vercel.app/feedbacks
+' target='_blank' rel='noreferrer'>Gửi khiếu nại về EVM</a></p>
     <div class='footer'>© {DateTime.UtcNow.Year} EV Management System. All rights reserved.</div>
   </div>
 </body>

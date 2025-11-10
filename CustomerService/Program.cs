@@ -122,6 +122,8 @@ builder.Services.AddScoped<VehicleRepository>();
 builder.Services.AddScoped<VehicleService>();
 builder.Services.AddScoped<DealerRepository>();
 builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<InventoryRepository>();
+builder.Services.AddScoped<PromotionRepository>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfiles).Assembly);
