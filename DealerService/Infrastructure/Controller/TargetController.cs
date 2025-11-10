@@ -1,12 +1,14 @@
 ﻿using DealerService.DTOs.Responses.DealerTargetDTOs;
 using DealerService.Infrastructure.Services;
 using DealerService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DealerService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DealerTargetsController : ControllerBase
     {
         private readonly DealerTargetService _dealerTargetService;

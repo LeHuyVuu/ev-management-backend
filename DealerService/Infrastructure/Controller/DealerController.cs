@@ -4,6 +4,7 @@ using DealerService.DTOs.Responses.DealerDTOs;
 using DealerService.DTOs.Responses.DealerTargetDTOs;
 using DealerService.Infrastructure.Services;
 using DealerService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.Design;
 
@@ -11,6 +12,7 @@ namespace DealerService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class DealersController : ControllerBase
     {
         private readonly DealerAppService _dealerService;
@@ -62,6 +64,7 @@ namespace DealerService.Infrastructure.Controller
         /// Create a new dealer.
         /// </summary>
         [HttpPost]
+        [Authorize(Roles = "Administrator,EVM Staff")]
         [ProducesResponseType(typeof(ApiResponse<DealerResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]

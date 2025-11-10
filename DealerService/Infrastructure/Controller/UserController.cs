@@ -2,6 +2,7 @@
 using DealerService.DTOs.Responses.DealerTargetDTOs;
 using DealerService.Infrastructure.Services;
 using DealerService.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace DealerService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api")]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;

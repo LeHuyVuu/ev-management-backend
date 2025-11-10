@@ -8,7 +8,7 @@ namespace BrandService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/dashboard")]
-    [Authorize]
+    [Authorize(Roles = "Administrator,EVM Staff")]
     public class DashboardController : ControllerBase
     {
         private readonly DashboardService _dashboardService;
@@ -23,7 +23,7 @@ namespace BrandService.Infrastructure.Controller
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        //[Authorize(Roles = )]
+        
         [ProducesResponseType(typeof(ApiResponse<DashboardResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetBrandDashboard()

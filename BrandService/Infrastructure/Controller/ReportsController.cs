@@ -1,12 +1,14 @@
 ﻿using BrandService.DTOs.Responses.ReportDTOs;
 using BrandService.Infrastructure.Services;
 using BrandService.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/reports")]
+    [Authorize(Roles = "Administrator,EVM Staff")]
     public class ReportsController : ControllerBase
     {
         private readonly ReportService _salesService;

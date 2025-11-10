@@ -2,12 +2,14 @@
 using BrandService.DTOs.Responses.VehicleDTOs;
 using BrandService.Infrastructure.Services;
 using BrandService.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/vehicle-versions")]
+    [Authorize]
     public class VehicleVersionController : ControllerBase
     {
         private readonly VehicleVersionService _vehicleVersionService;
