@@ -1,12 +1,14 @@
 ﻿using BrandService.Entities;
 using BrandService.Infrastructure.Services;
 using BrandService.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/brand-inventories")]
+    [Authorize]
     public class BrandInventoryController : ControllerBase
     {
         private readonly BrandInventoryService _brandInventoryService;

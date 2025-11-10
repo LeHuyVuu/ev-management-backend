@@ -1,12 +1,14 @@
 ﻿using BrandService.DTOs.Responses.DashboardDTOs;
 using BrandService.Infrastructure.Services;
 using BrandService.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BrandService.Infrastructure.Controller
 {
     [ApiController]
     [Route("api/dashboard")]
+    [Authorize]
     public class DashboardController : ControllerBase
     {
         private readonly DashboardService _dashboardService;
@@ -21,6 +23,7 @@ namespace BrandService.Infrastructure.Controller
         /// </summary>
         /// <returns></returns>
         [HttpGet]
+        //[Authorize(Roles = )]
         [ProducesResponseType(typeof(ApiResponse<DashboardResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
         public async Task<ActionResult> GetBrandDashboard()
