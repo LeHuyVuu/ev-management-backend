@@ -96,22 +96,6 @@ namespace DealerService.Infrastructure.Services
                 await _producer.PublishAsync(topic, updated.DealerId.ToString(), ev);
                 _logger.LogInformation("Published DealerAccountStatusEvent for DealerId={DealerId}, Status={Status}", updated.DealerId, updated.Status);
             }
-            else if (string.Equals(updated.Status, "active", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogInformation("Dealer {DealerId} status changed to {Status}, publishing Kafka event", updated.DealerId, updated.Status);
-                if (!_settings.Topics.TryGetValue("DealerAccountStatus", out var topic))
-                    throw new InvalidOperationException("KafkaSettings.Topics['DealerAccountStatus'] missing.");
-
-                var ev = new DealerAccountStatusEvent
-                {
-                    DealerId = updated.DealerId,
-                    Status = "active"
-                };
-
-                await _producer.PublishAsync(topic, updated.DealerId.ToString(), ev);
-                _logger.LogInformation("Published DealerAccountStatusEvent for DealerId={DealerId}, Status={Status}", updated.DealerId, updated.Status);
-            }
-
             return response;
         }
     }

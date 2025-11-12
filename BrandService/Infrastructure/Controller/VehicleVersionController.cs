@@ -55,7 +55,7 @@ namespace BrandService.Infrastructure.Controller
             return Ok(result);
         }
 
-        [HttpGet("dealer/{dealerId})")]
+        [HttpGet("dealer/{dealerId}")]
         [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerVehicleVersionResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
