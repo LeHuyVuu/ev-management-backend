@@ -162,7 +162,20 @@ namespace BrandService.Infrastructure.Repositories
                 .FirstOrDefaultAsync(i => i.DealerId == dealerId && i.VehicleVersionId == versionId);
 
             if (inventory == null)
-                return false;
+            {
+                inventory = new Inventory
+                {
+                    DealerId = dealerId,
+                    VehicleVersionId = versionId,
+                    StockQuantity = deltaQuantity,
+                    LastUpdated = DateOnly.FromDateTime(DateTime.UtcNow),
+                };
+
+                await _context.Inventories.AddAsync(inventory);
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
 
             var newStock = inventory.StockQuantity + deltaQuantity;
             if (newStock < 0)
@@ -176,6 +189,7 @@ namespace BrandService.Infrastructure.Repositories
 
             return true;
         }
+
 
 
         public async Task<bool> DoesDealerHasVehicleVersion(Guid versionId, Guid dealerId)
