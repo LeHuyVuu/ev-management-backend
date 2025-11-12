@@ -105,8 +105,7 @@ namespace OrderService.Infrastructure.Services
                 var testDriveId = created.GetType().GetProperty("TestDriveId") != null
                     ? (Guid)created.GetType().GetProperty("TestDriveId")!.GetValue(created)!
                     : (Guid)created.GetType().GetProperty("Id")!.GetValue(created)!;
-
-                var ev = new TestDriveCreatedEvent(
+                 var ev = new TestDriveCreatedEvent(
                     TestDriveId: testDriveId,
                     DealerId: dealerId,
                     CustomerId: request.CustomerId,
