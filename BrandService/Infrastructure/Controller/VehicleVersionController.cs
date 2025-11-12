@@ -55,6 +55,16 @@ namespace BrandService.Infrastructure.Controller
             return Ok(result);
         }
 
+        [HttpGet("dealer/{dealerId})")]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerVehicleVersionResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> GetByDealerIdExplicit(Guid dealerId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, [FromQuery] string? searchValue = null)
+        {
+            var result = await _vehicleVersionService.GetPagedForDealerAsync(dealerId, pageNumber, pageSize, searchValue);
+            return Ok(result);
+        }
+
         [HttpGet("dealer-stock")]
         [ProducesResponseType(typeof(ApiResponse<PagedResult<DealerVehicleVersionResponse>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
