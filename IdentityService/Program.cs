@@ -169,7 +169,7 @@ app.UseSwagger(c =>
 });
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Brand API V1");
+    c.SwaggerEndpoint($"{pathBase}/swagger/v1/swagger.json", "Identify API V1");
     c.RoutePrefix = "swagger";
 });
 

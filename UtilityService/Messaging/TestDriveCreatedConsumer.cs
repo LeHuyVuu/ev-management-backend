@@ -29,42 +29,85 @@ public class TestDriveCreatedConsumer : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // Nhả control ngay để host tiếp tục khởi động
+        await Task.Yield();
+
+        var bootstrap = _cfg["KafkaSettings:BootstrapServers"];
+        var topic = _cfg["KafkaSettings:Topics:Dealer"];
+
+        if (string.IsNullOrWhiteSpace(bootstrap) || string.IsNullOrWhiteSpace(topic))
+        {
+            _logger.LogWarning("Kafka config missing. BootstrapServers='{Bootstrap}', Topic='{Topic}'. Consumer will idle.", bootstrap, topic);
+            // Idle loop: không block host, chờ cấu hình/hạ tầng sẵn sàng
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
+            }
+            return;
+        }
+
         var consumerCfg = new ConsumerConfig
         {
-            BootstrapServers = _cfg["KafkaSettings:BootstrapServers"],
+            BootstrapServers = bootstrap,
             GroupId = "utility-service-consumer",
             AutoOffsetReset = AutoOffsetReset.Earliest,
-            EnableAutoCommit = false
+            EnableAutoCommit = false,
+            // làm consumer responsive hơn khi hạ tầng trục trặc
+            SocketTimeoutMs = 10_000,
+            SessionTimeoutMs = 10_000,
+            MaxPollIntervalMs = 300_000,
+            EnablePartitionEof = true
         };
 
-        using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg).Build();
-        var topic = _cfg["KafkaSettings:Topics:Dealer"];
-        consumer.Subscribe(topic);
+        using var consumer = new ConsumerBuilder<Ignore, string>(consumerCfg)
+            .SetErrorHandler((_, e) =>
+            {
+                // lỗi “broker down” không nên giết app; chỉ log ở mức Warning
+                if (e.IsFatal)
+                    _logger.LogError("Kafka fatal error: {Reason}", e.Reason);
+                else
+                    _logger.LogWarning("Kafka error: {Reason}", e.Reason);
+            })
+            .Build();
 
-        _logger.LogInformation("Kafka consumer started. Topic={Topic}, GroupId={Group}",
-            topic, "utility-service-consumer");
+        _logger.LogInformation("Kafka consumer starting. Bootstrap='{Bootstrap}', Topic='{Topic}', Group='{Group}'",
+            bootstrap, topic, consumerCfg.GroupId);
 
         try
         {
+            consumer.Subscribe(topic);
+            _logger.LogInformation("Kafka consumer subscribed to topic: {Topic}", topic);
+
             while (!stoppingToken.IsCancellationRequested)
             {
-                var cr = consumer.Consume(stoppingToken); 
-                _logger.LogInformation(
-                    "Received message from topic {Topic}, partition {Partition}, offset {Offset}. Raw value = {Value}",
-                    cr.Topic, cr.Partition, cr.Offset, cr.Message.Value);
-
                 try
                 {
-                    var ev = JsonSerializer.Deserialize<TestDriveCreatedEvent>(cr.Message.Value, _jsonOpts);
+                    // Dùng timeout để vòng lặp có cơ hội kiểm tra cancellation và không block host
+                    var cr = consumer.Consume(TimeSpan.FromSeconds(1));
+                    if (cr is null) continue;              // timeout poll
+                    if (cr.IsPartitionEOF) continue;       // chạm EOF, bỏ qua
 
-                    if (ev == null)
+                    // Log thô có thể noisy; giữ mức Information
+                    _logger.LogInformation("Kafka message @ {Topic}[{Partition}]#{Offset}",
+                        cr.Topic, cr.Partition, cr.Offset);
+
+                    TestDriveCreatedEvent? ev = null;
+                    try
                     {
-                        _logger.LogWarning("Deserialized event is null. Raw={Raw}", cr.Message.Value);
+                        ev = JsonSerializer.Deserialize<TestDriveCreatedEvent>(cr.Message.Value, _jsonOpts);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Cannot deserialize payload: {Payload}", cr.Message.Value);
+                    }
+
+                    if (ev is null)
+                    {
+                        _logger.LogWarning("Message skipped: payload null/invalid");
                     }
                     else
                     {
-                        _logger.LogInformation(
-                            "Parsed TestDriveCreatedEvent: Id={TestDriveId}, Dealer={DealerId}, ConfirmEmail={ConfirmEmail}, Email={Email}",
+                        _logger.LogInformation("Event parsed: TestDriveId={Id}, Dealer={Dealer}, ConfirmEmail={Confirm}, Email={Email}",
                             ev.TestDriveId, ev.DealerId, ev.ConfirmEmail, ev.Email);
 
                         if (ev.ConfirmEmail && !string.IsNullOrWhiteSpace(ev.Email))
@@ -79,29 +122,56 @@ public class TestDriveCreatedConsumer : BackgroundService
                                 Content = $"Bạn đã đặt lịch lái thử ngày {ev.DriveDate:dd/MM/yyyy} - {ev.TimeSlot}"
                             };
 
-                            _logger.LogInformation("Sending email to {To} ...", emailDto.ToEmail);
-                            var result = await emailService.SendEmailAsync(emailDto);
-                            _logger.LogInformation("Sent email result: status={Status}, message={Message}", result.Status, result.Message);
+                            try
+                            {
+                                _logger.LogInformation("Sending email to {To}...", emailDto.ToEmail);
+                                var result = await emailService.SendEmailAsync(emailDto);
+                                _logger.LogInformation("Send email result: status={Status}, message={Message}", result.Status, result.Message);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Send email failed to {To}", emailDto.ToEmail);
+                            }
                         }
                     }
 
-                    consumer.Commit(cr);
-                    _logger.LogInformation("Committed offset {Offset} for partition {Partition}", cr.Offset, cr.Partition);
+                    try
+                    {
+                        consumer.Commit(cr);
+                    }
+                    catch (Exception exCommit)
+                    {
+                        _logger.LogWarning(exCommit, "Commit failed at {PartitionOffset}", cr.TopicPartitionOffset);
+                    }
+                }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
+                {
+                    // normal shutdown
+                    break;
+                }
+                catch (ConsumeException cex)
+                {
+                    // lỗi consume riêng: log và tiếp tục
+                    _logger.LogWarning(cex, "Consume error: {Reason}", cex.Error.Reason);
+                    await Task.Delay(500, stoppingToken);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Process failed at {Topic}-{PartitionOffset}", cr.Topic, cr.TopicPartitionOffset);
+                    // các lỗi khác: log và backoff ngắn
+                    _logger.LogError(ex, "Unhandled error in consumer loop");
+                    await Task.Delay(1000, stoppingToken);
                 }
             }
         }
-        catch (OperationCanceledException)
-        {
-            _logger.LogInformation("Consumer stopping...");
-        }
         finally
         {
-            consumer.Close();
-            _logger.LogInformation("Kafka consumer closed");
+            try
+            {
+                consumer.Close();
+            }
+            catch { /* ignore */ }
+
+            _logger.LogInformation("Kafka consumer closed.");
         }
     }
 }
