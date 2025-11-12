@@ -41,10 +41,14 @@ var app = builder.Build();
  * - In Request/Response với thời gian xử lý và Correlation-Id
  * - Sample body text/json (giới hạn 2KB)
  * ============================================================ */
+// Logging middleware to log IP Address
 app.Use(async (context, next) =>
 {
     var sw = System.Diagnostics.Stopwatch.StartNew();
 
+    // Get the IP address
+    var remoteIp = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    
     // Correlation Id
     var correlationId = context.Request.Headers.TryGetValue("X-Correlation-Id", out var cid)
         ? cid.ToString()
@@ -67,8 +71,9 @@ app.Use(async (context, next) =>
     Console.WriteLine($"  Method       : {method}");
     Console.WriteLine($"  Path         : {path}");
     Console.WriteLine($"  Correlation  : {correlationId}");
+    Console.WriteLine($"  IP Address   : {remoteIp}");
 
-    // Sample request body nếu là text/json
+    // Sample request body if it's text/json
     string? reqSample = null;
     if (context.Request.ContentLength > 0 &&
         (method == "POST" || method == "PUT" || method == "PATCH") &&
@@ -85,7 +90,7 @@ app.Use(async (context, next) =>
         Console.WriteLine("  Body(sample) : " + TrimForLog(reqSample));
     }
 
-    // Bắt response để sample nội dung text/json
+    // Handle response logging
     var originalBody = context.Response.Body;
     await using var memStream = new MemoryStream();
     context.Response.Body = memStream;
