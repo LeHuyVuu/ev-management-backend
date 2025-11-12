@@ -87,12 +87,9 @@ public class OrderService
         inventory.StockQuantity = quantity - 1;
         await _inventoryRepository.UpdateInventory(inventory);
 
-        if(contract.Status != "confirmed"){
-            contract.Status = "confirmed";
+        if(contract.Status != "approved"){
+            contract.Status = "approved";
             await _contractRepository.UpdateContractStatus(contract);
-        }
-        if(contract.Status == "confirmed"){
-            throw new InvalidOperationException("Contract has already been confirmed.");
         }
 
         var result = await _orderRepository.CreateOrder(_mapper.Map<Order>(order));

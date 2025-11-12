@@ -241,20 +241,20 @@ public class ContractService
         if (contract.DealerId != dealerId)
             throw new UnauthorizedAccessException("Dealer does not own this contract");
 
-        var allowedStatuses = new[] { "draft", "confirmed", "approved" };
+        var allowedStatuses = new[] { "draft", "confirmed", "approved", "cancelled" };
         var normalizedStatus = request.Status?.Trim().ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(normalizedStatus))
             throw new InvalidOperationException("Status cannot be empty.");
         if (!allowedStatuses.Contains(normalizedStatus))
-            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, approved.");
+            throw new InvalidOperationException("Invalid status value. Only accepted: draft, confirmed, approved, cancelled.");
 
         if (string.Equals(contract.Status, normalizedStatus, StringComparison.OrdinalIgnoreCase))
             return true;
         
-        if (contract.Status == "approved")
-            throw new InvalidOperationException("Cannot change status of an approved contract.");
+        if (contract.Status == "cancelled")
+            throw new InvalidOperationException("Cannot change status of an cancelled contract.");
 
-        if (normalizedStatus == "confirmed" && contract.SignedDate == null)
+        if ((normalizedStatus == "confirmed" || normalizedStatus == "approved") && contract.SignedDate == null)
         {
             contract.SignedDate = DateOnly.FromDateTime(DateTime.UtcNow);
         }
