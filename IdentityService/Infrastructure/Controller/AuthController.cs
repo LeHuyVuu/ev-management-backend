@@ -3,12 +3,14 @@ using IdentityService.DTOs.Responses.UserDTOs;
 using IdentityService.Infrastructure.Services;
 using IdentityService.Model;
 using IdentityService.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace IdentityService.Infrastructure.Controller;
 
 [ApiController]
 [Route("api/[controller]")]
+[AllowAnonymous]
 public class AuthController : ControllerBase
 {
     private readonly ILogger<AuthController> _logger;
@@ -35,13 +37,11 @@ public class AuthController : ControllerBase
             return Unauthorized(ApiResponse<UserLoginResponse>.Fail(401, "Email không tồn tại"));
         }
 
-        // Verify password
         if (!PasswordHelper.VerifyPassword(request.Password, user.PasswordHash))
         {
             return Unauthorized(ApiResponse<UserLoginResponse>.Fail(401, "Sai mật khẩu"));
         }
 
-        // Generate token
         var token = _jwtService.GenerateJwtToken(user);
         var response = new UserLoginResponse
         {

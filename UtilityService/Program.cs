@@ -6,6 +6,8 @@ using Amazon;
 using Amazon.Extensions.NETCore.Setup;
 using Amazon.S3;
 using CustomerService.Infrastructure.Services;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.ML;
 using UtilityService.Infrastructure.Repositories;
 using UtilityService.Infrastructure.Services;
@@ -116,7 +118,6 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseCors("CorsPolicy");
-app.UseAuthorization();
 
 app.MapControllers();
 
