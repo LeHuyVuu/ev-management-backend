@@ -12,6 +12,8 @@ using DealerService.Extensions.Mapper;
 using DealerService.Infrastructure.Repositories;
 using DealerService.Infrastructure.Services;
 using DealerService.ExceptionHandler;
+using DealerService.Kafka.Settings;
+using DealerService.Kafka.Messaging.Producer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -148,6 +150,16 @@ builder.Services.AddAuthentication("Bearer")
             }
         };
     });
+
+// Bind KafkaSettings
+builder.Services.Configure<KafkaSettings>(builder.Configuration.GetSection("KafkaSettings"));
+
+// Kafka Producer
+builder.Services.AddScoped<IKafkaProducer, KafkaProducer>();
+
+// logging, controllers...
+builder.Services.AddLogging();
+
 
 builder.Services.AddAuthorization();
 

@@ -81,4 +81,21 @@ public class UserRepository
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> UpdateStatusDealerAccount(Guid dealerId, string status)
+    {
+        var users = await _context.Users
+            .Where(u => u.DealerId == dealerId)
+            .ToListAsync();
+
+        if (users == null || users.Count == 0)
+        {
+            return false;
+        }
+        foreach (var user in users)
+        {
+            await UpdateStatusUser(user.UserId, status);
+        }
+        return true;
+    }
 }
