@@ -88,6 +88,7 @@ builder.Services.AddHttpClient("groq", (sp, client) =>
 
 // HostedService (nếu có dùng)
 builder.Services.AddHostedService<ForecastAutoRefreshWorker>();
+builder.Services.AddHostedService<TestDriveCreatedConsumer>();
 
 builder.Services.AddSingleton(new MLContext(seed: 42));
 
