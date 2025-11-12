@@ -12,6 +12,7 @@ public class OrderDetailResponse
     // Thông tin xe
     public string Brand { get; set; }
     public string ModelName { get; set; }
+    public string VersionName { get; set; }
     public string Color {  get; set; }
     
     // Thông tin đơn hàng
